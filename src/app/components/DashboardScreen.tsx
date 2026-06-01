@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  Bell,
   ChevronRight,
   Loader2,
   RefreshCw,
@@ -20,6 +19,7 @@ type NavTab = "dashboard" | "menu" | "chat" | "profile";
 
 interface Props {
   onTabChange: (tab: NavTab) => void;
+  onGeneratePlan?: () => void;
 }
 
 function formatCOP(val: number) {
@@ -37,7 +37,7 @@ function storeDisplayName(
   return supermarkets?.find((store) => store.id === storeId)?.name ?? storeId;
 }
 
-export function DashboardScreen({ onTabChange }: Props) {
+export function DashboardScreen({ onTabChange, onGeneratePlan }: Props) {
   const { plan } = usePlan();
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -145,34 +145,25 @@ export function DashboardScreen({ onTabChange }: Props) {
           borderBottomRightRadius: "2rem",
         }}
       >
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <p
-              style={{
-                color: "rgba(255,255,255,0.65)",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-              }}
-            >
-              Bienvenida de vuelta
-            </p>
-            <h1
-              style={{
-                color: "white",
-                fontSize: "1.4rem",
-                fontWeight: 900,
-              }}
-            >
-              Hola, {firstName} 👋
-            </h1>
-          </div>
-          <button
-            type="button"
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.15)" }}
+        <div className="mb-5">
+          <p
+            style={{
+              color: "rgba(255,255,255,0.65)",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+            }}
           >
-            <Bell size={18} style={{ color: "white" }} />
-          </button>
+            Hola de nuevo
+          </p>
+          <h1
+            style={{
+              color: "white",
+              fontSize: "1.4rem",
+              fontWeight: 900,
+            }}
+          >
+            Hola, {firstName} 👋
+          </h1>
         </div>
 
         <div
@@ -329,7 +320,7 @@ export function DashboardScreen({ onTabChange }: Props) {
           )}
         </div>
 
-        <div className="px-6">
+        <div className="px-6 space-y-3">
           <button
             type="button"
             onClick={() => onTabChange("menu")}
@@ -370,6 +361,25 @@ export function DashboardScreen({ onTabChange }: Props) {
               style={{ color: "rgba(255,255,255,0.7)" }}
             />
           </button>
+
+          {plan && onGeneratePlan && (
+            <button
+              type="button"
+              onClick={onGeneratePlan}
+              className="w-full p-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              style={{
+                background: "white",
+                border: "1.5px solid rgba(22,163,74,0.35)",
+                color: "#16A34A",
+                fontWeight: 800,
+                fontSize: "0.9rem",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+              }}
+            >
+              <Sparkles size={18} />
+              Generar nuevo plan
+            </button>
+          )}
         </div>
 
         <div className="px-6">

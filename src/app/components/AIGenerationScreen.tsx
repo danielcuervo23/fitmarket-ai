@@ -248,45 +248,6 @@ export function AIGenerationScreen({ onDone }: Props) {
         </button>
       )}
 
-      {!displayError && (
-        <div className="absolute bottom-16 inset-x-8">
-          <div
-            className="rounded-3xl p-5 flex gap-6 justify-center"
-            style={{
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.15)",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            {[
-              { emoji: "🥩", label: "Proteínas", val: "48g" },
-              { emoji: "🌾", label: "Carbos", val: "180g" },
-              { emoji: "🥑", label: "Grasas", val: "55g" },
-            ].map(({ emoji, label, val }) => (
-              <div key={label} className="flex flex-col items-center gap-1">
-                <span style={{ fontSize: "1.4rem" }}>{emoji}</span>
-                <motion.span
-                  className="text-white"
-                  style={{ fontWeight: 800, fontSize: "0.95rem" }}
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  {val}
-                </motion.span>
-                <span
-                  style={{
-                    color: "rgba(255,255,255,0.5)",
-                    fontSize: "0.7rem",
-                    fontWeight: 500,
-                  }}
-                >
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -26,7 +26,6 @@ const mealSections: {
   label: string;
   color: string;
   bg: string;
-  kcal: string;
 }[] = [
   {
     key: "desayuno",
@@ -34,7 +33,6 @@ const mealSections: {
     label: "Desayuno",
     color: "#D97706",
     bg: "#FFFBEB",
-    kcal: "380",
   },
   {
     key: "almuerzo",
@@ -42,7 +40,6 @@ const mealSections: {
     label: "Almuerzo",
     color: "#16A34A",
     bg: "#F0FDF4",
-    kcal: "620",
   },
   {
     key: "cena",
@@ -50,7 +47,6 @@ const mealSections: {
     label: "Cena",
     color: "#7C3AED",
     bg: "#F3F0FF",
-    kcal: "420",
   },
   {
     key: "snacks",
@@ -58,7 +54,6 @@ const mealSections: {
     label: "Snacks",
     color: "#0891B2",
     bg: "#F0F9FF",
-    kcal: "200",
   },
 ];
 
@@ -238,7 +233,7 @@ export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-24 px-6 space-y-4">
-        {mealSections.map(({ key, emoji, label, color, bg, kcal }) => (
+        {mealSections.map(({ key, emoji, label, color, bg }) => (
           <div
             key={key}
             className="rounded-3xl overflow-hidden"
@@ -249,20 +244,12 @@ export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
             }}
           >
             <div
-              className="flex items-center justify-between px-5 py-3.5"
+              className="flex items-center gap-2.5 px-5 py-3.5"
               style={{ background: bg, borderBottom: `1px solid ${color}15` }}
             >
-              <div className="flex items-center gap-2.5">
-                <span style={{ fontSize: "1.3rem" }}>{emoji}</span>
-                <span style={{ fontWeight: 800, color, fontSize: "0.9rem" }}>
-                  {label}
-                </span>
-              </div>
-              <span
-                className="px-2.5 py-1 rounded-full text-xs"
-                style={{ background: `${color}20`, color, fontWeight: 700 }}
-              >
-                {kcal} kcal
+              <span style={{ fontSize: "1.3rem" }}>{emoji}</span>
+              <span style={{ fontWeight: 800, color, fontSize: "0.9rem" }}>
+                {label}
               </span>
             </div>
 
@@ -287,6 +274,24 @@ export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
             </div>
           </div>
         ))}
+
+        {onGeneratePlan && (
+          <button
+            type="button"
+            onClick={onGeneratePlan}
+            className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
+            style={{
+              background: "white",
+              border: "1.5px solid rgba(22,163,74,0.35)",
+              color: "#16A34A",
+              fontWeight: 800,
+              fontSize: "0.9rem",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+            }}
+          >
+            Regenerar plan
+          </button>
+        )}
       </div>
 
       <BottomNav active="menu" onChange={onTabChange} />

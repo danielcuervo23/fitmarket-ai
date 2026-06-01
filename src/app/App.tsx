@@ -380,7 +380,10 @@ export default function App() {
                     transition={transition}
                     className="absolute inset-0"
                   >
-                    <DashboardScreen onTabChange={handleTabChange} />
+                    <DashboardScreen
+                      onTabChange={handleTabChange}
+                      onGeneratePlan={() => go("generating")}
+                    />
                   </motion.div>
                 )}
 
