@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { User } from "@supabase/supabase-js";
 import { resolvePostAuthRoute } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { PlanProvider } from "@/contexts/PlanContext";
+import { PlanProvider, usePlan } from "@/contexts/PlanContext";
+import { fetchLatestWeeklyPlan } from "@/lib/weeklyPlans";
 import { SplashScreen } from "./components/SplashScreen";
 import { OnboardingScreen } from "./components/OnboardingScreen";
 import { RegisterScreen } from "./components/RegisterScreen";
@@ -63,6 +64,42 @@ function displayNameFromUser(user: User): string {
   }
 
   return "Usuario";
+}
+
+function PlanPersistenceBootstrap() {
+  const { session, isLoading } = useAuth();
+  const { plan, setPlan } = usePlan();
+  const restoreAttemptedRef = useRef(false);
+  const planRef = useRef(plan);
+
+  planRef.current = plan;
+
+  useEffect(() => {
+    if (isLoading || !session || restoreAttemptedRef.current) {
+      return;
+    }
+
+    restoreAttemptedRef.current = true;
+
+    if (planRef.current !== null) {
+      return;
+    }
+
+    void (async () => {
+      const { data, error } = await fetchLatestWeeklyPlan();
+
+      if (error) {
+        console.error("[FitMarket] fetchLatestWeeklyPlan:", error);
+        return;
+      }
+
+      if (data && planRef.current === null) {
+        setPlan(data);
+      }
+    })();
+  }, [isLoading, session, setPlan]);
+
+  return null;
 }
 
 export default function App() {
@@ -124,6 +161,7 @@ export default function App() {
 
   return (
     <PlanProvider>
+      <PlanPersistenceBootstrap />
     <div
       className="min-h-screen w-full flex items-center justify-center"
       style={{

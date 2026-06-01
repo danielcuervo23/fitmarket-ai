@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import type { WeeklyPlan } from "@/lib/ai/types";
 import { generateWeeklyPlan } from "@/lib/ai/generateWeeklyPlan";
 import { usePlan } from "@/contexts/PlanContext";
+import { saveWeeklyPlan } from "@/lib/weeklyPlans";
 
 interface Props {
   onDone: () => void;
@@ -24,6 +26,22 @@ export function AIGenerationScreen({ onDone }: Props) {
 
   onDoneRef.current = onDone;
 
+  const completeSuccessfulGeneration = useCallback(
+    async (data: WeeklyPlan) => {
+      const { error: saveError } = await saveWeeklyPlan(data);
+
+      if (saveError) {
+        console.error("[FitMarket] saveWeeklyPlan:", saveError);
+      }
+
+      setPlan(data);
+      setGenerating(false);
+      setIsLoading(false);
+      onDoneRef.current();
+    },
+    [setPlan, setGenerating],
+  );
+
   const runGeneration = useCallback(async () => {
     setError(null);
     setDisplayError(null);
@@ -42,12 +60,9 @@ export function AIGenerationScreen({ onDone }: Props) {
     }
 
     if (data) {
-      setPlan(data);
-      setGenerating(false);
-      setIsLoading(false);
-      onDoneRef.current();
+      await completeSuccessfulGeneration(data);
     }
-  }, [setPlan, setGenerating, setError]);
+  }, [setError, setGenerating, completeSuccessfulGeneration]);
 
   useEffect(() => {
     let active = true;
@@ -74,17 +89,14 @@ export function AIGenerationScreen({ onDone }: Props) {
       }
 
       if (data) {
-        setPlan(data);
-        setGenerating(false);
-        setIsLoading(false);
-        onDoneRef.current();
+        await completeSuccessfulGeneration(data);
       }
     })();
 
     return () => {
       active = false;
     };
-  }, [setPlan, setGenerating, setError]);
+  }, [setError, setGenerating, completeSuccessfulGeneration]);
 
   useEffect(() => {
     if (!isLoading || displayError) {
