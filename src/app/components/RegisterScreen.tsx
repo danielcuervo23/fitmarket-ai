@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 
 interface Props {
   onNext: (name: string) => void;
+  onAuthenticated: (name: string) => void;
+  onGoToLogin: () => void;
   onBack: () => void;
 }
 
@@ -57,7 +59,12 @@ function getSignUpErrorMessage(error: AuthError): string {
   return "No pudimos crear tu cuenta. Revisa tus datos e intenta de nuevo.";
 }
 
-export function RegisterScreen({ onNext, onBack }: Props) {
+export function RegisterScreen({
+  onNext,
+  onAuthenticated,
+  onGoToLogin,
+  onBack,
+}: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,7 +91,7 @@ export function RegisterScreen({ onNext, onBack }: Props) {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
       });
@@ -94,7 +101,14 @@ export function RegisterScreen({ onNext, onBack }: Props) {
         return;
       }
 
-      onNext(name.trim() || "Usuario");
+      const displayName = name.trim() || "Usuario";
+
+      if (data.session) {
+        onAuthenticated(displayName);
+        return;
+      }
+
+      onNext(displayName);
     } catch {
       setErrorMessage("No pudimos conectar. Revisa tu internet e intenta de nuevo.");
     } finally {
@@ -262,7 +276,21 @@ export function RegisterScreen({ onNext, onBack }: Props) {
         </button>
         <p className="text-center text-sm" style={{ color: '#9CA3AF', fontWeight: 500 }}>
           ¿Ya tienes cuenta?{' '}
-          <span style={{ color: '#16A34A', fontWeight: 700 }}>Inicia sesión</span>
+          <button
+            type="button"
+            onClick={onGoToLogin}
+            disabled={isLoading}
+            style={{
+              color: '#16A34A',
+              fontWeight: 700,
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+            }}
+          >
+            Inicia sesión
+          </button>
         </p>
       </div>
     </div>

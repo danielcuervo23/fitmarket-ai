@@ -2,7 +2,10 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronRight } from "lucide-react";
 
-interface Props { onNext: () => void }
+interface Props {
+  onNext: () => void;
+  onGoToLogin: () => void;
+}
 
 const slides = [
   {
@@ -31,7 +34,7 @@ const slides = [
   },
 ];
 
-export function OnboardingScreen({ onNext }: Props) {
+export function OnboardingScreen({ onNext, onGoToLogin }: Props) {
   const [current, setCurrent] = useState(0);
   const slide = slides[current];
   const isLast = current === slides.length - 1;
@@ -101,6 +104,7 @@ export function OnboardingScreen({ onNext }: Props) {
 
         {/* Next button */}
         <button
+          type="button"
           onClick={handleNext}
           className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
           style={{ background: slide.accent, color: 'white', fontWeight: 800, fontSize: '1rem' }}
@@ -108,6 +112,24 @@ export function OnboardingScreen({ onNext }: Props) {
           {isLast ? 'Crear mi cuenta' : 'Siguiente'}
           <ChevronRight size={20} strokeWidth={2.5} />
         </button>
+
+        <p className="text-center text-sm" style={{ color: '#6B8072', fontWeight: 500 }}>
+          ¿Ya tienes cuenta?{' '}
+          <button
+            type="button"
+            onClick={onGoToLogin}
+            style={{
+              color: slide.accent,
+              fontWeight: 700,
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+            }}
+          >
+            Inicia sesión
+          </button>
+        </p>
       </div>
     </div>
   );
