@@ -1,178 +1,73 @@
-import { buildGenerationInput, type GenerationInput } from "@/lib/ai/buildGenerationInput";
-import {
-  DAY_IDS,
-  MEAL_SLOTS,
-  type DayId,
-  type DayMenu,
-  type PlanSummary,
-  type ShoppingCategory,
-  type ShoppingItem,
-  type WeeklyMenu,
-  type WeeklyPlan,
-} from "@/lib/ai/types";
-import type { GoalType } from "@/lib/goals";
+import { parseWeeklyPlanJson } from "@/lib/ai/weeklyPlanSchema";
+import type { WeeklyPlan } from "@/lib/ai/types";
+import { supabase } from "@/lib/supabase";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 
-const GOAL_LABELS: Record<GoalType, string> = {
-  muscle: "ganar masa muscular",
-  fat: "perder grasa",
-  healthy: "comer saludable",
-  save: "ahorrar dinero",
-  family: "alimentación familiar",
-  energy: "mejorar tu energía",
+type GenerateWeeklyPlanResponse = {
+  plan?: unknown;
+  error?: string;
 };
 
-const SHOPPING_TEMPLATES: {
-  name: string;
-  quantity: string;
-  category: ShoppingCategory;
-}[] = [
-  { name: "Pechuga de pollo", quantity: "1 kg", category: "proteinas" },
-  { name: "Huevos", quantity: "12 und", category: "proteinas" },
-  { name: "Lentejas", quantity: "500 g", category: "granos" },
-  { name: "Arroz integral", quantity: "1 kg", category: "granos" },
-  { name: "Avena", quantity: "500 g", category: "granos" },
-  { name: "Banano", quantity: "6 und", category: "frutas_verduras" },
-  { name: "Tomate", quantity: "1 kg", category: "frutas_verduras" },
-  { name: "Espinaca", quantity: "250 g", category: "frutas_verduras" },
-  { name: "Yogur natural", quantity: "1 L", category: "lacteos" },
-  { name: "Leche descremada", quantity: "1 L", category: "lacteos" },
-  { name: "Aceite de oliva", quantity: "500 ml", category: "condimentos" },
-  { name: "Agua", quantity: "6 und", category: "bebidas" },
-];
-
-function formatCop(amount: number): string {
-  return amount.toLocaleString("es-CO", { maximumFractionDigits: 0 });
+function getFallbackInvokeErrorMessage(): string {
+  return "No pudimos generar tu plan. Intenta de nuevo en unos segundos.";
 }
 
-function goalLabelsText(goals: string[]): string {
-  return goals
-    .map((goal) => GOAL_LABELS[goal as GoalType] ?? goal)
-    .join(", ");
-}
+async function getInvokeErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = (await error.context.json()) as { error?: string };
 
-function estimatedDailyKcal(goals: string[]): number {
-  if (goals.includes("muscle")) {
-    return 2100;
-  }
-
-  if (goals.includes("fat")) {
-    return 1650;
-  }
-
-  if (goals.includes("save")) {
-    return 1550;
-  }
-
-  if (goals.includes("family")) {
-    return 1900;
-  }
-
-  return 1800;
-}
-
-function mealLinesForDay(
-  dayId: DayId,
-  mealSlot: (typeof MEAL_SLOTS)[number],
-  input: GenerationInput,
-  dayIndex: number,
-): string[] {
-  const goalId = input.goals[dayIndex % input.goals.length];
-  const goalLabel = GOAL_LABELS[goalId as GoalType] ?? goalId;
-  const storeId = input.supermarkets[dayIndex % input.supermarkets.length];
-  const dayLabel = dayId.toUpperCase();
-
-  const mealNames: Record<(typeof MEAL_SLOTS)[number], string> = {
-    desayuno: "Desayuno",
-    almuerzo: "Almuerzo",
-    cena: "Cena",
-    snacks: "Snack",
-  };
-
-  return [
-    `${mealNames[mealSlot]} · ${dayLabel} (plan demo)`,
-    `Enfocado en ${goalLabel}`,
-    `Compra sugerida en ${storeId}`,
-  ];
-}
-
-function buildMockWeeklyMenu(input: GenerationInput): WeeklyMenu {
-  const menu = {} as WeeklyMenu;
-
-  DAY_IDS.forEach((dayId, dayIndex) => {
-    const dayMenu = {} as DayMenu;
-
-    MEAL_SLOTS.forEach((mealSlot) => {
-      dayMenu[mealSlot] = mealLinesForDay(dayId, mealSlot, input, dayIndex);
-    });
-
-    menu[dayId] = dayMenu;
-  });
-
-  return menu;
-}
-
-function buildMockShoppingList(input: GenerationInput): ShoppingItem[] {
-  const targetTotal = Math.round(input.weekly_budget_cop * 0.92);
-  const itemCount = Math.min(
-    SHOPPING_TEMPLATES.length,
-    Math.max(6, Math.floor(targetTotal / 12_000)),
-  );
-  const templates = SHOPPING_TEMPLATES.slice(0, itemCount);
-  const basePrice = Math.floor(targetTotal / itemCount);
-  let remainder = targetTotal - basePrice * itemCount;
-
-  return templates.map((template, index) => {
-    const extra = remainder > 0 ? 1 : 0;
-
-    if (remainder > 0) {
-      remainder -= 1;
+      if (typeof body.error === "string" && body.error.trim()) {
+        return body.error;
+      }
+    } catch {
+      // Usar mensaje genérico si el cuerpo no es JSON legible.
     }
+  }
 
-    return {
-      name: template.name,
-      quantity: template.quantity,
-      estimated_price_cop: basePrice + extra,
-      category: template.category,
-      store_id: input.supermarkets[index % input.supermarkets.length],
-    };
-  });
-}
+  const message =
+    error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
 
-function buildMockSummary(input: GenerationInput, shoppingList: ShoppingItem[]): PlanSummary {
-  const estimatedTotalCop = shoppingList.reduce(
-    (sum, item) => sum + item.estimated_price_cop,
-    0,
-  );
+  if (message.includes("network") || message.includes("fetch")) {
+    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
+  }
 
-  return {
-    estimated_total_cop: estimatedTotalCop,
-    estimated_daily_kcal: estimatedDailyKcal(input.goals),
-    savings_note: `Plan demo · Presupuesto $${formatCop(input.weekly_budget_cop)} COP · Objetivos: ${goalLabelsText(input.goals)} · Tiendas: ${input.supermarkets.join(", ")}`,
-  };
-}
-
-function buildMockWeeklyPlan(input: GenerationInput): WeeklyPlan {
-  const shopping_list = buildMockShoppingList(input);
-
-  return {
-    summary: buildMockSummary(input, shopping_list),
-    weekly_menu: buildMockWeeklyMenu(input),
-    shopping_list,
-  };
+  return getFallbackInvokeErrorMessage();
 }
 
 export async function generateWeeklyPlan(): Promise<{
   data: WeeklyPlan | null;
   error: string | null;
 }> {
-  const { data: input, error } = await buildGenerationInput();
+  const { data: payload, error: invokeError } =
+    await supabase.functions.invoke<GenerateWeeklyPlanResponse>(
+      "generate-weekly-plan",
+      { body: {} },
+    );
 
-  if (error || !input) {
-    return { data: null, error };
+  if (invokeError) {
+    return {
+      data: null,
+      error: await getInvokeErrorMessage(invokeError),
+    };
   }
 
-  return {
-    data: buildMockWeeklyPlan(input),
-    error: null,
-  };
+  if (payload?.error) {
+    return { data: null, error: payload.error };
+  }
+
+  if (!payload?.plan) {
+    return { data: null, error: getFallbackInvokeErrorMessage() };
+  }
+
+  const { data: plan, error: parseError } = parseWeeklyPlanJson(payload.plan);
+
+  if (parseError || !plan) {
+    return {
+      data: null,
+      error: parseError ?? "El plan generado no tiene un formato válido.",
+    };
+  }
+
+  return { data: plan as WeeklyPlan, error: null };
 }
