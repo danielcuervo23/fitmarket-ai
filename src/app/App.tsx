@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import { resolvePostAuthRoute } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { PlanProvider } from "@/contexts/PlanContext";
 import { SplashScreen } from "./components/SplashScreen";
 import { OnboardingScreen } from "./components/OnboardingScreen";
 import { RegisterScreen } from "./components/RegisterScreen";
@@ -122,6 +123,7 @@ export default function App() {
   const showAuthLoading = isLoading || !bootstrapped;
 
   return (
+    <PlanProvider>
     <div
       className="min-h-screen w-full flex items-center justify-center"
       style={{
@@ -326,7 +328,7 @@ export default function App() {
                     transition={transition}
                     className="absolute inset-0"
                   >
-                    <AIGenerationScreen onDone={() => go("dashboard")} />
+                    <AIGenerationScreen onDone={() => go("menu")} />
                   </motion.div>
                 )}
 
@@ -340,11 +342,7 @@ export default function App() {
                     transition={transition}
                     className="absolute inset-0"
                   >
-                    <DashboardScreen
-                      name={userName}
-                      budget={budget}
-                      onTabChange={handleTabChange}
-                    />
+                    <DashboardScreen onTabChange={handleTabChange} />
                   </motion.div>
                 )}
 
@@ -358,7 +356,10 @@ export default function App() {
                     transition={transition}
                     className="absolute inset-0"
                   >
-                    <WeeklyMenuScreen onTabChange={handleTabChange} />
+                    <WeeklyMenuScreen
+                      onTabChange={handleTabChange}
+                      onGeneratePlan={() => go("generating")}
+                    />
                   </motion.div>
                 )}
 
@@ -497,5 +498,6 @@ export default function App() {
         </div>
       </div>
     </div>
+    </PlanProvider>
   );
 }
