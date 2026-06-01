@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight, Loader2 } from "lucide-react";
+import { saveUserGoals } from "@/lib/goals";
 
 interface Props { onNext: (goals: string[]) => void; onBack: () => void }
 
@@ -14,15 +15,51 @@ const goals = [
 
 export function GoalsScreen({ onNext, onBack }: Props) {
   const [selected, setSelected] = useState<string[]>(['healthy']);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const clearError = () => {
+    if (errorMessage) {
+      setErrorMessage(null);
+    }
+  };
 
   const toggle = (id: string) => {
+    if (isLoading) return;
     setSelected((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
+    clearError();
+  };
+
+  const handleContinue = async () => {
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      const { error } = await saveUserGoals(selected);
+
+      if (error) {
+        setErrorMessage(error);
+        return;
+      }
+
+      onNext(selected);
+    } catch {
+      setErrorMessage("No pudimos conectar. Revisa tu internet e intenta de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="absolute inset-0 bg-white flex flex-col">
       <div className="pt-14 px-6 pb-4 border-b border-gray-50">
-        <button onClick={onBack} className="w-10 h-10 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0F5F1' }}>
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={isLoading}
+          className="w-10 h-10 rounded-full flex items-center justify-center mb-4 disabled:opacity-50"
+          style={{ background: '#F0F5F1' }}
+        >
           <ArrowLeft size={20} style={{ color: '#374151' }} />
         </button>
         <div className="flex items-center gap-2 mb-1">
@@ -45,8 +82,10 @@ export function GoalsScreen({ onNext, onBack }: Props) {
             return (
               <button
                 key={goal.id}
+                type="button"
+                disabled={isLoading}
                 onClick={() => toggle(goal.id)}
-                className="relative flex flex-col items-center gap-3 p-5 rounded-3xl transition-all active:scale-95"
+                className="relative flex flex-col items-center gap-3 p-5 rounded-3xl transition-all active:scale-95 disabled:opacity-60"
                 style={{
                   border: `2px solid ${isSelected ? goal.color : 'rgba(0,0,0,0.07)'}`,
                   background: isSelected ? goal.bg : 'white',
@@ -73,15 +112,40 @@ export function GoalsScreen({ onNext, onBack }: Props) {
         </div>
       </div>
 
-      <div className="px-6 pb-10">
+      <div className="px-6 pb-10 space-y-3">
+        {errorMessage && (
+          <div
+            role="alert"
+            className="px-4 py-3 rounded-2xl text-sm"
+            style={{
+              background: '#FEF2F2',
+              border: '1.5px solid rgba(220,38,38,0.2)',
+              color: '#991B1B',
+              fontWeight: 600,
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+
         <button
-          onClick={() => onNext(selected)}
-          disabled={selected.length === 0}
-          className="w-full py-4 rounded-2xl text-white flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+          type="button"
+          onClick={handleContinue}
+          disabled={selected.length === 0 || isLoading}
+          className="w-full py-4 rounded-2xl text-white flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ background: '#16A34A', fontWeight: 800, fontSize: '1rem', boxShadow: '0 8px 24px rgba(22,163,74,0.35)' }}
         >
-          Continuar ({selected.length} elegido{selected.length !== 1 ? 's' : ''})
-          <ChevronRight size={20} strokeWidth={2.5} />
+          {isLoading ? (
+            <>
+              <Loader2 size={20} className="animate-spin" />
+              Guardando objetivos...
+            </>
+          ) : (
+            <>
+              Continuar ({selected.length} elegido{selected.length !== 1 ? 's' : ''})
+              <ChevronRight size={20} strokeWidth={2.5} />
+            </>
+          )}
         </button>
       </div>
     </div>

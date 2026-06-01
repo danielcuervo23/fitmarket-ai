@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
+import { saveUserSupermarkets } from "@/lib/supermarkets";
 
 interface Props { onNext: (stores: string[]) => void; onBack: () => void }
 
@@ -14,15 +15,51 @@ const stores = [
 
 export function SupermarketsScreen({ onNext, onBack }: Props) {
   const [selected, setSelected] = useState<string[]>(['D1', 'Ara']);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const clearError = () => {
+    if (errorMessage) {
+      setErrorMessage(null);
+    }
+  };
 
   const toggle = (id: string) => {
+    if (isLoading) return;
     setSelected((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
+    clearError();
+  };
+
+  const handleContinue = async () => {
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      const { error } = await saveUserSupermarkets(selected);
+
+      if (error) {
+        setErrorMessage(error);
+        return;
+      }
+
+      onNext(selected);
+    } catch {
+      setErrorMessage("No pudimos conectar. Revisa tu internet e intenta de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="absolute inset-0 bg-white flex flex-col">
       <div className="pt-14 px-6 pb-4">
-        <button onClick={onBack} className="w-10 h-10 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0F5F1' }}>
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={isLoading}
+          className="w-10 h-10 rounded-full flex items-center justify-center mb-4 disabled:opacity-50"
+          style={{ background: '#F0F5F1' }}
+        >
           <ArrowLeft size={20} style={{ color: '#374151' }} />
         </button>
         <div className="flex items-center gap-2 mb-1">
@@ -44,18 +81,19 @@ export function SupermarketsScreen({ onNext, onBack }: Props) {
           return (
             <motion.button
               key={store.id}
+              type="button"
+              disabled={isLoading}
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.07 }}
               onClick={() => toggle(store.id)}
-              className="w-full flex items-center gap-4 px-5 py-4 rounded-3xl transition-all active:scale-[0.98]"
+              className="w-full flex items-center gap-4 px-5 py-4 rounded-3xl transition-all active:scale-[0.98] disabled:opacity-60"
               style={{
                 border: `2px solid ${isSelected ? store.color : 'rgba(0,0,0,0.07)'}`,
                 background: isSelected ? store.bg : 'white',
                 boxShadow: isSelected ? `0 4px 20px ${store.color}30` : '0 2px 8px rgba(0,0,0,0.04)',
               }}
             >
-              {/* Logo circle */}
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
                 style={{ background: store.bg, border: `1.5px solid ${store.color}40` }}
@@ -63,7 +101,6 @@ export function SupermarketsScreen({ onNext, onBack }: Props) {
                 <span style={{ fontSize: '1.6rem' }}>{store.logo}</span>
               </div>
 
-              {/* Info */}
               <div className="flex-1 text-left">
                 <p style={{ fontWeight: 800, color: isSelected ? store.textColor : '#0D1F16', fontSize: '1.05rem' }}>
                   {store.name}
@@ -71,7 +108,6 @@ export function SupermarketsScreen({ onNext, onBack }: Props) {
                 <p style={{ color: '#9CA3AF', fontSize: '0.78rem', fontWeight: 400 }}>{store.tagline}</p>
               </div>
 
-              {/* Checkbox */}
               <div
                 className="w-6 h-6 rounded-full flex items-center justify-center transition-all"
                 style={{
@@ -90,14 +126,37 @@ export function SupermarketsScreen({ onNext, onBack }: Props) {
         })}
       </div>
 
-      <div className="px-6 pb-10">
+      <div className="px-6 pb-10 space-y-3">
+        {errorMessage && (
+          <div
+            role="alert"
+            className="px-4 py-3 rounded-2xl text-sm"
+            style={{
+              background: '#FEF2F2',
+              border: '1.5px solid rgba(220,38,38,0.2)',
+              color: '#991B1B',
+              fontWeight: 600,
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+
         <button
-          onClick={() => onNext(selected)}
-          disabled={selected.length === 0}
-          className="w-full py-4 rounded-2xl text-white active:scale-95 transition-transform disabled:opacity-50"
+          type="button"
+          onClick={handleContinue}
+          disabled={selected.length === 0 || isLoading}
+          className="w-full py-4 rounded-2xl text-white active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           style={{ background: '#16A34A', fontWeight: 800, fontSize: '1rem', boxShadow: '0 8px 24px rgba(22,163,74,0.35)' }}
         >
-          Generar mi plan con IA ✨
+          {isLoading ? (
+            <>
+              <Loader2 size={20} className="animate-spin" />
+              Guardando supermercados...
+            </>
+          ) : (
+            "Generar mi plan con IA ✨"
+          )}
         </button>
       </div>
     </div>
