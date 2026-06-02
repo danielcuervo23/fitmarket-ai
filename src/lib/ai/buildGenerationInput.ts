@@ -15,18 +15,50 @@ export interface GenerationInput {
   profile: UserProfileContext;
 }
 
-function getGenerationInputErrorMessage(error: PostgrestError): string {
+function getGenerationInputErrorMessage(
+  error: PostgrestError,
+  source: "profiles" | "user_goals" | "user_supermarkets",
+): string {
   const message = error.message.toLowerCase();
+  const code = error.code ?? "";
 
-  if (message.includes("network") || message.includes("fetch")) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
-  }
+  console.error("[buildGenerationInput] load failed", {
+    source,
+    code,
+    message: error.message,
+    details: error.details,
+    hint: error.hint,
+  });
 
-  if (message.includes("row-level security") || error.code === "42501") {
+  if (code === "42501" || message.includes("row-level security")) {
     return "No tienes permiso para generar tu plan. Inicia sesión e intenta de nuevo.";
   }
 
-  return "No pudimos cargar tus preferencias. Intenta de nuevo en unos segundos.";
+  if (
+    message.includes("network") ||
+    message.includes("fetch") ||
+    message.includes("timeout")
+  ) {
+    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
+  }
+
+  if (
+    code === "42703" ||
+    message.includes("does not exist") ||
+    message.includes("schema cache")
+  ) {
+    return "Hay un problema de configuración en el servidor. Intenta más tarde o contacta soporte.";
+  }
+
+  if (code === "PGRST116" || message.includes("0 rows")) {
+    if (source === "profiles") {
+      return "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.";
+    }
+
+    return "Completa tu configuración en la app antes de generar tu plan.";
+  }
+
+  return "No pudimos leer tu configuración. Intenta de nuevo en unos segundos.";
 }
 
 function validateGenerationInput(
@@ -82,11 +114,28 @@ export async function buildGenerationInput(): Promise<{
       .eq("user_id", user.id),
   ]);
 
-  const firstError =
-    profileResult.error ?? goalsResult.error ?? supermarketsResult.error;
+  if (profileResult.error) {
+    return {
+      data: null,
+      error: getGenerationInputErrorMessage(profileResult.error, "profiles"),
+    };
+  }
 
-  if (firstError) {
-    return { data: null, error: getGenerationInputErrorMessage(firstError) };
+  if (goalsResult.error) {
+    return {
+      data: null,
+      error: getGenerationInputErrorMessage(goalsResult.error, "user_goals"),
+    };
+  }
+
+  if (supermarketsResult.error) {
+    return {
+      data: null,
+      error: getGenerationInputErrorMessage(
+        supermarketsResult.error,
+        "user_supermarkets",
+      ),
+    };
   }
 
   const goals = (goalsResult.data ?? [])

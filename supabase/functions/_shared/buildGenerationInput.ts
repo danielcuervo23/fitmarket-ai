@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { DIETARY_PREDEFINED_IDS } from "./dietaryRestrictions.ts";
+import { mapGenerationInputLoadError } from "./generationInputErrors.ts";
 import { isActivityLevel } from "./goalRules.ts";
 import type { WeeklyPlanPromptInput } from "./prompts.ts";
 
@@ -100,23 +101,27 @@ export async function buildGenerationInputFromDb(
       .eq("user_id", userId),
   ]);
 
-  const firstError =
-    profileResult.error ?? goalsResult.error ?? supermarketsResult.error;
-
-  if (firstError) {
-    const message = firstError.message.toLowerCase();
-
-    if (message.includes("row-level security") || firstError.code === "42501") {
-      return {
-        data: null,
-        error:
-          "No tienes permiso para generar tu plan. Inicia sesión e intenta de nuevo.",
-      };
-    }
-
+  if (profileResult.error) {
     return {
       data: null,
-      error: "No pudimos cargar tus preferencias. Intenta de nuevo en unos segundos.",
+      error: mapGenerationInputLoadError(profileResult.error, "profiles"),
+    };
+  }
+
+  if (goalsResult.error) {
+    return {
+      data: null,
+      error: mapGenerationInputLoadError(goalsResult.error, "user_goals"),
+    };
+  }
+
+  if (supermarketsResult.error) {
+    return {
+      data: null,
+      error: mapGenerationInputLoadError(
+        supermarketsResult.error,
+        "user_supermarkets",
+      ),
     };
   }
 

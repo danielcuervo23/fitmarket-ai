@@ -74,15 +74,21 @@ export async function signOut(): Promise<{ error: string | null }> {
 export async function fetchHasProfile(userId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, age, weight_kg, height_cm, activity_level")
     .eq("id", userId)
     .maybeSingle();
 
-  if (error) {
+  if (error || !data) {
     return false;
   }
 
-  return data !== null;
+  return (
+    data.age != null &&
+    data.weight_kg != null &&
+    data.height_cm != null &&
+    typeof data.activity_level === "string" &&
+    data.activity_level.length > 0
+  );
 }
 
 export async function resolvePostAuthRoute(): Promise<PostAuthRoute> {
@@ -95,6 +101,6 @@ export async function resolvePostAuthRoute(): Promise<PostAuthRoute> {
     return "profile";
   }
 
-  const hasProfile = await fetchHasProfile(user.id);
-  return hasProfile ? "dashboard" : "profile";
+  const hasCompleteProfile = await fetchHasProfile(user.id);
+  return hasCompleteProfile ? "dashboard" : "profile";
 }

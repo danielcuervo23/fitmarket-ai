@@ -67,8 +67,8 @@ export async function upsertProfile(
     {
       id: user.id,
       age: input.age,
-      weight: input.weight,
-      height: input.height,
+      weight_kg: input.weight,
+      height_cm: input.height,
       activity_level: input.activity_level,
     },
     { onConflict: "id" },

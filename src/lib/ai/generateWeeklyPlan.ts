@@ -208,6 +208,8 @@ export async function generateWeeklyPlan(): Promise<{
   }
 
   if (invokeError) {
+    console.error("[FitMarket] generate-weekly-plan invoke:", invokeError);
+
     return {
       data: null,
       error: {
