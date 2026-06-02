@@ -4,13 +4,30 @@ import type { WeeklyPlan } from "@/lib/ai/types";
 import type { DashboardSupermarket } from "@/lib/dashboard";
 import { formatCOP, storeDisplayName } from "@/lib/formatCop";
 import { groupShoppingListByStore } from "@/lib/shoppingListGroups";
+import { ShoppingChecklistItem } from "./ShoppingChecklistItem";
+import { ShoppingProgressBar } from "./ShoppingProgressBar";
+
+interface ChecklistApi {
+  isChecked: (listIndex: number) => boolean;
+  toggleItem: (listIndex: number) => void;
+  getStoreProgress: (listIndices: number[]) => {
+    checked: number;
+    total: number;
+    percent: number;
+  };
+}
 
 interface Props {
   plan: WeeklyPlan | null;
   supermarkets: DashboardSupermarket[];
+  checklist: ChecklistApi;
 }
 
-export function StoreShoppingPlanSection({ plan, supermarkets }: Props) {
+export function StoreShoppingPlanSection({
+  plan,
+  supermarkets,
+  checklist,
+}: Props) {
   const [expandedStoreIds, setExpandedStoreIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -70,6 +87,8 @@ export function StoreShoppingPlanSection({ plan, supermarkets }: Props) {
             const storeName = storeDisplayName(group.storeId, supermarkets);
             const productLabel =
               group.itemCount === 1 ? "producto" : "productos";
+            const listIndices = group.items.map((item) => item.listIndex);
+            const storeProgress = checklist.getStoreProgress(listIndices);
 
             return (
               <div
@@ -126,6 +145,14 @@ export function StoreShoppingPlanSection({ plan, supermarkets }: Props) {
                         {formatCOP(group.subtotalCop)}
                       </span>
                     </p>
+                    <div className="mt-3 pr-2">
+                      <ShoppingProgressBar
+                        label={storeName}
+                        checked={storeProgress.checked}
+                        total={storeProgress.total}
+                        percent={storeProgress.percent}
+                      />
+                    </div>
                   </div>
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
                     {isExpanded ? (
@@ -147,46 +174,13 @@ export function StoreShoppingPlanSection({ plan, supermarkets }: Props) {
 
                 {isExpanded && (
                   <>
-                    {group.items.map((item, index) => (
-                      <div
-                        key={`${item.name}-${index}`}
-                        className="flex items-start gap-3 px-4 py-3.5"
-                        style={{
-                          borderTop: "1px solid rgba(0,0,0,0.05)",
-                        }}
-                      >
-                        <div className="flex-1 min-w-0 pl-[52px]">
-                          <p
-                            style={{
-                              fontWeight: 700,
-                              color: "#0D1F16",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {item.name}
-                          </p>
-                          <p
-                            style={{
-                              color: "#6B8072",
-                              fontSize: "0.78rem",
-                              fontWeight: 500,
-                              marginTop: "2px",
-                            }}
-                          >
-                            {item.quantity}
-                          </p>
-                        </div>
-                        <p
-                          className="flex-shrink-0"
-                          style={{
-                            fontWeight: 800,
-                            color: "#16A34A",
-                            fontSize: "0.82rem",
-                          }}
-                        >
-                          {formatCOP(item.estimated_price_cop)}
-                        </p>
-                      </div>
+                    {group.items.map((item) => (
+                      <ShoppingChecklistItem
+                        key={`${group.storeId}-${item.listIndex}`}
+                        item={item}
+                        checked={checklist.isChecked(item.listIndex)}
+                        onToggle={() => checklist.toggleItem(item.listIndex)}
+                      />
                     ))}
 
                     <div

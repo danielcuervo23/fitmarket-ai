@@ -1,9 +1,12 @@
 import { Loader2, RefreshCw, ShoppingCart } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePlan } from "@/contexts/PlanContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useShoppingChecklist } from "@/hooks/useShoppingChecklist";
 import { formatCOP } from "@/lib/formatCop";
 import { BottomNav, type NavTab } from "./BottomNav";
 import { BudgetRecommendationsSection } from "./market/BudgetRecommendationsSection";
+import { ShoppingProgressBar } from "./market/ShoppingProgressBar";
 import { StoreShoppingPlanSection } from "./market/StoreShoppingPlanSection";
 
 interface Props {
@@ -12,8 +15,10 @@ interface Props {
 }
 
 export function MarketScreen({ onTabChange, onGeneratePlan }: Props) {
+  const { user } = useAuth();
   const { plan } = usePlan();
   const { data, isLoading, errorMessage, reload } = useDashboardData();
+  const checklist = useShoppingChecklist(plan, user?.id);
 
   const handleGeneratePlan = () => {
     if (onGeneratePlan) {
@@ -168,6 +173,24 @@ export function MarketScreen({ onTabChange, onGeneratePlan }: Props) {
             </div>
           </div>
         </div>
+
+        {checklist.hasPlan && (
+          <div
+            className="rounded-2xl p-4 mt-4"
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
+          >
+            <ShoppingProgressBar
+              label="Progreso de compras"
+              checked={checklist.overallProgress.checked}
+              total={checklist.overallProgress.total}
+              percent={checklist.overallProgress.percent}
+              variant="header"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto pb-24 space-y-5 pt-5">
@@ -210,7 +233,11 @@ export function MarketScreen({ onTabChange, onGeneratePlan }: Props) {
           </div>
         )}
 
-        <StoreShoppingPlanSection plan={plan} supermarkets={supermarkets} />
+        <StoreShoppingPlanSection
+          plan={plan}
+          supermarkets={supermarkets}
+          checklist={checklist}
+        />
 
         <BudgetRecommendationsSection
           plan={plan}
