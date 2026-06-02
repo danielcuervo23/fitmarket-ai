@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, ChevronRight, Loader2 } from "lucide-react";
 import { isActivityLevel, upsertProfile, type ActivityLevel } from "@/lib/profile";
+import { supabase } from "@/lib/supabase";
 
 interface Props {
   name: string;
@@ -41,6 +42,18 @@ export function ProfileScreen({ name, onNext, onBack }: Props) {
     setIsLoading(true);
 
     try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        setErrorMessage(
+          "Debes iniciar sesión para guardar tu perfil. Si acabas de registrarte, confirma tu correo e inicia sesión.",
+        );
+        return;
+      }
+
       const { error } = await upsertProfile({
         age,
         weight,

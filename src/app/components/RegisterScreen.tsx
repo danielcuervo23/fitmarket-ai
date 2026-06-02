@@ -108,7 +108,9 @@ export function RegisterScreen({
         return;
       }
 
-      onNext(displayName);
+      setErrorMessage(
+        "Revisa tu correo y confirma tu cuenta. Luego inicia sesión para continuar con tu perfil.",
+      );
     } catch {
       setErrorMessage("No pudimos conectar. Revisa tu internet e intenta de nuevo.");
     } finally {
