@@ -15,6 +15,11 @@ export interface ProfileInput {
   activity_level: ActivityLevel;
 }
 
+/** Campos de preferencias almacenados en public.profiles */
+export interface ProfileRecord {
+  dietary_restrictions: string[];
+}
+
 const ACTIVITY_LEVELS: readonly ActivityLevel[] = [
   "sedentary",
   "light",

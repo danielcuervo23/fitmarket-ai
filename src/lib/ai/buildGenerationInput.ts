@@ -1,4 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
+import { normalizeDietaryRestrictionsFromDb } from "@/lib/dietaryRestrictions";
 import { isGoalType } from "@/lib/goals";
 import { isSupermarketId } from "@/lib/supermarkets";
 import { supabase } from "@/lib/supabase";
@@ -7,6 +8,7 @@ export interface GenerationInput {
   weekly_budget_cop: number;
   goals: string[];
   supermarkets: string[];
+  dietary_restrictions: string[];
   locale: "es-CO";
   household_size: 1;
 }
@@ -61,7 +63,7 @@ export async function buildGenerationInput(): Promise<{
   const [profileResult, goalsResult, supermarketsResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("weekly_budget_cop")
+      .select("weekly_budget_cop, dietary_restrictions")
       .eq("id", user.id)
       .maybeSingle(),
     supabase.from("user_goals").select("goal_type").eq("user_id", user.id),
@@ -97,12 +99,16 @@ export async function buildGenerationInput(): Promise<{
   }
 
   const weeklyBudgetCop = profileResult.data!.weekly_budget_cop as number;
+  const dietaryRestrictions = normalizeDietaryRestrictionsFromDb(
+    profileResult.data?.dietary_restrictions,
+  );
 
   return {
     data: {
       weekly_budget_cop: weeklyBudgetCop,
       goals,
       supermarkets,
+      dietary_restrictions: dietaryRestrictions,
       locale: "es-CO",
       household_size: 1,
     },

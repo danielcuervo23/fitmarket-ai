@@ -3,11 +3,15 @@ import { Loader2, LogOut, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveWeeklyBudget } from "@/lib/budget";
 import { fetchDashboardData } from "@/lib/dashboard";
+import {
+  buildStoredDietaryRestrictions,
+  DIETARY_RESTRICTION_OPTIONS,
+  parseStoredDietaryRestrictions,
+  saveDietaryRestrictions,
+} from "@/lib/dietaryRestrictions";
 import { saveUserGoals } from "@/lib/goals";
 import { saveUserSupermarkets } from "@/lib/supermarkets";
-import { BottomNav } from "./BottomNav";
-
-type NavTab = "dashboard" | "menu" | "chat" | "profile";
+import { BottomNav, type NavTab } from "./BottomNav";
 
 interface Props {
   onTabChange: (tab: NavTab) => void;
@@ -35,6 +39,7 @@ interface SavedPreferences {
   budgetCop: number;
   goals: string[];
   supermarkets: string[];
+  dietaryRestrictions: string[];
 }
 
 function sortedKey(values: string[]): string {
@@ -64,6 +69,8 @@ export function ProfileSettingsScreen({ onTabChange, onSignedOut }: Props) {
   const [budgetInput, setBudgetInput] = useState("");
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [selectedStores, setSelectedStores] = useState<string[]>([]);
+  const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
+  const [otherFoodsInput, setOtherFoodsInput] = useState("");
 
   const displayEmail = user?.email ?? "Sin correo";
   const budgetCop = parseBudgetInput(budgetInput);
@@ -83,17 +90,23 @@ export function ProfileSettingsScreen({ onTabChange, onSignedOut }: Props) {
       const budget = data?.weeklyBudgetCop ?? 0;
       const goals = data?.goals.map((goal) => goal.id) ?? [];
       const supermarkets = data?.supermarkets.map((store) => store.id) ?? [];
+      const dietaryRestrictions = data?.dietaryRestrictions ?? [];
+      const { selectedIds, otherText } =
+        parseStoredDietaryRestrictions(dietaryRestrictions);
 
       const snapshot: SavedPreferences = {
         budgetCop: budget,
         goals,
         supermarkets,
+        dietaryRestrictions,
       };
 
       setSavedPrefs(snapshot);
       setBudgetInput(formatBudgetInput(budget));
       setSelectedGoals(goals);
       setSelectedStores(supermarkets);
+      setSelectedDietary(selectedIds);
+      setOtherFoodsInput(otherText);
     } catch {
       setErrorMessage(
         "No pudimos conectar. Revisa tu internet e intenta de nuevo.",
@@ -112,12 +125,26 @@ export function ProfileSettingsScreen({ onTabChange, onSignedOut }: Props) {
       return false;
     }
 
+    const currentDietary = buildStoredDietaryRestrictions(
+      selectedDietary,
+      otherFoodsInput,
+    );
+
     return (
       budgetCop !== savedPrefs.budgetCop ||
       sortedKey(selectedGoals) !== sortedKey(savedPrefs.goals) ||
-      sortedKey(selectedStores) !== sortedKey(savedPrefs.supermarkets)
+      sortedKey(selectedStores) !== sortedKey(savedPrefs.supermarkets) ||
+      sortedKey(currentDietary) !==
+        sortedKey(savedPrefs.dietaryRestrictions)
     );
-  }, [savedPrefs, budgetCop, selectedGoals, selectedStores]);
+  }, [
+    savedPrefs,
+    budgetCop,
+    selectedGoals,
+    selectedStores,
+    selectedDietary,
+    otherFoodsInput,
+  ]);
 
   const canSave =
     !isLoadingPrefs &&
@@ -154,6 +181,19 @@ export function ProfileSettingsScreen({ onTabChange, onSignedOut }: Props) {
     clearMessages();
   };
 
+  const toggleDietary = (id: string) => {
+    if (isSaving || isLoadingPrefs) {
+      return;
+    }
+
+    setSelectedDietary((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id],
+    );
+    clearMessages();
+  };
+
   const handleSave = async () => {
     if (!canSave) {
       return;
@@ -185,10 +225,22 @@ export function ProfileSettingsScreen({ onTabChange, onSignedOut }: Props) {
         return;
       }
 
+      const dietaryStored = buildStoredDietaryRestrictions(
+        selectedDietary,
+        otherFoodsInput,
+      );
+      const dietaryResult = await saveDietaryRestrictions(dietaryStored);
+
+      if (dietaryResult.error) {
+        setErrorMessage(dietaryResult.error);
+        return;
+      }
+
       const snapshot: SavedPreferences = {
         budgetCop,
         goals: [...selectedGoals],
         supermarkets: [...selectedStores],
+        dietaryRestrictions: dietaryStored,
       };
 
       setSavedPrefs(snapshot);
@@ -440,6 +492,78 @@ export function ProfileSettingsScreen({ onTabChange, onSignedOut }: Props) {
                     );
                   })}
                 </div>
+              </div>
+
+              <div>
+                <p
+                  className="text-xs mb-2"
+                  style={{ color: "#6B8072", fontWeight: 700 }}
+                >
+                  Restricciones alimentarias
+                </p>
+                <p
+                  className="text-xs mb-3"
+                  style={{ color: "#9CA3AF", fontWeight: 500 }}
+                >
+                  Opcional — la IA evitará estos alimentos al generar tu plan
+                </p>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {DIETARY_RESTRICTION_OPTIONS.map((option) => {
+                    const isSelected = selectedDietary.includes(option.id);
+
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => toggleDietary(option.id)}
+                        className="flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95 disabled:opacity-60"
+                        style={{
+                          border: `2px solid ${isSelected ? option.color : "rgba(0,0,0,0.07)"}`,
+                          background: isSelected ? option.bg : "white",
+                        }}
+                      >
+                        <span style={{ fontSize: "1.5rem" }}>{option.emoji}</span>
+                        <p
+                          style={{
+                            fontWeight: 700,
+                            color: isSelected ? option.color : "#374151",
+                            fontSize: "0.72rem",
+                            textAlign: "center",
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {option.label}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p
+                  className="text-xs mb-2"
+                  style={{ color: "#6B8072", fontWeight: 700 }}
+                >
+                  Otros alimentos a evitar
+                </p>
+                <input
+                  type="text"
+                  placeholder="Ej: cilantro, huevo, soya..."
+                  value={otherFoodsInput}
+                  disabled={isSaving}
+                  onChange={(event) => {
+                    setOtherFoodsInput(event.target.value);
+                    clearMessages();
+                  }}
+                  className="w-full px-4 py-3.5 rounded-2xl"
+                  style={{
+                    border: "2px solid rgba(22,163,74,0.2)",
+                    background: "#F7FAF8",
+                    outline: "none",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                    color: "#0D1F16",
+                  }}
+                />
               </div>
             </>
           )}

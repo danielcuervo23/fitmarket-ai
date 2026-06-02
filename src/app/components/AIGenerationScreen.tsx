@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type { WeeklyPlan } from "@/lib/ai/types";
-import { generateWeeklyPlan } from "@/lib/ai/generateWeeklyPlan";
+import {
+  generateWeeklyPlan,
+  generationErrorToMessage,
+  type BudgetTooLowGenerationError,
+  type GenerateWeeklyPlanError,
+} from "@/lib/ai/generateWeeklyPlan";
 import { usePlan } from "@/contexts/PlanContext";
 import { saveWeeklyPlan } from "@/lib/weeklyPlans";
 
 interface Props {
   onDone: () => void;
+  onAdjustSettings: () => void;
 }
 
 const steps = [
@@ -17,12 +23,34 @@ const steps = [
   "Generando tu plan personalizado...",
 ];
 
-export function AIGenerationScreen({ onDone }: Props) {
+function formatCOP(val: number) {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(val);
+}
+
+function isBudgetTooLowError(
+  error: GenerateWeeklyPlanError,
+): error is BudgetTooLowGenerationError {
+  return error.kind === "budget_too_low";
+}
+
+export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
   const { setPlan, setGenerating, setError } = usePlan();
   const onDoneRef = useRef(onDone);
   const [step, setStep] = useState(0);
-  const [displayError, setDisplayError] = useState<string | null>(null);
+  const [generationError, setGenerationError] =
+    useState<GenerateWeeklyPlanError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const budgetError = generationError && isBudgetTooLowError(generationError)
+    ? generationError
+    : null;
+  const displayError = generationError
+    ? generationErrorToMessage(generationError)
+    : null;
 
   onDoneRef.current = onDone;
 
@@ -44,7 +72,7 @@ export function AIGenerationScreen({ onDone }: Props) {
 
   const runGeneration = useCallback(async () => {
     setError(null);
-    setDisplayError(null);
+    setGenerationError(null);
     setIsLoading(true);
     setStep(0);
     setGenerating(true);
@@ -52,8 +80,8 @@ export function AIGenerationScreen({ onDone }: Props) {
     const { data, error } = await generateWeeklyPlan();
 
     if (error) {
-      setError(error);
-      setDisplayError(error);
+      setError(generationErrorToMessage(error));
+      setGenerationError(error);
       setGenerating(false);
       setIsLoading(false);
       return;
@@ -69,7 +97,7 @@ export function AIGenerationScreen({ onDone }: Props) {
 
     void (async () => {
       setError(null);
-      setDisplayError(null);
+      setGenerationError(null);
       setIsLoading(true);
       setStep(0);
       setGenerating(true);
@@ -81,8 +109,8 @@ export function AIGenerationScreen({ onDone }: Props) {
       }
 
       if (error) {
-        setError(error);
-        setDisplayError(error);
+        setError(generationErrorToMessage(error));
+        setGenerationError(error);
         setGenerating(false);
         setIsLoading(false);
         return;
@@ -99,7 +127,7 @@ export function AIGenerationScreen({ onDone }: Props) {
   }, [setError, setGenerating, completeSuccessfulGeneration]);
 
   useEffect(() => {
-    if (!isLoading || displayError) {
+    if (!isLoading || generationError) {
       return;
     }
 
@@ -110,7 +138,7 @@ export function AIGenerationScreen({ onDone }: Props) {
     }, 700);
 
     return () => clearInterval(interval);
-  }, [isLoading, displayError]);
+  }, [isLoading, generationError]);
 
   return (
     <div
@@ -150,7 +178,7 @@ export function AIGenerationScreen({ onDone }: Props) {
           animate={{ scale: [1, 1.06, 1] }}
           transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
         >
-          <span style={{ fontSize: "2.8rem" }}>{displayError ? "⚠️" : "🧠"}</span>
+          <span style={{ fontSize: "2.8rem" }}>{generationError ? "⚠️" : "🧠"}</span>
         </motion.div>
       </div>
 
@@ -160,11 +188,21 @@ export function AIGenerationScreen({ onDone }: Props) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        {displayError ? (
+        {generationError ? (
           <>
-            No pudimos generar
-            <br />
-            tu plan
+            {budgetError ? (
+              <>
+                Presupuesto
+                <br />
+                insuficiente
+              </>
+            ) : (
+              <>
+                No pudimos generar
+                <br />
+                tu plan
+              </>
+            )}
           </>
         ) : (
           <>
@@ -175,25 +213,48 @@ export function AIGenerationScreen({ onDone }: Props) {
         )}
       </motion.p>
 
-      <div className="h-10 mt-4 flex items-center justify-center">
+      <div className="mt-4 flex items-center justify-center w-full max-w-sm px-6">
         <AnimatePresence mode="wait">
-          {displayError ? (
-            <motion.p
-              key="error"
+          {generationError ? (
+            <motion.div
+              key={budgetError ? "budget-error" : "error"}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3 }}
-              className="text-center px-8"
+              className="text-center flex flex-col gap-2.5 w-full"
               style={{
-                color: "rgba(255,255,255,0.85)",
-                fontSize: "0.9rem",
+                color: "rgba(255,255,255,0.9)",
+                fontSize: "0.88rem",
                 fontWeight: 500,
-                lineHeight: 1.45,
+                lineHeight: 1.5,
               }}
             >
-              {displayError}
-            </motion.p>
+              <p style={{ fontWeight: 600 }}>{displayError}</p>
+              {budgetError ? (
+                <>
+                  <p>
+                    Presupuesto actual:{" "}
+                    <strong style={{ color: "white" }}>
+                      {formatCOP(budgetError.currentBudget)}
+                    </strong>
+                  </p>
+                  <p>
+                    Presupuesto estimado necesario:{" "}
+                    <strong style={{ color: "white" }}>
+                      {formatCOP(budgetError.requiredBudget)}
+                    </strong>
+                  </p>
+                  <p>
+                    Te recomendamos aumentar tu presupuesto en aproximadamente{" "}
+                    <strong style={{ color: "white" }}>
+                      {formatCOP(budgetError.recommendedIncrease)}
+                    </strong>
+                    .
+                  </p>
+                </>
+              ) : null}
+            </motion.div>
           ) : (
             <motion.p
               key={step}
@@ -214,7 +275,7 @@ export function AIGenerationScreen({ onDone }: Props) {
         </AnimatePresence>
       </div>
 
-      {!displayError && (
+      {!generationError && (
         <div className="flex gap-2 mt-8">
           {steps.map((_, i) => (
             <motion.div
@@ -231,21 +292,37 @@ export function AIGenerationScreen({ onDone }: Props) {
         </div>
       )}
 
-      {displayError && (
-        <button
-          type="button"
-          onClick={() => void runGeneration()}
-          className="mt-8 px-6 py-3 rounded-2xl"
-          style={{
-            background: "rgba(255,255,255,0.15)",
-            border: "1px solid rgba(255,255,255,0.3)",
-            color: "white",
-            fontWeight: 700,
-            fontSize: "0.9rem",
-          }}
-        >
-          Reintentar
-        </button>
+      {generationError && (
+        <div className="mt-8 flex flex-col gap-3 w-full max-w-[280px] px-6">
+          <button
+            type="button"
+            onClick={() => void runGeneration()}
+            className="w-full py-3.5 rounded-2xl active:scale-95 transition-transform"
+            style={{
+              background: "rgba(255,255,255,0.2)",
+              border: "1px solid rgba(255,255,255,0.35)",
+              color: "white",
+              fontWeight: 800,
+              fontSize: "0.9rem",
+            }}
+          >
+            Reintentar
+          </button>
+          <button
+            type="button"
+            onClick={onAdjustSettings}
+            className="w-full py-3.5 rounded-2xl active:scale-95 transition-transform"
+            style={{
+              background: "white",
+              color: "#145F35",
+              fontWeight: 800,
+              fontSize: "0.9rem",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            }}
+          >
+            Ajustar configuración
+          </button>
+        </div>
       )}
 
     </div>

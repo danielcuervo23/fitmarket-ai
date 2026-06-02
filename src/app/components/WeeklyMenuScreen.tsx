@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { usePlan } from "@/contexts/PlanContext";
-import type { DayId, DayMenu, MealSlot } from "@/lib/ai/types";
-import { BottomNav } from "./BottomNav";
-
-type NavTab = "dashboard" | "menu" | "chat" | "profile";
+import type { DayId, DayMenu, MealSlot, WeeklyMenu } from "@/lib/ai/types";
+import { isDayId } from "@/lib/ai/types";
+import { BottomNav, type NavTab } from "./BottomNav";
 
 interface Props {
   onTabChange: (tab: NavTab) => void;
@@ -61,9 +60,35 @@ function formatDailyKcal(kcal: number): string {
   return kcal.toLocaleString("es-CO", { maximumFractionDigits: 0 });
 }
 
+const WEEKDAY_TO_DAY_ID: Record<number, DayId> = {
+  0: "dom",
+  1: "lun",
+  2: "mar",
+  3: "mie",
+  4: "jue",
+  5: "vie",
+  6: "sab",
+};
+
+function getTodayDayId(): DayId {
+  return WEEKDAY_TO_DAY_ID[new Date().getDay()];
+}
+
+function getInitialActiveDay(weeklyMenu: WeeklyMenu | undefined): DayId {
+  const today = getTodayDayId();
+
+  if (weeklyMenu && isDayId(today) && weeklyMenu[today]) {
+    return today;
+  }
+
+  return "lun";
+}
+
 export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
   const { plan } = usePlan();
-  const [activeDay, setActiveDay] = useState<DayId>("lun");
+  const [activeDay, setActiveDay] = useState<DayId>(() =>
+    getInitialActiveDay(plan?.weekly_menu),
+  );
 
   const handleGeneratePlan = () => {
     if (onGeneratePlan) {

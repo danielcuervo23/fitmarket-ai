@@ -1,6 +1,6 @@
 import {
   buildWeeklyPlanUserPrompt,
-  WEEKLY_PLAN_RETRY_USER_APPENDIX,
+  buildWeeklyPlanRetryUserContent,
   WEEKLY_PLAN_SYSTEM_PROMPT,
   type WeeklyPlanPromptInput,
 } from "./prompts.ts";
@@ -16,7 +16,11 @@ interface OpenAIMessage {
 
 export async function requestWeeklyPlanFromOpenAI(
   input: WeeklyPlanPromptInput,
-  options?: { isRetry?: boolean },
+  options?: {
+    isRetry?: boolean;
+    validationError?: string;
+    previousInvalidJson?: string;
+  },
 ): Promise<{ content: string | null; error: string | null }> {
   const apiKey = Deno.env.get("OPENAI_API_KEY");
 
@@ -30,7 +34,15 @@ export async function requestWeeklyPlanFromOpenAI(
   let userContent = buildWeeklyPlanUserPrompt(input);
 
   if (options?.isRetry) {
-    userContent += WEEKLY_PLAN_RETRY_USER_APPENDIX;
+    if (options.validationError && options.previousInvalidJson) {
+      userContent += buildWeeklyPlanRetryUserContent(
+        options.validationError,
+        options.previousInvalidJson,
+      );
+    } else {
+      userContent +=
+        "\n\nCorrige el JSON anterior: debe cumplir el schema, respetar el presupuesto, usar solo store_id permitidos, cumplir dietary_restrictions y descomponer comidas en ingredientes con cantidades (g, ml o unidades).";
+    }
   }
 
   const messages: OpenAIMessage[] = [

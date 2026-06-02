@@ -6,8 +6,34 @@ import type { WeeklyPlanPromptInput } from "../_shared/prompts.ts";
 import {
   parseWeeklyPlanJson,
   validateWeeklyPlanBusinessRules,
+  validationErrorToMessage,
   type WeeklyPlanParsed,
+  type WeeklyPlanValidationError,
 } from "../_shared/weeklyPlanSchema.ts";
+
+type PlanGenerationError =
+  | {
+      type: "budget_too_low";
+      currentBudget: number;
+      requiredBudget: number;
+      recommendedIncrease: number;
+    }
+  | { type: "message"; message: string };
+
+function toPlanGenerationError(
+  error: WeeklyPlanValidationError,
+): PlanGenerationError {
+  if (error.code === "budget_too_low") {
+    return {
+      type: "budget_too_low",
+      currentBudget: error.currentBudget,
+      requiredBudget: error.requiredBudget,
+      recommendedIncrease: error.recommendedIncrease,
+    };
+  }
+
+  return { type: "message", message: error.message };
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -77,8 +103,21 @@ Deno.serve(async (req: Request) => {
     );
 
     if (generationError) {
-      const status = generationError.includes("configurado") ? 503 : 422;
-      return jsonResponse({ error: generationError }, status);
+      if (generationError.type === "budget_too_low") {
+        // 200 para que supabase.functions.invoke entregue el body en `data`
+        return jsonResponse(
+          {
+            error: "budget_too_low",
+            currentBudget: generationError.currentBudget,
+            requiredBudget: generationError.requiredBudget,
+            recommendedIncrease: generationError.recommendedIncrease,
+          },
+          200,
+        );
+      }
+
+      const status = generationError.message.includes("configurado") ? 503 : 422;
+      return jsonResponse({ error: generationError.message }, status);
     }
 
     if (!plan) {
@@ -102,20 +141,42 @@ Deno.serve(async (req: Request) => {
 
 async function generateAndValidatePlan(
   input: WeeklyPlanPromptInput,
-): Promise<{ plan: WeeklyPlanParsed | null; error: string | null }> {
-  let lastError =
-    "No pudimos generar un plan válido. Revisa tus preferencias e intenta de nuevo.";
+): Promise<{ plan: WeeklyPlanParsed | null; error: PlanGenerationError | null }> {
+  let lastError: PlanGenerationError = {
+    type: "message",
+    message:
+      "No pudimos generar un plan válido. Revisa tus preferencias e intenta de nuevo.",
+  };
+  let lastInvalidContent: string | null = null;
 
   for (const isRetry of [false, true]) {
     const { content, error: openAiError } = await requestWeeklyPlanFromOpenAI(
       input,
-      { isRetry },
+      isRetry
+        ? {
+            isRetry: true,
+            ...(lastInvalidContent
+              ? {
+                  validationError:
+                    lastError.type === "message"
+                      ? lastError.message
+                      : validationErrorToMessage({
+                          code: "budget_too_low",
+                          currentBudget: lastError.currentBudget,
+                          requiredBudget: lastError.requiredBudget,
+                          recommendedIncrease: lastError.recommendedIncrease,
+                        }),
+                  previousInvalidJson: lastInvalidContent,
+                }
+              : {}),
+          }
+        : undefined,
     );
 
     if (openAiError) {
-      lastError = openAiError;
+      lastError = { type: "message", message: openAiError };
       if (openAiError.includes("configurado")) {
-        return { plan: null, error: openAiError };
+        return { plan: null, error: lastError };
       }
       continue;
     }
@@ -129,14 +190,22 @@ async function generateAndValidatePlan(
     try {
       parsed = JSON.parse(content);
     } catch {
-      lastError = "El plan generado no tiene un formato válido.";
+      lastError = {
+        type: "message",
+        message: "El plan generado no tiene un formato válido.",
+      };
+      lastInvalidContent = content;
       continue;
     }
 
     const { data: plan, error: schemaError } = parseWeeklyPlanJson(parsed);
 
     if (schemaError || !plan) {
-      lastError = schemaError ?? lastError;
+      lastError = {
+        type: "message",
+        message: schemaError ?? lastError.message,
+      };
+      lastInvalidContent = content;
       continue;
     }
 
@@ -149,6 +218,7 @@ async function generateAndValidatePlan(
     const businessError = validateWeeklyPlanBusinessRules(plan, {
       weekly_budget_cop: input.weekly_budget_cop,
       supermarkets: input.supermarkets,
+      dietary_restrictions: input.dietary_restrictions,
     });
 
     if (businessError) {
@@ -156,13 +226,19 @@ async function generateAndValidatePlan(
         source: "generateAndValidatePlan",
         businessError,
         weekly_budget_cop: input.weekly_budget_cop,
+        dietary_restrictions: input.dietary_restrictions,
       });
-      lastError = businessError;
+      const planError = toPlanGenerationError(businessError);
+      lastError = planError;
+      lastInvalidContent = content;
       continue;
     }
 
     return { plan, error: null };
   }
 
-  return { plan: null, error: lastError };
+  return {
+    plan: null,
+    error: lastError,
+  };
 }

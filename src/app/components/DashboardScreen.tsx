@@ -1,81 +1,34 @@
-import { useCallback, useEffect, useState } from "react";
 import {
   ChevronRight,
   Loader2,
   RefreshCw,
+  ShoppingCart,
   Sparkles,
   Target,
   Store,
 } from "lucide-react";
 import { usePlan } from "@/contexts/PlanContext";
-import { BottomNav } from "./BottomNav";
-import {
-  fetchDashboardData,
-  type DashboardData,
-  type DashboardSupermarket,
-} from "@/lib/dashboard";
-
-type NavTab = "dashboard" | "menu" | "chat" | "profile";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { formatCOP } from "@/lib/formatCop";
+import { BottomNav, type NavTab } from "./BottomNav";
 
 interface Props {
   onTabChange: (tab: NavTab) => void;
   onGeneratePlan?: () => void;
 }
 
-function formatCOP(val: number) {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(val);
-}
-
-function storeDisplayName(
-  storeId: string,
-  supermarkets: DashboardSupermarket[] | undefined,
-): string {
-  return supermarkets?.find((store) => store.id === storeId)?.name ?? storeId;
-}
-
 export function DashboardScreen({ onTabChange, onGeneratePlan }: Props) {
   const { plan } = usePlan();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const loadDashboard = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const { data: dashboardData, error } = await fetchDashboardData();
-
-      if (error) {
-        setData(null);
-        setErrorMessage(error);
-        return;
-      }
-
-      setData(dashboardData);
-    } catch {
-      setData(null);
-      setErrorMessage(
-        "No pudimos conectar. Revisa tu internet e intenta de nuevo.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadDashboard();
-  }, [loadDashboard]);
+  const { data, isLoading, errorMessage, reload } = useDashboardData();
 
   const firstName = data?.displayName.split(" ")[0] ?? "Usuario";
   const budgetLabel =
     data?.weeklyBudgetCop != null && data.weeklyBudgetCop > 0
       ? formatCOP(data.weeklyBudgetCop)
       : "—";
+
+  const itemCount = plan?.shopping_list.length ?? 0;
+  const hasPlan = plan != null && itemCount > 0;
 
   if (isLoading) {
     return (
@@ -115,7 +68,7 @@ export function DashboardScreen({ onTabChange, onGeneratePlan }: Props) {
         </div>
         <button
           type="button"
-          onClick={() => void loadDashboard()}
+          onClick={() => void reload()}
           className="flex items-center gap-2 px-5 py-3 rounded-2xl active:scale-95 transition-transform"
           style={{
             background: "#16A34A",
@@ -320,6 +273,126 @@ export function DashboardScreen({ onTabChange, onGeneratePlan }: Props) {
           )}
         </div>
 
+        <div className="px-6">
+          <p
+            className="text-xs mb-3"
+            style={{
+              color: "#6B8072",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+            }}
+          >
+            Resumen general
+          </p>
+          <div
+            className="rounded-3xl p-4"
+            style={{
+              background: "white",
+              border: "1.5px solid rgba(22,163,74,0.1)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+            }}
+          >
+            {hasPlan ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p
+                    style={{
+                      color: "#6B8072",
+                      fontSize: "0.82rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Plan semanal activo
+                  </p>
+                  <span
+                    className="px-2.5 py-1 rounded-full text-xs"
+                    style={{
+                      background: "#DCFCE7",
+                      color: "#166534",
+                      fontWeight: 800,
+                    }}
+                  >
+                    Activo
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p
+                    style={{
+                      color: "#6B8072",
+                      fontSize: "0.82rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Productos en lista
+                  </p>
+                  <p
+                    style={{
+                      color: "#0D1F16",
+                      fontSize: "0.88rem",
+                      fontWeight: 800,
+                    }}
+                  >
+                    {itemCount}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p
+                    style={{
+                      color: "#6B8072",
+                      fontSize: "0.82rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Total estimado
+                  </p>
+                  <p
+                    style={{
+                      color: "#16A34A",
+                      fontSize: "0.95rem",
+                      fontWeight: 900,
+                    }}
+                  >
+                    {formatCOP(plan.summary.estimated_total_cop)}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p
+                    style={{
+                      color: "#6B8072",
+                      fontSize: "0.82rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Calorías diarias
+                  </p>
+                  <p
+                    style={{
+                      color: "#0D1F16",
+                      fontSize: "0.88rem",
+                      fontWeight: 800,
+                    }}
+                  >
+                    {plan.summary.estimated_daily_kcal.toLocaleString("es-CO")}{" "}
+                    kcal
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p
+                style={{
+                  color: "#6B8072",
+                  fontSize: "0.85rem",
+                  fontWeight: 500,
+                  lineHeight: 1.5,
+                }}
+              >
+                Genera tu plan semanal para ver un resumen de tu semana.
+              </p>
+            )}
+          </div>
+        </div>
+
         <div className="px-6 space-y-3">
           <button
             type="button"
@@ -362,6 +435,45 @@ export function DashboardScreen({ onTabChange, onGeneratePlan }: Props) {
             />
           </button>
 
+          <button
+            type="button"
+            onClick={() => onTabChange("market")}
+            className="w-full p-4 rounded-2xl flex items-center gap-3 active:scale-95 transition-transform"
+            style={{
+              background: "white",
+              border: "1.5px solid rgba(22,163,74,0.2)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: "#DCFCE7" }}
+            >
+              <ShoppingCart size={20} style={{ color: "#16A34A" }} />
+            </div>
+            <div className="flex-1 text-left">
+              <p
+                style={{
+                  color: "#0D1F16",
+                  fontWeight: 800,
+                  fontSize: "0.9rem",
+                }}
+              >
+                Ir a Mercado
+              </p>
+              <p
+                style={{
+                  color: "#6B8072",
+                  fontSize: "0.75rem",
+                  fontWeight: 400,
+                }}
+              >
+                Plan de compras por supermercado
+              </p>
+            </div>
+            <ChevronRight size={18} style={{ color: "#9CA3AF" }} />
+          </button>
+
           {plan && onGeneratePlan && (
             <button
               type="button"
@@ -379,128 +491,6 @@ export function DashboardScreen({ onTabChange, onGeneratePlan }: Props) {
               <Sparkles size={18} />
               Generar nuevo plan
             </button>
-          )}
-        </div>
-
-        <div className="px-6">
-          <p
-            className="text-xs mb-3"
-            style={{
-              color: "#6B8072",
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
-            Lista de mercado
-          </p>
-          {plan && plan.shopping_list.length > 0 ? (
-            <div
-              className="rounded-3xl overflow-hidden"
-              style={{
-                background: "white",
-                border: "1.5px solid rgba(22,163,74,0.1)",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
-              }}
-            >
-              {plan.shopping_list.map((item, index) => (
-                <div
-                  key={`${item.name}-${item.store_id}-${index}`}
-                  className="flex items-start gap-3 px-4 py-3.5"
-                  style={{
-                    borderBottom:
-                      index < plan.shopping_list.length - 1
-                        ? "1px solid rgba(0,0,0,0.05)"
-                        : "none",
-                  }}
-                >
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: "#DCFCE7" }}
-                  >
-                    <Store size={16} style={{ color: "#16A34A" }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      style={{
-                        fontWeight: 700,
-                        color: "#0D1F16",
-                        fontSize: "0.85rem",
-                      }}
-                    >
-                      {item.name}
-                    </p>
-                    <p
-                      style={{
-                        color: "#6B8072",
-                        fontSize: "0.78rem",
-                        fontWeight: 500,
-                        marginTop: "2px",
-                      }}
-                    >
-                      {item.quantity} ·{" "}
-                      {storeDisplayName(item.store_id, data?.supermarkets)}
-                    </p>
-                  </div>
-                  <p
-                    className="flex-shrink-0"
-                    style={{
-                      fontWeight: 800,
-                      color: "#16A34A",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    {formatCOP(item.estimated_price_cop)}
-                  </p>
-                </div>
-              ))}
-              <div
-                className="flex items-center justify-between px-4 py-3"
-                style={{
-                  background: "#F0FDF4",
-                  borderTop: "1px solid rgba(22,163,74,0.12)",
-                }}
-              >
-                <p
-                  style={{
-                    color: "#166534",
-                    fontSize: "0.78rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  Total estimado
-                </p>
-                <p
-                  style={{
-                    color: "#166534",
-                    fontSize: "0.9rem",
-                    fontWeight: 900,
-                  }}
-                >
-                  {formatCOP(plan.summary.estimated_total_cop)}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div
-              className="rounded-3xl px-4 py-6 text-center"
-              style={{
-                background: "white",
-                border: "1.5px solid rgba(22,163,74,0.1)",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
-              }}
-            >
-              <p
-                style={{
-                  color: "#6B8072",
-                  fontSize: "0.85rem",
-                  fontWeight: 500,
-                  lineHeight: 1.5,
-                }}
-              >
-                Genera tu plan semanal para ver aquí tu lista de compras.
-              </p>
-            </div>
           )}
         </div>
       </div>

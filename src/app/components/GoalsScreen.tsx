@@ -64,7 +64,7 @@ export function GoalsScreen({ onNext, onBack }: Props) {
         </button>
         <div className="flex items-center gap-2 mb-1">
           <span className="text-sm px-3 py-1 rounded-full" style={{ background: '#DCFCE7', color: '#16A34A', fontWeight: 700 }}>
-            Paso 2 de 4
+            Paso 2 de 5
           </span>
         </div>
         <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0D1F16', lineHeight: 1.2 }}>

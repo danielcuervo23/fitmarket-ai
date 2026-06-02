@@ -1,7 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { BottomNav } from "./BottomNav";
-
-type NavTab = "dashboard" | "menu" | "chat" | "profile";
+import { BottomNav, type NavTab } from "./BottomNav";
 
 interface Props {
   onTabChange: (tab: NavTab) => void;
@@ -110,7 +108,7 @@ export function ChatScreen({ onTabChange }: Props) {
         />
       </div>
 
-      <BottomNav active="chat" onChange={onTabChange} />
+      <BottomNav active="dashboard" onChange={onTabChange} />
     </div>
   );
 }

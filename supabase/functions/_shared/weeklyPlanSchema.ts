@@ -1,10 +1,11 @@
 import { z } from "npm:zod@3.23.8";
+import { validateDietaryRestrictions } from "./dietaryRestrictions.ts";
 
 const dayMenuSchema = z.object({
-  desayuno: z.array(z.string().min(1)).min(1),
-  almuerzo: z.array(z.string().min(1)).min(1),
-  cena: z.array(z.string().min(1)).min(1),
-  snacks: z.array(z.string().min(1)).min(1),
+  desayuno: z.array(z.string().min(1)).min(2).max(5),
+  almuerzo: z.array(z.string().min(1)).min(2).max(5),
+  cena: z.array(z.string().min(1)).min(2).max(5),
+  snacks: z.array(z.string().min(1)).min(1).max(3),
 });
 
 const weeklyMenuSchema = z.object({
@@ -52,6 +53,44 @@ export type WeeklyPlanParsed = z.infer<typeof weeklyPlanSchema>;
 export interface WeeklyPlanBusinessInput {
   weekly_budget_cop: number;
   supermarkets: string[];
+  dietary_restrictions: string[];
+}
+
+export type WeeklyPlanValidationError =
+  | {
+      code: "budget_too_low";
+      currentBudget: number;
+      requiredBudget: number;
+      recommendedIncrease: number;
+    }
+  | { code: "message"; message: string };
+
+export function validationErrorToMessage(
+  error: WeeklyPlanValidationError,
+): string {
+  if (error.code === "budget_too_low") {
+    return "La lista de mercado supera tu presupuesto semanal.";
+  }
+
+  return error.message;
+}
+
+/** Detecta cantidad aproximada: "80 g", "250 ml", "1 banano", etc. */
+const MEAL_PORTION_PATTERN =
+  /\d+\s*(?:g|gr|gramos|ml|mililitros|kg|kilogramos|l|litro|litros|unidad|unidades|rodaja|rodajas|taza|tazas)\b|\d+\s+(?:de\s+)?[a-záéíóúñ]/i;
+
+function validateMealPortionDetail(plan: WeeklyPlanParsed): string | null {
+  for (const [day, dayMenu] of Object.entries(plan.weekly_menu)) {
+    for (const [meal, items] of Object.entries(dayMenu)) {
+      for (const item of items) {
+        if (!MEAL_PORTION_PATTERN.test(item)) {
+          return `Las comidas deben incluir cantidades por ingrediente (ej. "150 g de pollo"). Revisa ${meal} del ${day}.`;
+        }
+      }
+    }
+  }
+
+  return null;
 }
 
 export function parseWeeklyPlanJson(raw: unknown): {
@@ -73,7 +112,7 @@ export function parseWeeklyPlanJson(raw: unknown): {
 export function validateWeeklyPlanBusinessRules(
   plan: WeeklyPlanParsed,
   input: WeeklyPlanBusinessInput,
-): string | null {
+): WeeklyPlanValidationError | null {
   const listTotal = plan.shopping_list.reduce(
     (sum, item) => sum + item.estimated_price_cop,
     0,
@@ -97,11 +136,25 @@ export function validateWeeklyPlanBusinessRules(
   });
 
   if (listTotal > maxBudget) {
+    const recommendedIncrease = Math.max(0, listTotal - weeklyBudgetCop);
+
     console.log(
       "[validateWeeklyPlanBusinessRules] FAIL presupuesto:",
-      { listTotal, maxBudget, weeklyBudgetCop },
+      {
+        listTotal,
+        maxBudget,
+        weeklyBudgetCop,
+        requiredBudget: listTotal,
+        recommendedIncrease,
+      },
     );
-    return "La lista de mercado supera tu presupuesto semanal.";
+
+    return {
+      code: "budget_too_low",
+      currentBudget: weeklyBudgetCop,
+      requiredBudget: listTotal,
+      recommendedIncrease,
+    };
   }
 
   const invalidStore = plan.shopping_list.find(
@@ -109,21 +162,52 @@ export function validateWeeklyPlanBusinessRules(
   );
 
   if (invalidStore) {
-    return "Uno o más productos tienen una tienda no válida.";
+    return {
+      code: "message",
+      message: "Uno o más productos tienen una tienda no válida.",
+    };
+  }
+
+  const dietaryError = validateDietaryRestrictions(
+    plan,
+    input.dietary_restrictions,
+  );
+
+  if (dietaryError) {
+    console.log(
+      "[validateWeeklyPlanBusinessRules] FAIL restricciones dietéticas:",
+      { dietary_restrictions: input.dietary_restrictions },
+    );
+    return { code: "message", message: dietaryError };
+  }
+
+  const portionError = validateMealPortionDetail(plan);
+
+  if (portionError) {
+    console.log(
+      "[validateWeeklyPlanBusinessRules] FAIL porciones:",
+      { portionError },
+    );
+    return { code: "message", message: portionError };
   }
 
   return null;
 }
+
+const openAiMealItemsSchema = {
+  type: "array",
+  items: { type: "string" },
+};
 
 const openAiDayMenuSchema = {
   type: "object",
   additionalProperties: false,
   required: ["desayuno", "almuerzo", "cena", "snacks"],
   properties: {
-    desayuno: { type: "array", items: { type: "string" }, minItems: 1 },
-    almuerzo: { type: "array", items: { type: "string" }, minItems: 1 },
-    cena: { type: "array", items: { type: "string" }, minItems: 1 },
-    snacks: { type: "array", items: { type: "string" }, minItems: 1 },
+    desayuno: { ...openAiMealItemsSchema, minItems: 2, maxItems: 5 },
+    almuerzo: { ...openAiMealItemsSchema, minItems: 2, maxItems: 5 },
+    cena: { ...openAiMealItemsSchema, minItems: 2, maxItems: 5 },
+    snacks: { ...openAiMealItemsSchema, minItems: 1, maxItems: 3 },
   },
 };
 

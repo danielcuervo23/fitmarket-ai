@@ -14,10 +14,13 @@ import { ProfileScreen } from "./components/ProfileScreen";
 import { GoalsScreen } from "./components/GoalsScreen";
 import { BudgetScreen } from "./components/BudgetScreen";
 import { SupermarketsScreen } from "./components/SupermarketsScreen";
+import { DietaryRestrictionsScreen } from "./components/DietaryRestrictionsScreen";
 import { AIGenerationScreen } from "./components/AIGenerationScreen";
 import { DashboardScreen } from "./components/DashboardScreen";
 import { WeeklyMenuScreen } from "./components/WeeklyMenuScreen";
+import { MarketScreen } from "./components/MarketScreen";
 import { ChatScreen } from "./components/ChatScreen";
+import type { NavTab } from "./components/BottomNav";
 import { ProfileSettingsScreen } from "./components/ProfileSettingsScreen";
 import { AuthLoadingScreen } from "./components/AuthLoadingScreen";
 
@@ -30,13 +33,15 @@ type AppScreen =
   | "goals"
   | "budget"
   | "supermarkets"
+  | "dietary"
   | "generating"
   | "dashboard"
   | "menu"
+  | "market"
   | "chat"
   | "settings";
 
-type MainTab = "dashboard" | "menu" | "chat" | "profile";
+type MainTab = NavTab;
 
 const slideVariants = {
   enter: { x: "100%", opacity: 0 },
@@ -350,8 +355,25 @@ export default function App() {
                     className="absolute inset-0"
                   >
                     <SupermarketsScreen
-                      onNext={() => go("generating")}
+                      onNext={() => go("dietary")}
                       onBack={() => go("budget")}
+                    />
+                  </motion.div>
+                )}
+
+                {screen === "dietary" && (
+                  <motion.div
+                    key="dietary"
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={transition}
+                    className="absolute inset-0"
+                  >
+                    <DietaryRestrictionsScreen
+                      onNext={() => go("generating")}
+                      onBack={() => go("supermarkets")}
                     />
                   </motion.div>
                 )}
@@ -366,7 +388,10 @@ export default function App() {
                     transition={transition}
                     className="absolute inset-0"
                   >
-                    <AIGenerationScreen onDone={() => go("menu")} />
+                    <AIGenerationScreen
+                      onDone={() => go("menu")}
+                      onAdjustSettings={() => go("settings")}
+                    />
                   </motion.div>
                 )}
 
@@ -398,6 +423,23 @@ export default function App() {
                     className="absolute inset-0"
                   >
                     <WeeklyMenuScreen
+                      onTabChange={handleTabChange}
+                      onGeneratePlan={() => go("generating")}
+                    />
+                  </motion.div>
+                )}
+
+                {screen === "market" && (
+                  <motion.div
+                    key="market"
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={transition}
+                    className="absolute inset-0"
+                  >
+                    <MarketScreen
                       onTabChange={handleTabChange}
                       onGeneratePlan={() => go("generating")}
                     />
