@@ -22,6 +22,7 @@ import { MarketScreen } from "./components/MarketScreen";
 import { ChatScreen } from "./components/ChatScreen";
 import type { NavTab } from "./components/BottomNav";
 import { ProfileSettingsScreen } from "./components/ProfileSettingsScreen";
+import { PlanHistoryScreen } from "./components/PlanHistoryScreen";
 import { AuthLoadingScreen } from "./components/AuthLoadingScreen";
 
 type AppScreen =
@@ -39,7 +40,8 @@ type AppScreen =
   | "menu"
   | "market"
   | "chat"
-  | "settings";
+  | "settings"
+  | "planHistory";
 
 type MainTab = NavTab;
 
@@ -473,6 +475,24 @@ export default function App() {
                     <ProfileSettingsScreen
                       onTabChange={handleTabChange}
                       onSignedOut={handleSignedOut}
+                      onOpenPlanHistory={() => go("planHistory")}
+                    />
+                  </motion.div>
+                )}
+
+                {screen === "planHistory" && (
+                  <motion.div
+                    key="planHistory"
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={transition}
+                    className="absolute inset-0"
+                  >
+                    <PlanHistoryScreen
+                      onBack={() => go("settings")}
+                      onViewCurrentPlan={() => go("menu")}
                     />
                   </motion.div>
                 )}

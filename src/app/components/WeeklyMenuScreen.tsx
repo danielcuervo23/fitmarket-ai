@@ -1,12 +1,20 @@
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { usePlan } from "@/contexts/PlanContext";
-import type { DayId, DayMenu, MealSlot, WeeklyMenu } from "@/lib/ai/types";
+import type { DayId, DayMenu, MealSlot, WeeklyMenu, WeeklyPlan } from "@/lib/ai/types";
 import { isDayId } from "@/lib/ai/types";
 import { BottomNav, type NavTab } from "./BottomNav";
 
 interface Props {
-  onTabChange: (tab: NavTab) => void;
+  onTabChange?: (tab: NavTab) => void;
   onGeneratePlan?: () => void;
+  /** Plan a mostrar (historial). Si no se pasa, usa el plan del contexto. */
+  viewPlan?: WeeklyPlan;
+  readOnly?: boolean;
+  onBack?: () => void;
+  onReturnToCurrent?: () => void;
+  headerTitle?: string;
+  headerDateLabel?: string;
 }
 
 const days: { id: DayId; label: string; full: string }[] = [
@@ -84,8 +92,18 @@ function getInitialActiveDay(weeklyMenu: WeeklyMenu | undefined): DayId {
   return "lun";
 }
 
-export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
-  const { plan } = usePlan();
+export function WeeklyMenuScreen({
+  onTabChange,
+  onGeneratePlan,
+  viewPlan,
+  readOnly = false,
+  onBack,
+  onReturnToCurrent,
+  headerTitle = "Menú semanal",
+  headerDateLabel,
+}: Props) {
+  const { plan: contextPlan } = usePlan();
+  const plan = viewPlan ?? contextPlan;
   const [activeDay, setActiveDay] = useState<DayId>(() =>
     getInitialActiveDay(plan?.weekly_menu),
   );
@@ -96,7 +114,7 @@ export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
       return;
     }
 
-    onTabChange("dashboard");
+    onTabChange?.("dashboard");
   };
 
   if (!plan) {
@@ -165,7 +183,7 @@ export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
           </button>
         </div>
 
-        <BottomNav active="menu" onChange={onTabChange} />
+        {onTabChange && <BottomNav active="menu" onChange={onTabChange} />}
       </div>
     );
   }
@@ -186,11 +204,24 @@ export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
           borderBottom: "1px solid rgba(0,0,0,0.05)",
         }}
       >
+        {readOnly && onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-1.5 mb-3 -ml-1 px-1 py-1 rounded-lg active:scale-95 transition-transform"
+            style={{ color: "#16A34A", fontWeight: 700, fontSize: "0.82rem" }}
+          >
+            <ArrowLeft size={18} />
+            Historial de planes
+          </button>
+        )}
         <h1 style={{ fontSize: "1.4rem", fontWeight: 900, color: "#0D1F16" }}>
-          Menú semanal
+          {headerTitle}
         </h1>
         <p style={{ color: "#6B8072", fontSize: "0.8rem", fontWeight: 400 }}>
-          {dailyKcalLabel} kcal/día · Generado por IA
+          {headerDateLabel
+            ? `${headerDateLabel} · ${dailyKcalLabel} kcal/día`
+            : `${dailyKcalLabel} kcal/día · Generado por IA`}
         </p>
       </div>
 
@@ -246,13 +277,17 @@ export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
         </div>
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-          style={{ background: "#DCFCE7" }}
+          style={{ background: readOnly ? "#F3F4F6" : "#DCFCE7" }}
         >
-          <span style={{ fontSize: "0.8rem" }}>✅</span>
+          <span style={{ fontSize: "0.8rem" }}>{readOnly ? "📋" : "✅"}</span>
           <span
-            style={{ color: "#16A34A", fontSize: "0.72rem", fontWeight: 700 }}
+            style={{
+              color: readOnly ? "#6B7280" : "#16A34A",
+              fontSize: "0.72rem",
+              fontWeight: 700,
+            }}
           >
-            Plan activo
+            {readOnly ? "Solo lectura" : "Plan activo"}
           </span>
         </div>
       </div>
@@ -300,26 +335,43 @@ export function WeeklyMenuScreen({ onTabChange, onGeneratePlan }: Props) {
           </div>
         ))}
 
-        {onGeneratePlan && (
+        {readOnly && (onReturnToCurrent ?? onBack) ? (
           <button
             type="button"
-            onClick={onGeneratePlan}
+            onClick={onReturnToCurrent ?? onBack}
             className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
             style={{
-              background: "white",
-              border: "1.5px solid rgba(22,163,74,0.35)",
-              color: "#16A34A",
+              background: "#16A34A",
+              color: "white",
               fontWeight: 800,
               fontSize: "0.9rem",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+              boxShadow: "0 4px 16px rgba(22,163,74,0.35)",
             }}
           >
-            Regenerar plan
+            Volver al plan actual
           </button>
+        ) : (
+          onGeneratePlan && (
+            <button
+              type="button"
+              onClick={onGeneratePlan}
+              className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              style={{
+                background: "white",
+                border: "1.5px solid rgba(22,163,74,0.35)",
+                color: "#16A34A",
+                fontWeight: 800,
+                fontSize: "0.9rem",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+              }}
+            >
+              Regenerar plan
+            </button>
+          )
         )}
       </div>
 
-      <BottomNav active="menu" onChange={onTabChange} />
+      {onTabChange && <BottomNav active="menu" onChange={onTabChange} />}
     </div>
   );
 }

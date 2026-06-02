@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, LogOut, Mail } from "lucide-react";
+import { History, Loader2, LogOut, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveWeeklyBudget } from "@/lib/budget";
 import { fetchDashboardData } from "@/lib/dashboard";
@@ -16,6 +16,7 @@ import { BottomNav, type NavTab } from "./BottomNav";
 interface Props {
   onTabChange: (tab: NavTab) => void;
   onSignedOut: () => void;
+  onOpenPlanHistory?: () => void;
 }
 
 const GOAL_OPTIONS = [
@@ -58,7 +59,11 @@ function parseBudgetInput(raw: string): number {
   return parseInt(raw.replace(/\D/g, ""), 10) || 0;
 }
 
-export function ProfileSettingsScreen({ onTabChange, onSignedOut }: Props) {
+export function ProfileSettingsScreen({
+  onTabChange,
+  onSignedOut,
+  onOpenPlanHistory,
+}: Props) {
   const { user, signOut } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isLoadingPrefs, setIsLoadingPrefs] = useState(true);
@@ -302,6 +307,48 @@ export function ProfileSettingsScreen({ onTabChange, onSignedOut }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 space-y-4">
+        {onOpenPlanHistory && (
+          <button
+            type="button"
+            onClick={onOpenPlanHistory}
+            disabled={isSaving}
+            className="w-full rounded-3xl p-5 flex items-center gap-4 active:scale-[0.98] transition-transform disabled:opacity-60"
+            style={{
+              background: "white",
+              border: "1.5px solid rgba(22,163,74,0.1)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+            }}
+          >
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: "#EFF6FF" }}
+            >
+              <History size={22} style={{ color: "#2563EB" }} />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p
+                style={{
+                  fontWeight: 800,
+                  color: "#0D1F16",
+                  fontSize: "0.95rem",
+                }}
+              >
+                Historial de planes
+              </p>
+              <p
+                style={{
+                  color: "#6B8072",
+                  fontSize: "0.78rem",
+                  fontWeight: 500,
+                }}
+              >
+                Ver planes anteriores en modo lectura
+              </p>
+            </div>
+            <span style={{ color: "#9CA3AF", fontSize: "1.1rem" }}>›</span>
+          </button>
+        )}
+
         <div
           className="rounded-3xl p-5 flex items-center gap-4"
           style={{
