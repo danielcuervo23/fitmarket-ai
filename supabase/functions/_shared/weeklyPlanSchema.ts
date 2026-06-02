@@ -1,5 +1,6 @@
 import { z } from "npm:zod@3.23.8";
 import { validateDietaryRestrictions } from "./dietaryRestrictions.ts";
+import { validateGoalCoherence } from "./goalRules.ts";
 
 const dayMenuSchema = z.object({
   desayuno: z.array(z.string().min(1)).min(2).max(5),
@@ -54,6 +55,7 @@ export interface WeeklyPlanBusinessInput {
   weekly_budget_cop: number;
   supermarkets: string[];
   dietary_restrictions: string[];
+  goals: string[];
 }
 
 export type WeeklyPlanValidationError =
@@ -189,6 +191,20 @@ export function validateWeeklyPlanBusinessRules(
       { portionError },
     );
     return { code: "message", message: portionError };
+  }
+
+  const goalError = validateGoalCoherence(
+    plan,
+    input.goals,
+    weeklyBudgetCop,
+  );
+
+  if (goalError) {
+    console.log(
+      "[validateWeeklyPlanBusinessRules] FAIL objetivos:",
+      { goalError, goals: input.goals },
+    );
+    return { code: "message", message: goalError };
   }
 
   return null;

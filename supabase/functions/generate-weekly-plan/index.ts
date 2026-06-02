@@ -95,6 +95,7 @@ Deno.serve(async (req: Request) => {
       weekly_budget_cop: input.weekly_budget_cop,
       weekly_budget_cop_type: typeof input.weekly_budget_cop,
       goals: input.goals,
+      profile: input.profile,
       supermarkets: input.supermarkets,
     });
 
@@ -219,6 +220,7 @@ async function generateAndValidatePlan(
       weekly_budget_cop: input.weekly_budget_cop,
       supermarkets: input.supermarkets,
       dietary_restrictions: input.dietary_restrictions,
+      goals: input.goals,
     });
 
     if (businessError) {

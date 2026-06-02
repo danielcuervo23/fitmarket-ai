@@ -41,7 +41,7 @@ export async function requestWeeklyPlanFromOpenAI(
       );
     } else {
       userContent +=
-        "\n\nCorrige el JSON anterior: debe cumplir el schema, respetar el presupuesto, usar solo store_id permitidos, cumplir dietary_restrictions y descomponer comidas en ingredientes con cantidades (g, ml o unidades).";
+        "\n\nCorrige el JSON anterior: debe cumplir el schema, respetar el presupuesto, usar solo store_id permitidos, cumplir dietary_restrictions, cumplir goal_guidance y descomponer comidas en ingredientes con cantidades (g, ml o unidades).";
     }
   }
 

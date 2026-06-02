@@ -1,5 +1,14 @@
 /** Mantener alineado con src/lib/ai/prompts/weeklyPlan.ts */
 
+import {
+  activityLevelLabel,
+  buildGoalSystemPromptSection,
+  buildMultiGoalGuidance,
+  type UserProfileContext,
+} from "./goalRules.ts";
+
+export type { UserProfileContext };
+
 export interface WeeklyPlanPromptInput {
   weekly_budget_cop: number;
   goals: string[];
@@ -7,16 +16,16 @@ export interface WeeklyPlanPromptInput {
   dietary_restrictions: string[];
   locale: "es-CO";
   household_size: number;
+  profile: UserProfileContext;
 }
 
-export const WEEKLY_PLAN_SYSTEM_PROMPT = `Eres FitMarket AI, nutricionista y planificador de mercado en Colombia.
+const BASE_SYSTEM_PROMPT = `Eres FitMarket AI, nutricionista y planificador de mercado en Colombia.
 Genera un plan semanal saludable dentro del presupuesto en COP (pesos colombianos enteros).
 Responde ÚNICAMENTE con JSON válido que cumpla el schema indicado. Sin markdown ni texto extra.
 Prioriza ingredientes comunes en las cadenas de supermercado indicadas.
 Consolida la lista de mercado sin duplicar productos entre ítems.
 Asigna cada producto de shopping_list a un store_id de la lista recibida.
 La suma de estimated_price_cop en shopping_list debe ser menor o igual al presupuesto semanal (tolerancia máxima 5%).
-Platos alineados a los objetivos del usuario (save = económico, muscle = más proteína, etc.).
 Incluye exactamente 7 días (lun, mar, mie, jue, vie, sab, dom) con desayuno, almuerzo, cena y snacks.
 
 PORCIONES Y DETALLE DE COMIDAS (weekly_menu):
@@ -37,19 +46,35 @@ RESTRICCIONES ALIMENTARIAS (campo dietary_restrictions):
 - Cualquier otro texto en dietary_restrictions es un alimento o ingrediente a evitar por completo.
 - Si hay vegan, prioriza proteína vegetal; si hay vegetarian sin vegan, no uses carnes ni pescados.`;
 
+export const WEEKLY_PLAN_SYSTEM_PROMPT = `${BASE_SYSTEM_PROMPT}
+
+${buildGoalSystemPromptSection()}`;
+
 export function buildWeeklyPlanUserPrompt(
   input: WeeklyPlanPromptInput,
 ): string {
+  const goalContext = buildMultiGoalGuidance(input.goals);
+
   return JSON.stringify(
     {
       weekly_budget_cop: input.weekly_budget_cop,
       goals: input.goals,
+      prioritized_goals: goalContext.prioritized_goals,
+      goal_guidance: goalContext.goal_guidance,
+      multi_goal_strategy: goalContext.multi_goal_strategy,
+      profile: {
+        age: input.profile.age,
+        weight_kg: input.profile.weight_kg,
+        height_cm: input.profile.height_cm,
+        activity_level: input.profile.activity_level,
+        activity_label: activityLevelLabel(input.profile.activity_level),
+      },
       supermarkets: input.supermarkets,
       dietary_restrictions: input.dietary_restrictions,
       locale: input.locale,
       household_size: input.household_size,
       instructions:
-        "Genera summary, weekly_menu y shopping_list. Precios realistas Colombia 2025. En weekly_menu descompón cada comida en ingredientes con cantidades (g, ml o unidades). shopping_list.quantity debe ser el total semanal coherente con esas porciones.",
+        "Genera summary, weekly_menu y shopping_list. Precios realistas Colombia 2025. Aplica goal_guidance y multi_goal_strategy según los objetivos activos. Ajusta porciones y estimated_daily_kcal usando profile. En weekly_menu descompón cada comida en ingredientes con cantidades (g, ml o unidades). shopping_list.quantity debe ser el total semanal coherente con esas porciones.",
     },
     null,
     2,
@@ -57,7 +82,7 @@ export function buildWeeklyPlanUserPrompt(
 }
 
 export const WEEKLY_PLAN_RETRY_USER_APPENDIX =
-  "\n\nCorrige el JSON anterior: debe cumplir el schema, respetar el presupuesto, usar solo store_id permitidos, cumplir todas las dietary_restrictions y descomponer cada comida en ingredientes con cantidades aproximadas (g, ml o unidades).";
+  "\n\nCorrige el JSON anterior: debe cumplir el schema, respetar el presupuesto, usar solo store_id permitidos, cumplir todas las dietary_restrictions, cumplir goal_guidance y descomponer cada comida en ingredientes con cantidades aproximadas (g, ml o unidades).";
 
 export function buildWeeklyPlanRetryUserContent(
   validationError: string,
@@ -67,6 +92,7 @@ export function buildWeeklyPlanRetryUserContent(
     "\n\nEl plan anterior fue rechazado por validación del servidor.",
     `Motivo: ${validationError}`,
     "Elimina o sustituye los alimentos prohibidos según dietary_restrictions.",
+    "Si falló por objetivos, ajusta proteína, calorías o eficiencia económica según goal_guidance.",
     "Si el menú era demasiado genérico, descompón cada comida en ingredientes con cantidades (ej. \"150 g de pechuga de pollo\").",
     "JSON rechazado:",
     previousInvalidJson,

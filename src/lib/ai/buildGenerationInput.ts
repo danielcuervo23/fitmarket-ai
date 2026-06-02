@@ -1,4 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
+import { isActivityLevel, type UserProfileContext } from "@/lib/ai/goalRules";
 import { normalizeDietaryRestrictionsFromDb } from "@/lib/dietaryRestrictions";
 import { isGoalType } from "@/lib/goals";
 import { isSupermarketId } from "@/lib/supermarkets";
@@ -11,6 +12,7 @@ export interface GenerationInput {
   dietary_restrictions: string[];
   locale: "es-CO";
   household_size: 1;
+  profile: UserProfileContext;
 }
 
 function getGenerationInputErrorMessage(error: PostgrestError): string {
@@ -31,6 +33,7 @@ function validateGenerationInput(
   weeklyBudgetCop: number | null | undefined,
   goals: string[],
   supermarkets: string[],
+  profile: UserProfileContext | null,
 ): string | null {
   if (weeklyBudgetCop == null || weeklyBudgetCop <= 0) {
     return "Configura un presupuesto semanal mayor a cero antes de generar tu plan.";
@@ -42,6 +45,10 @@ function validateGenerationInput(
 
   if (supermarkets.length === 0) {
     return "Selecciona al menos un supermercado antes de generar tu plan.";
+  }
+
+  if (!profile) {
+    return "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.";
   }
 
   return null;
@@ -63,7 +70,9 @@ export async function buildGenerationInput(): Promise<{
   const [profileResult, goalsResult, supermarketsResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("weekly_budget_cop, dietary_restrictions")
+      .select(
+        "weekly_budget_cop, dietary_restrictions, age, weight_kg, height_cm, activity_level",
+      )
       .eq("id", user.id)
       .maybeSingle(),
     supabase.from("user_goals").select("goal_type").eq("user_id", user.id),
@@ -88,19 +97,38 @@ export async function buildGenerationInput(): Promise<{
     .map((row) => row.supermarket_id)
     .filter(isSupermarketId);
 
+  const profileRow = profileResult.data;
+  let profile: UserProfileContext | null = null;
+
+  if (
+    profileRow?.age != null &&
+    profileRow.weight_kg != null &&
+    profileRow.height_cm != null &&
+    profileRow.activity_level &&
+    isActivityLevel(profileRow.activity_level)
+  ) {
+    profile = {
+      age: profileRow.age,
+      weight_kg: Number(profileRow.weight_kg),
+      height_cm: profileRow.height_cm,
+      activity_level: profileRow.activity_level,
+    };
+  }
+
   const validationError = validateGenerationInput(
-    profileResult.data?.weekly_budget_cop,
+    profileRow?.weekly_budget_cop,
     goals,
     supermarkets,
+    profile,
   );
 
   if (validationError) {
     return { data: null, error: validationError };
   }
 
-  const weeklyBudgetCop = profileResult.data!.weekly_budget_cop as number;
+  const weeklyBudgetCop = profileRow!.weekly_budget_cop as number;
   const dietaryRestrictions = normalizeDietaryRestrictionsFromDb(
-    profileResult.data?.dietary_restrictions,
+    profileRow?.dietary_restrictions,
   );
 
   return {
@@ -111,6 +139,7 @@ export async function buildGenerationInput(): Promise<{
       dietary_restrictions: dietaryRestrictions,
       locale: "es-CO",
       household_size: 1,
+      profile: profile!,
     },
     error: null,
   };

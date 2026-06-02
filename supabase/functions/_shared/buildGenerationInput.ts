@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { DIETARY_PREDEFINED_IDS } from "./dietaryRestrictions.ts";
+import { isActivityLevel } from "./goalRules.ts";
 import type { WeeklyPlanPromptInput } from "./prompts.ts";
 
 const GOAL_TYPES = new Set([
@@ -87,7 +88,9 @@ export async function buildGenerationInputFromDb(
   const [profileResult, goalsResult, supermarketsResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("weekly_budget_cop, dietary_restrictions")
+      .select(
+        "weekly_budget_cop, dietary_restrictions, age, weight_kg, height_cm, activity_level",
+      )
       .eq("id", userId)
       .maybeSingle(),
     supabase.from("user_goals").select("goal_type").eq("user_id", userId),
@@ -153,16 +156,42 @@ export async function buildGenerationInputFromDb(
     };
   }
 
+  const profileRow = profileResult.data;
+  const age = profileRow?.age as number | null | undefined;
+  const weightKg = profileRow?.weight_kg as number | null | undefined;
+  const heightCm = profileRow?.height_cm as number | null | undefined;
+  const activityLevel = profileRow?.activity_level as string | null | undefined;
+
+  if (
+    age == null ||
+    weightKg == null ||
+    heightCm == null ||
+    !activityLevel ||
+    !isActivityLevel(activityLevel)
+  ) {
+    return {
+      data: null,
+      error:
+        "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.",
+    };
+  }
+
   return {
     data: {
       weekly_budget_cop: weeklyBudgetCop,
       goals,
       supermarkets,
       dietary_restrictions: normalizeDietaryRestrictions(
-        profileResult.data?.dietary_restrictions,
+        profileRow?.dietary_restrictions,
       ),
       locale: "es-CO",
       household_size: 1,
+      profile: {
+        age,
+        weight_kg: Number(weightKg),
+        height_cm: heightCm,
+        activity_level: activityLevel,
+      },
     },
     error: null,
   };
