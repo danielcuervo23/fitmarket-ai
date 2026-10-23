@@ -2,6 +2,7 @@ import { app } from "./app";
 import { auth } from "./auth";
 import { common } from "./common";
 import { errors } from "./errors";
+import { legal } from "./legal";
 import { setup } from "./setup";
 
 // Add each new feature block here: it is merged into both languages and the
@@ -12,6 +13,7 @@ export const es = {
   ...auth.es,
   ...setup.es,
   ...app.es,
+  ...legal.es,
 } as const;
 export const en = {
   ...common.en,
@@ -19,6 +21,7 @@ export const en = {
   ...auth.en,
   ...setup.en,
   ...app.en,
+  ...legal.en,
 } as const;
 
 export type MessageKey = keyof typeof es;

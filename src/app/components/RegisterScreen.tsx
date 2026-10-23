@@ -20,10 +20,17 @@ interface Props {
   onAuthenticated: (name: string) => void;
   onGoToLogin: () => void;
   onBack: () => void;
+  onOpenPrivacy: () => void;
 }
 
-export function RegisterScreen({ onAuthenticated, onGoToLogin, onBack }: Props) {
+export function RegisterScreen({
+  onAuthenticated,
+  onGoToLogin,
+  onBack,
+  onOpenPrivacy,
+}: Props) {
   const { t, language } = useI18n();
+  const [consent, setConsent] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,6 +50,11 @@ export function RegisterScreen({ onAuthenticated, onGoToLogin, onBack }: Props) 
       return;
     }
 
+    if (!consent) {
+      setErrorKey("consent.required");
+      return;
+    }
+
     setErrorKey(null);
     setNeedsConfirmation(false);
     setIsLoading(true);
@@ -51,7 +63,13 @@ export function RegisterScreen({ onAuthenticated, onGoToLogin, onBack }: Props) 
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { data: { full_name: name.trim(), language } },
+        options: {
+          data: {
+            full_name: name.trim(),
+            language,
+            privacy_accepted_at: new Date().toISOString(),
+          },
+        },
       });
 
       if (error) {
@@ -72,6 +90,9 @@ export function RegisterScreen({ onAuthenticated, onGoToLogin, onBack }: Props) 
       setIsLoading(false);
     }
   };
+
+  // The sentence has a link in the middle; split it around a placeholder.
+  const consentParts = t("consent.label", { link: "\u0000" }).split("\u0000");
 
   const clearFeedback = () => {
     setErrorKey(null);
@@ -126,6 +147,30 @@ export function RegisterScreen({ onAuthenticated, onGoToLogin, onBack }: Props) 
               clearFeedback();
             }}
           />
+
+          <label className="flex cursor-pointer items-start gap-3 text-[13px] leading-snug text-ink-600">
+            <input
+              type="checkbox"
+              checked={consent}
+              disabled={isLoading}
+              onChange={(event) => {
+                setConsent(event.target.checked);
+                clearFeedback();
+              }}
+              className="mt-0.5 size-5 shrink-0 cursor-pointer accent-brand-600"
+            />
+            <span>
+              {consentParts[0]}
+              <button
+                type="button"
+                onClick={onOpenPrivacy}
+                className="font-bold text-brand-700 underline"
+              >
+                {t("consent.link")}
+              </button>
+              {consentParts[1]}
+            </span>
+          </label>
         </ScreenBody>
 
         <ScreenFooter>

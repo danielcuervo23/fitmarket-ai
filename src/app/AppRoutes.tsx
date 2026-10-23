@@ -23,6 +23,7 @@ import { ChatScreen } from "./components/ChatScreen";
 import { ProfileSettingsScreen } from "./components/ProfileSettingsScreen";
 import { PlanHistoryScreen } from "./components/PlanHistoryScreen";
 import { AuthLoadingScreen } from "./components/AuthLoadingScreen";
+import { PrivacyScreen } from "./components/PrivacyScreen";
 
 // Development-only screen gallery (see DevPreview.tsx). The condition is a
 // build-time constant, so production bundles contain none of it.
@@ -140,6 +141,17 @@ export function AppRoutes() {
               onAuthenticated={() => void afterAuth()}
               onGoToLogin={() => navigate(ROUTES.login)}
               onBack={() => navigate(ROUTES.welcome)}
+              onOpenPrivacy={() => navigate(ROUTES.privacy)}
+            />
+          </Route>
+
+          <Route path={ROUTES.privacy}>
+            <PrivacyScreen
+              onBack={() =>
+                window.history.length > 1
+                  ? window.history.back()
+                  : navigate(ROUTES.splash)
+              }
             />
           </Route>
 
@@ -245,6 +257,7 @@ export function AppRoutes() {
                 onTabChange={goToTab}
                 onSignedOut={() => navigate(ROUTES.login, { replace: true })}
                 onOpenPlanHistory={() => navigate(ROUTES.app.history)}
+                onOpenPrivacy={() => navigate(ROUTES.privacy)}
               />
             </Protected>
           </Route>

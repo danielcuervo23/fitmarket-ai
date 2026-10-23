@@ -130,7 +130,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
           maximumFractionDigits: 0,
         }).format(amount),
       formatDate: (isoDate) => {
-        const date = new Date(isoDate);
+        // A date-only string ("2026-10-23") means that calendar day, so build
+        // it in local time instead of letting UTC shift it to the day before.
+        const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+        const date = dateOnly
+          ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+          : new Date(isoDate);
 
         return Number.isNaN(date.getTime())
           ? "—"

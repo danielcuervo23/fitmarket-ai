@@ -5,7 +5,10 @@ import {
   Languages,
   LogOut,
   Mail,
+  ShieldCheck,
+  Trash2,
 } from "lucide-react";
+import { deleteAccount } from "@/lib/account";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveWeeklyBudget } from "@/lib/budget";
 import { fetchDashboardData } from "@/lib/dashboard";
@@ -44,6 +47,7 @@ interface Props {
   onTabChange: (tab: NavTab) => void;
   onSignedOut: () => void;
   onOpenPlanHistory?: () => void;
+  onOpenPrivacy?: () => void;
 }
 
 interface SavedPreferences {
@@ -65,8 +69,12 @@ export function ProfileSettingsScreen({
   onTabChange,
   onSignedOut,
   onOpenPlanHistory,
+  onOpenPrivacy,
 }: Props) {
   const { t, formatNumber } = useI18n();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteText, setDeleteText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const { user, signOut } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isLoadingPrefs, setIsLoadingPrefs] = useState(true);
@@ -219,6 +227,28 @@ export function ProfileSettingsScreen({
     }
   };
 
+  const handleDeleteAccount = async () => {
+    setErrorKey(null);
+    setIsDeleting(true);
+
+    try {
+      const { error } = await deleteAccount();
+
+      if (error) {
+        setErrorKey(error);
+        return;
+      }
+
+      onSignedOut();
+    } catch {
+      setErrorKey("account.deleteFailed");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const deleteWord = t("account.deleteWord");
+  const canDelete = deleteText.trim().toUpperCase() === deleteWord;
   const busy = isSaving || isLoadingPrefs;
 
   return (
@@ -263,6 +293,22 @@ export function ProfileSettingsScreen({
               <span className="text-[13px] text-ink-500">
                 {t("settings.historyDesc")}
               </span>
+            </span>
+            <ChevronRight size={18} className="text-ink-300" aria-hidden />
+          </button>
+        )}
+
+        {onOpenPrivacy && (
+          <button
+            type="button"
+            onClick={onOpenPrivacy}
+            className="flex w-full items-center gap-3.5 rounded-card border border-ink-100 bg-white p-4 text-left shadow-card transition-all active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-brand-600"
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+              <ShieldCheck size={20} aria-hidden />
+            </span>
+            <span className="flex-1 text-[15px] font-semibold">
+              {t("account.privacy")}
             </span>
             <ChevronRight size={18} className="text-ink-300" aria-hidden />
           </button>
@@ -379,6 +425,59 @@ export function ProfileSettingsScreen({
           <LogOut size={18} aria-hidden />
           {t("settings.signOut")}
         </Button>
+
+        <section className="flex flex-col gap-3 rounded-card border border-danger-100 bg-danger-50/50 p-4">
+          <h2 className="text-sm font-bold text-danger-700">
+            {t("account.dangerZone")}
+          </h2>
+
+          {!confirmingDelete ? (
+            <Button
+              variant="secondary"
+              onClick={() => setConfirmingDelete(true)}
+              disabled={isSaving || isSigningOut}
+              className="border-danger-100 text-danger-600 hover:bg-danger-50"
+            >
+              <Trash2 size={16} aria-hidden />
+              {t("account.delete")}
+            </Button>
+          ) : (
+            <>
+              <p className="text-[13px] leading-snug text-danger-700">
+                {t("account.deleteWarning")}
+              </p>
+              <TextField
+                label={t("account.deletePrompt", { word: deleteWord })}
+                value={deleteText}
+                disabled={isDeleting}
+                autoComplete="off"
+                onChange={(event) => setDeleteText(event.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  full
+                  disabled={isDeleting}
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    setDeleteText("");
+                  }}
+                >
+                  {t("common.cancel")}
+                </Button>
+                <Button
+                  variant="danger"
+                  full
+                  loading={isDeleting}
+                  disabled={!canDelete}
+                  onClick={() => void handleDeleteAccount()}
+                >
+                  {t("account.deleteConfirm")}
+                </Button>
+              </div>
+            </>
+          )}
+        </section>
       </ScreenBody>
 
       {hasChanges && (
