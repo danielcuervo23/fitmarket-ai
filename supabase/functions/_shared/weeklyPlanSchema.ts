@@ -1,6 +1,7 @@
 import { z } from "npm:zod@3.23.8";
 import { validateDietaryRestrictions } from "./dietaryRestrictions.ts";
 import { validateGoalCoherence } from "./goalRules.ts";
+import { logEvent } from "./log.ts";
 
 const dayMenuSchema = z.object({
   desayuno: z.array(z.string().min(1)).min(2).max(5),
@@ -122,34 +123,10 @@ export function validateWeeklyPlanBusinessRules(
   const weeklyBudgetCop = input.weekly_budget_cop;
   const maxBudget = Math.round(weeklyBudgetCop * 1.05);
 
-  // LOG TEMPORAL — quitar tras diagnosticar presupuesto vs lista
-  console.log({
-    budget: weeklyBudgetCop,
-    budgetType: typeof weeklyBudgetCop,
-    shoppingTotal: listTotal,
-    summaryTotalCop: plan.summary.estimated_total_cop,
-    itemCount: plan.shopping_list.length,
-    limit: maxBudget,
-    overBy: listTotal - maxBudget,
-    items: plan.shopping_list.map((item) => ({
-      name: item.name,
-      price: item.estimated_price_cop,
-    })),
-  });
-
   if (listTotal > maxBudget) {
     const recommendedIncrease = Math.max(0, listTotal - weeklyBudgetCop);
 
-    console.log(
-      "[validateWeeklyPlanBusinessRules] FAIL presupuesto:",
-      {
-        listTotal,
-        maxBudget,
-        weeklyBudgetCop,
-        requiredBudget: listTotal,
-        recommendedIncrease,
-      },
-    );
+    logEvent("plan_validation_failed", { reason: "budget" });
 
     return {
       code: "budget_too_low",
@@ -176,20 +153,14 @@ export function validateWeeklyPlanBusinessRules(
   );
 
   if (dietaryError) {
-    console.log(
-      "[validateWeeklyPlanBusinessRules] FAIL restricciones dietéticas:",
-      { dietary_restrictions: input.dietary_restrictions },
-    );
+    logEvent("plan_validation_failed", { reason: "dietary_restrictions" });
     return { code: "message", message: dietaryError };
   }
 
   const portionError = validateMealPortionDetail(plan);
 
   if (portionError) {
-    console.log(
-      "[validateWeeklyPlanBusinessRules] FAIL porciones:",
-      { portionError },
-    );
+    logEvent("plan_validation_failed", { reason: "portions" });
     return { code: "message", message: portionError };
   }
 
@@ -200,10 +171,7 @@ export function validateWeeklyPlanBusinessRules(
   );
 
   if (goalError) {
-    console.log(
-      "[validateWeeklyPlanBusinessRules] FAIL objetivos:",
-      { goalError, goals: input.goals },
-    );
+    logEvent("plan_validation_failed", { reason: "goals" });
     return { code: "message", message: goalError };
   }
 

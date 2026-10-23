@@ -1,3 +1,5 @@
+import { logEvent } from "./log.ts";
+
 type DietaryPredefinedId =
   | "lactose"
   | "gluten"
@@ -316,11 +318,7 @@ export function validateDietaryRestrictions(
     return null;
   }
 
-  console.log({
-    source: "validateDietaryRestrictions",
-    ...violation,
-    dietary_restrictions: dietaryRestrictions,
-  });
+  logEvent("dietary_violation_detected");
 
   return "El plan incluye alimentos prohibidos por tus restricciones dietéticas.";
 }

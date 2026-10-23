@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
-import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
+import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
+import { logEvent } from "../_shared/log.ts";
 import { requestWeeklyPlanFromOpenAI } from "../_shared/openai.ts";
 import type { WeeklyPlanPromptInput } from "../_shared/prompts.ts";
 import {
@@ -35,20 +36,33 @@ function toPlanGenerationError(
   return { type: "message", message: error.message };
 }
 
+const DEFAULT_DAILY_GENERATION_LIMIT = 10;
+
+function getDailyGenerationLimit(): number {
+  const configured = Number(Deno.env.get("GENERATION_DAILY_LIMIT"));
+
+  return Number.isInteger(configured) && configured > 0
+    ? configured
+    : DEFAULT_DAILY_GENERATION_LIMIT;
+}
+
 Deno.serve(async (req: Request) => {
+  const json = (body: Record<string, unknown>, status = 200) =>
+    jsonResponse(req, body, status);
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders(req) });
   }
 
   if (req.method !== "POST") {
-    return jsonResponse({ error: "Método no permitido." }, 405);
+    return json({ error: "Método no permitido." }, 405);
   }
 
   try {
     const authHeader = req.headers.get("Authorization");
 
     if (!authHeader?.startsWith("Bearer ")) {
-      return jsonResponse(
+      return json(
         { error: "Debes iniciar sesión para generar tu plan." },
         401,
       );
@@ -58,7 +72,7 @@ Deno.serve(async (req: Request) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return jsonResponse(
+      return json(
         { error: "Configuración del servidor incompleta." },
         500,
       );
@@ -74,7 +88,7 @@ Deno.serve(async (req: Request) => {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return jsonResponse(
+      return json(
         { error: "Debes iniciar sesión para generar tu plan." },
         401,
       );
@@ -86,18 +100,52 @@ Deno.serve(async (req: Request) => {
     );
 
     if (inputError || !input) {
-      return jsonResponse({ error: inputError ?? "Datos incompletos." }, 400);
+      return json({ error: inputError ?? "Datos incompletos." }, 400);
     }
 
-    // LOG TEMPORAL — presupuesto leído de profiles.weekly_budget_cop
-    console.log({
-      source: "buildGenerationInputFromDb",
-      weekly_budget_cop: input.weekly_budget_cop,
-      weekly_budget_cop_type: typeof input.weekly_budget_cop,
-      goals: input.goals,
-      profile: input.profile,
-      supermarkets: input.supermarkets,
-    });
+    // Per-user daily quota: protects the OpenAI bill from abuse. The request is
+    // recorded first, then counted, so concurrent calls cannot skip the limit.
+    const { error: recordError } = await supabase
+      .from("plan_generation_requests")
+      .insert({ user_id: user.id });
+
+    if (recordError) {
+      logEvent("generation_quota_record_failed", {
+        code: recordError.code ?? "",
+      });
+      return json(
+        { error: "No pudimos iniciar la generación. Intenta de nuevo." },
+        500,
+      );
+    }
+
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count, error: countError } = await supabase
+      .from("plan_generation_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", since);
+
+    if (countError) {
+      logEvent("generation_quota_count_failed", {
+        code: countError.code ?? "",
+      });
+      return json(
+        { error: "No pudimos iniciar la generación. Intenta de nuevo." },
+        500,
+      );
+    }
+
+    if ((count ?? 0) > getDailyGenerationLimit()) {
+      logEvent("generation_quota_exceeded");
+      return json(
+        {
+          error:
+            "Alcanzaste el límite diario de planes generados. Intenta de nuevo mañana.",
+        },
+        429,
+      );
+    }
 
     const { plan, error: generationError } = await generateAndValidatePlan(
       input,
@@ -106,7 +154,7 @@ Deno.serve(async (req: Request) => {
     if (generationError) {
       if (generationError.type === "budget_too_low") {
         // 200 para que supabase.functions.invoke entregue el body en `data`
-        return jsonResponse(
+        return json(
           {
             error: "budget_too_low",
             currentBudget: generationError.currentBudget,
@@ -118,11 +166,11 @@ Deno.serve(async (req: Request) => {
       }
 
       const status = generationError.message.includes("configurado") ? 503 : 422;
-      return jsonResponse({ error: generationError.message }, status);
+      return json({ error: generationError.message }, status);
     }
 
     if (!plan) {
-      return jsonResponse(
+      return json(
         {
           error:
             "No pudimos generar un plan válido. Revisa tus preferencias e intenta de nuevo.",
@@ -131,9 +179,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    return jsonResponse({ plan }, 200);
+    return json({ plan }, 200);
   } catch {
-    return jsonResponse(
+    return json(
       { error: "Error inesperado al generar tu plan." },
       500,
     );
@@ -210,12 +258,6 @@ async function generateAndValidatePlan(
       continue;
     }
 
-    console.log({
-      source: "generateAndValidatePlan",
-      attempt: isRetry ? "retry" : "first",
-      weekly_budget_cop: input.weekly_budget_cop,
-    });
-
     const businessError = validateWeeklyPlanBusinessRules(plan, {
       weekly_budget_cop: input.weekly_budget_cop,
       supermarkets: input.supermarkets,
@@ -224,11 +266,9 @@ async function generateAndValidatePlan(
     });
 
     if (businessError) {
-      console.log({
-        source: "generateAndValidatePlan",
-        businessError,
-        weekly_budget_cop: input.weekly_budget_cop,
-        dietary_restrictions: input.dietary_restrictions,
+      logEvent("plan_attempt_rejected", {
+        attempt: isRetry ? "retry" : "first",
+        code: businessError.code,
       });
       const planError = toPlanGenerationError(businessError);
       lastError = planError;
