@@ -137,7 +137,13 @@ export function WeeklyMenuScreen({
     );
   }
 
-  const dayMenu: DayMenu = plan.weekly_menu[activeDay];
+  // Newer plans carry the menu in both languages; older ones only in Spanish.
+  const hasEnglishMenu = plan.weekly_menu_en !== undefined;
+  const menuSource =
+    language === "en" && plan.weekly_menu_en
+      ? plan.weekly_menu_en
+      : plan.weekly_menu;
+  const dayMenu: DayMenu = menuSource[activeDay];
   const kcal = formatNumber(plan.summary.estimated_daily_kcal);
   const subtitle = headerDateLabel
     ? t("menu.subtitleWithDate", { date: headerDateLabel, kcal })
@@ -232,7 +238,14 @@ export function WeeklyMenuScreen({
               <span className="flex size-8 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
                 <Icon size={16} aria-hidden />
               </span>
-              <h3 className="text-[15px] font-bold">{t(`meal.${key}`)}</h3>
+              <div className="min-w-0">
+                <h3 className="text-[15px] font-bold">{t(`meal.${key}`)}</h3>
+                {plan.dish_names?.[activeDay]?.[key] && (
+                  <p className="truncate text-[13px] text-ink-500">
+                    {plan.dish_names[activeDay][key][language]}
+                  </p>
+                )}
+              </div>
             </div>
             <ul className="flex flex-col gap-2 px-4 pb-4">
               {dayMenu[key].map((item, index) => (
@@ -251,7 +264,7 @@ export function WeeklyMenuScreen({
           </Card>
         ))}
 
-        {language !== "es" && (
+        {language !== "es" && !hasEnglishMenu && (
           <p className="text-center text-xs text-ink-400">
             {t("menu.contentNote")}
           </p>

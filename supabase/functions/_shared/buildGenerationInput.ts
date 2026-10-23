@@ -1,11 +1,10 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { DIETARY_PREDEFINED_IDS } from "./dietaryRestrictions.ts";
 import {
   mapGenerationInputLoadError,
   type GenerationInputError,
 } from "./generationInputErrors.ts";
-import { isActivityLevel } from "./goalRules.ts";
-import type { WeeklyPlanPromptInput } from "./prompts.ts";
+import { isActivityLevel, type Sex } from "./nutrition.ts";
+import type { GenerateInput } from "./planner/generate.ts";
 
 const GOAL_TYPES = new Set([
   "muscle",
@@ -18,50 +17,33 @@ const GOAL_TYPES = new Set([
 
 const SUPERMARKET_IDS = new Set(["D1", "Ara", "Exito", "Jumbo", "Carulla"]);
 
-function parseOtherFoodsText(otherText: string): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
+/** Ids the app offers as tiles; anything else is free text. */
+const PREDEFINED_RESTRICTION_IDS = new Set([
+  "lactose",
+  "gluten",
+  "pork",
+  "fish",
+  "shellfish",
+  "peanut",
+  "nuts",
+  "vegetarian",
+  "vegan",
+]);
 
-  for (const part of otherText.split(",")) {
-    const normalized = part.trim().toLowerCase();
-
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-
-    seen.add(normalized);
-    result.push(normalized);
-  }
-
-  return result;
+/** Splits free text ("cilantro, huevo") into trimmed, lowercase, unique items. */
+function splitFreeText(text: string): string[] {
+  return text
+    .split(",")
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
 }
 
-function dedupeDietaryRestrictions(items: string[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-
-  for (const item of items) {
-    const normalized = DIETARY_PREDEFINED_IDS.has(item)
-      ? item
-      : item.trim().toLowerCase();
-
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-
-    seen.add(normalized);
-    result.push(DIETARY_PREDEFINED_IDS.has(item) ? item : normalized);
-  }
-
-  return result;
-}
-
-function normalizeDietaryRestrictions(raw: unknown): string[] {
+function normalizeRestrictions(raw: unknown): string[] {
   if (!Array.isArray(raw)) {
     return [];
   }
 
-  const expanded: string[] = [];
+  const result = new Set<string>();
 
   for (const item of raw) {
     if (typeof item !== "string") {
@@ -70,33 +52,36 @@ function normalizeDietaryRestrictions(raw: unknown): string[] {
 
     const trimmed = item.trim();
 
-    if (!trimmed) {
+    if (PREDEFINED_RESTRICTION_IDS.has(trimmed)) {
+      result.add(trimmed);
       continue;
     }
 
-    if (DIETARY_PREDEFINED_IDS.has(trimmed)) {
-      expanded.push(trimmed);
-      continue;
-    }
-
-    expanded.push(...parseOtherFoodsText(trimmed));
+    splitFreeText(trimmed).forEach((part) => result.add(part));
   }
 
-  return dedupeDietaryRestrictions(expanded);
+  return [...result].slice(0, 20);
+}
+
+function incomplete(
+  code: GenerationInputError["code"],
+  message: string,
+): { data: null; error: GenerationInputError } {
+  return { data: null, error: { code, message } };
 }
 
 export async function buildGenerationInputFromDb(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<{
-  data: WeeklyPlanPromptInput | null;
+  data: GenerateInput | null;
   error: GenerationInputError | null;
 }> {
   const [profileResult, goalsResult, supermarketsResult] = await Promise.all([
     supabase
       .from("profiles")
       .select(
-        "weekly_budget_cop, dietary_restrictions, age, weight_kg, height_cm, activity_level",
+        "weekly_budget_cop, dietary_restrictions, age, weight_kg, height_cm, activity_level, sex, household_size",
       )
       .eq("id", userId)
       .maybeSingle(),
@@ -135,85 +120,71 @@ export async function buildGenerationInputFromDb(
     .map((row: { goal_type: string }) => row.goal_type)
     .filter((goal: string) => GOAL_TYPES.has(goal));
 
-  const supermarkets = (supermarketsResult.data ?? [])
+  const stores = (supermarketsResult.data ?? [])
     .map((row: { supermarket_id: string }) => row.supermarket_id)
     .filter((id: string) => SUPERMARKET_IDS.has(id));
 
-  const weeklyBudgetCop = profileResult.data?.weekly_budget_cop as
-    | number
-    | null
-    | undefined;
+  const profile = profileResult.data;
+  const weeklyBudgetCop = profile?.weekly_budget_cop as number | null | undefined;
 
   if (weeklyBudgetCop == null || weeklyBudgetCop <= 0) {
-    return {
-      data: null,
-      error: {
-        code: "budget_missing",
-        message:
-          "Configura un presupuesto semanal mayor a cero antes de generar tu plan.",
-      },
-    };
+    return incomplete(
+      "budget_missing",
+      "Configura un presupuesto semanal mayor a cero antes de generar tu plan.",
+    );
   }
 
   if (goals.length === 0) {
-    return {
-      data: null,
-      error: {
-        code: "goals_missing",
-        message: "Selecciona al menos un objetivo antes de generar tu plan.",
-      },
-    };
+    return incomplete(
+      "goals_missing",
+      "Selecciona al menos un objetivo antes de generar tu plan.",
+    );
   }
 
-  if (supermarkets.length === 0) {
-    return {
-      data: null,
-      error: {
-        code: "stores_missing",
-        message:
-          "Selecciona al menos un supermercado antes de generar tu plan.",
-      },
-    };
+  if (stores.length === 0) {
+    return incomplete(
+      "stores_missing",
+      "Selecciona al menos un supermercado antes de generar tu plan.",
+    );
   }
 
-  const profileRow = profileResult.data;
-  const age = profileRow?.age as number | null | undefined;
-  const weightKg = profileRow?.weight_kg as number | null | undefined;
-  const heightCm = profileRow?.height_cm as number | null | undefined;
-  const activityLevel = profileRow?.activity_level as string | null | undefined;
+  const age = profile?.age as number | null | undefined;
+  const weightKg = profile?.weight_kg as number | null | undefined;
+  const heightCm = profile?.height_cm as number | null | undefined;
+  const activity = profile?.activity_level as string | null | undefined;
 
   if (
     age == null ||
     weightKg == null ||
     heightCm == null ||
-    !activityLevel ||
-    !isActivityLevel(activityLevel)
+    !activity ||
+    !isActivityLevel(activity)
   ) {
-    return {
-      data: null,
-      error: {
-        code: "profile_incomplete",
-        message:
-          "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.",
-      },
-    };
+    return incomplete(
+      "profile_incomplete",
+      "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.",
+    );
   }
+
+  const sex = profile?.sex;
+  const household = Number(profile?.household_size);
 
   return {
     data: {
-      weekly_budget_cop: weeklyBudgetCop,
+      weeklyBudgetCop,
       goals,
-      supermarkets,
-      dietary_restrictions: normalizeDietaryRestrictions(
-        profileRow?.dietary_restrictions,
-      ),
-      locale: "es-CO",
-      household_size: 1,
+      stores,
+      restrictions: normalizeRestrictions(profile?.dietary_restrictions),
+      householdSize:
+        Number.isInteger(household) && household >= 1 && household <= 8
+          ? household
+          : 1,
       profile: {
         age,
-        weight_kg: Number(weightKg),
-        height_cm: heightCm,
-        activity_level: activityLevel,
+        weightKg: Number(weightKg),
+        heightCm,
+        activity,
+        sex: sex === "female" || sex === "male" ? (sex as Sex) : null,
       },
     },
     error: null,

@@ -10,11 +10,17 @@ export type ActivityLevel =
   | "active"
   | "very_active";
 
+export type Sex = "female" | "male";
+
 export interface ProfileInput {
   age: number;
   weight: number;
   height: number;
   activity_level: ActivityLevel;
+  /** Optional: only used to estimate calories. null = prefer not to say. */
+  sex: Sex | null;
+  /** People who share the same shopping (1-8). */
+  household_size: number;
 }
 
 /** Campos de preferencias almacenados en public.profiles */
@@ -50,6 +56,8 @@ function buildProfileRow(userId: string, input: ProfileInput) {
     weight_kg: Number(input.weight),
     height_cm: Math.round(input.height),
     activity_level: input.activity_level,
+    sex: input.sex,
+    household_size: Math.min(8, Math.max(1, Math.round(input.household_size))),
   };
 }
 
@@ -85,6 +93,8 @@ export async function upsertProfile(
         weight_kg: row.weight_kg,
         height_cm: row.height_cm,
         activity_level: row.activity_level,
+        sex: row.sex,
+        household_size: row.household_size,
       })
       .eq("id", user.id);
 

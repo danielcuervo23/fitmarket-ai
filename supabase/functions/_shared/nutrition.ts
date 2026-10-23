@@ -17,6 +17,18 @@ export type ActivityLevel =
   | "active"
   | "very_active";
 
+const ACTIVITY_LEVELS: readonly string[] = [
+  "sedentary",
+  "light",
+  "moderate",
+  "active",
+  "very_active",
+];
+
+export function isActivityLevel(value: string): value is ActivityLevel {
+  return ACTIVITY_LEVELS.includes(value);
+}
+
 export interface BodyProfile {
   age: number;
   weightKg: number;

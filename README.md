@@ -42,9 +42,37 @@ supabase/
   migrations/     SQL schema, RLS policies, limits (apply in order)
   functions/
     _shared/      Domain logic shared by the functions AND the browser
-    generate-weekly-plan/   AI plan generation (auth, quota, validation)
+      catalog.ts          Ingredient catalog: nutrition, allergens, prices
+      nutrition.ts        Calorie / protein targets (Mifflin-St Jeor)
+      planner/            The plan generator (see below)
+    generate-weekly-plan/   Auth, daily quota, calls the planner
     delete-account/         Permanent account deletion
+data/price-samples/       Private research notes used to calibrate prices
+scripts/eval-plans.mjs    Quality evaluation of the generator
 ```
+
+## How plans are generated
+
+The AI no longer invents prices, calories or quantities. It only **chooses
+catalog ingredient ids and amounts**; the server computes the rest:
+
+1. `nutrition.ts` computes the user's daily calories and protein from their
+   body data and goals.
+2. `restrictions.ts` removes every forbidden ingredient (allergies, vegan,
+   free text) from the list the AI sees, so a restriction is enforced by
+   construction and in any language.
+3. The AI (strict JSON schema, ingredient ids as an enum) composes 7 days of
+   Colombian-style meals.
+4. `build.ts` scales each day to the calorie target, sums the shopping list
+   into whole packs, prices it from the catalog, and swaps expensive foods for
+   cheaper equivalents until it fits the budget. If it cannot fit, the user is
+   told the real amount needed and can raise the budget and regenerate on the
+   same screen.
+5. Menu and shopping list are rendered in Spanish and English.
+
+Prices in `catalog.ts` are national references (regular prices, not
+promotions). Entries marked `priceSource: "sample"` were read from store pages;
+`"estimate"` entries are placeholders to refine. Keep them current.
 
 The plan schema in `supabase/functions/_shared` is imported by the browser too
 (`@shared` alias), so client and server always agree on its shape.
@@ -65,6 +93,7 @@ npm run dev              # http://localhost:5173
 
    ```bash
    supabase secrets set OPENAI_API_KEY=sk-...        # required
+   supabase secrets set OPENAI_MODEL=gpt-4o          # optional (default gpt-4o)
    supabase secrets set GENERATION_DAILY_LIMIT=10    # optional (default 10)
    supabase secrets set ALLOWED_ORIGINS=https://your-domain.app,http://localhost:5173
    supabase functions deploy generate-weekly-plan
@@ -83,7 +112,8 @@ npm run dev              # http://localhost:5173
 | `npm run build` | Production build |
 | `npm run typecheck` | Type-check the app |
 | `npm run typecheck:functions` | Type-check the Edge Functions |
-| `npm test` | Unit tests for the shared plan-validation logic |
+| `npm test` | Unit tests: catalog, targets, planner pipeline (fake model), helpers |
+| `npm run eval` | Runs the real generator on 12 profiles and prints quality metrics (needs `OPENAI_API_KEY`, costs a little) |
 | `npm run check` | All of the above checks |
 
 In development, `/__preview/<screen>` (for example `/__preview/dashboard`)

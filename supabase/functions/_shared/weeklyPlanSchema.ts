@@ -1,14 +1,19 @@
 import { z } from "npm:zod@3.23.8";
-import { validateDietaryRestrictions } from "./dietaryRestrictions.ts";
-import { validateGoalCoherence } from "./goalRules.ts";
-import type { GenerationErrorCode } from "./errors.ts";
-import { logEvent } from "./log.ts";
+
+/**
+ * Shape of a generated weekly plan, shared by the Edge Function and the
+ * browser (via the @shared alias) so both always agree.
+ *
+ * Plans saved before the catalog existed only have the base fields; the
+ * optional ones (English menu, dish names, English item names, extra summary
+ * numbers) are present on newer plans.
+ */
 
 const dayMenuSchema = z.object({
-  desayuno: z.array(z.string().min(1)).min(2).max(5),
-  almuerzo: z.array(z.string().min(1)).min(2).max(5),
-  cena: z.array(z.string().min(1)).min(2).max(5),
-  snacks: z.array(z.string().min(1)).min(1).max(3),
+  desayuno: z.array(z.string().min(1)).min(1).max(8),
+  almuerzo: z.array(z.string().min(1)).min(1).max(8),
+  cena: z.array(z.string().min(1)).min(1).max(8),
+  snacks: z.array(z.string().min(1)).min(1).max(8),
 });
 
 const weeklyMenuSchema = z.object({
@@ -19,6 +24,25 @@ const weeklyMenuSchema = z.object({
   vie: dayMenuSchema,
   sab: dayMenuSchema,
   dom: dayMenuSchema,
+});
+
+const dishNameSchema = z.object({ es: z.string(), en: z.string() });
+
+const dayDishNamesSchema = z.object({
+  desayuno: dishNameSchema,
+  almuerzo: dishNameSchema,
+  cena: dishNameSchema,
+  snacks: dishNameSchema,
+});
+
+const dishNamesSchema = z.object({
+  lun: dayDishNamesSchema,
+  mar: dayDishNamesSchema,
+  mie: dayDishNamesSchema,
+  jue: dayDishNamesSchema,
+  vie: dayDishNamesSchema,
+  sab: dayDishNamesSchema,
+  dom: dayDishNamesSchema,
 });
 
 const shoppingCategorySchema = z.enum([
@@ -33,6 +57,7 @@ const shoppingCategorySchema = z.enum([
 
 const shoppingItemSchema = z.object({
   name: z.string().min(1),
+  name_en: z.string().optional(),
   quantity: z.string().min(1),
   estimated_price_cop: z.number().int().nonnegative(),
   category: shoppingCategorySchema,
@@ -42,60 +67,21 @@ const shoppingItemSchema = z.object({
 const planSummarySchema = z.object({
   estimated_total_cop: z.number().int().nonnegative(),
   estimated_daily_kcal: z.number().int().positive(),
+  estimated_daily_protein_g: z.number().int().nonnegative().optional(),
+  target_kcal: z.number().int().positive().optional(),
+  household_size: z.number().int().positive().optional(),
   savings_note: z.string().optional(),
 });
 
 export const weeklyPlanSchema = z.object({
   summary: planSummarySchema,
   weekly_menu: weeklyMenuSchema,
+  weekly_menu_en: weeklyMenuSchema.optional(),
+  dish_names: dishNamesSchema.optional(),
   shopping_list: z.array(shoppingItemSchema).min(1),
 });
 
 export type WeeklyPlanParsed = z.infer<typeof weeklyPlanSchema>;
-
-export interface WeeklyPlanBusinessInput {
-  weekly_budget_cop: number;
-  supermarkets: string[];
-  dietary_restrictions: string[];
-  goals: string[];
-}
-
-export type WeeklyPlanValidationError =
-  | {
-      code: "budget_too_low";
-      currentBudget: number;
-      requiredBudget: number;
-      recommendedIncrease: number;
-    }
-  | { code: "message"; message: string; reason: GenerationErrorCode };
-
-export function validationErrorToMessage(
-  error: WeeklyPlanValidationError,
-): string {
-  if (error.code === "budget_too_low") {
-    return "La lista de mercado supera tu presupuesto semanal.";
-  }
-
-  return error.message;
-}
-
-/** Detecta cantidad aproximada: "80 g", "250 ml", "1 banano", etc. */
-const MEAL_PORTION_PATTERN =
-  /\d+\s*(?:g|gr|gramos|ml|mililitros|kg|kilogramos|l|litro|litros|unidad|unidades|rodaja|rodajas|taza|tazas)\b|\d+\s+(?:de\s+)?[a-záéíóúñ]/i;
-
-function validateMealPortionDetail(plan: WeeklyPlanParsed): string | null {
-  for (const [day, dayMenu] of Object.entries(plan.weekly_menu)) {
-    for (const [meal, items] of Object.entries(dayMenu)) {
-      for (const item of items) {
-        if (!MEAL_PORTION_PATTERN.test(item)) {
-          return `Las comidas deben incluir cantidades por ingrediente (ej. "150 g de pollo"). Revisa ${meal} del ${day}.`;
-        }
-      }
-    }
-  }
-
-  return null;
-}
 
 export function parseWeeklyPlanJson(raw: unknown): {
   data: WeeklyPlanParsed | null;
@@ -111,170 +97,4 @@ export function parseWeeklyPlanJson(raw: unknown): {
   }
 
   return { data: result.data, error: null };
-}
-
-export function validateWeeklyPlanBusinessRules(
-  plan: WeeklyPlanParsed,
-  input: WeeklyPlanBusinessInput,
-): WeeklyPlanValidationError | null {
-  const listTotal = plan.shopping_list.reduce(
-    (sum, item) => sum + item.estimated_price_cop,
-    0,
-  );
-  const weeklyBudgetCop = input.weekly_budget_cop;
-  const maxBudget = Math.round(weeklyBudgetCop * 1.05);
-
-  if (listTotal > maxBudget) {
-    const recommendedIncrease = Math.max(0, listTotal - weeklyBudgetCop);
-
-    logEvent("plan_validation_failed", { reason: "budget" });
-
-    return {
-      code: "budget_too_low",
-      currentBudget: weeklyBudgetCop,
-      requiredBudget: listTotal,
-      recommendedIncrease,
-    };
-  }
-
-  const invalidStore = plan.shopping_list.find(
-    (item) => !input.supermarkets.includes(item.store_id),
-  );
-
-  if (invalidStore) {
-    return {
-      code: "message",
-      message: "Uno o más productos tienen una tienda no válida.",
-      reason: "invalid_store",
-    };
-  }
-
-  const dietaryError = validateDietaryRestrictions(
-    plan,
-    input.dietary_restrictions,
-  );
-
-  if (dietaryError) {
-    logEvent("plan_validation_failed", { reason: "dietary_restrictions" });
-    return { code: "message", message: dietaryError, reason: "dietary_violation" };
-  }
-
-  const portionError = validateMealPortionDetail(plan);
-
-  if (portionError) {
-    logEvent("plan_validation_failed", { reason: "portions" });
-    return { code: "message", message: portionError, reason: "portions_invalid" };
-  }
-
-  const goalError = validateGoalCoherence(
-    plan,
-    input.goals,
-    weeklyBudgetCop,
-  );
-
-  if (goalError) {
-    logEvent("plan_validation_failed", { reason: "goals" });
-    return { code: "message", message: goalError, reason: "goal_incoherent" };
-  }
-
-  return null;
-}
-
-const openAiMealItemsSchema = {
-  type: "array",
-  items: { type: "string" },
-};
-
-const openAiDayMenuSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["desayuno", "almuerzo", "cena", "snacks"],
-  properties: {
-    desayuno: { ...openAiMealItemsSchema, minItems: 2, maxItems: 5 },
-    almuerzo: { ...openAiMealItemsSchema, minItems: 2, maxItems: 5 },
-    cena: { ...openAiMealItemsSchema, minItems: 2, maxItems: 5 },
-    snacks: { ...openAiMealItemsSchema, minItems: 1, maxItems: 3 },
-  },
-};
-
-const openAiShoppingItemSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "name",
-    "quantity",
-    "estimated_price_cop",
-    "category",
-    "store_id",
-  ],
-  properties: {
-    name: { type: "string" },
-    quantity: { type: "string" },
-    estimated_price_cop: { type: "integer", minimum: 0 },
-    category: {
-      type: "string",
-      enum: [
-        "proteinas",
-        "frutas_verduras",
-        "lacteos",
-        "granos",
-        "bebidas",
-        "condimentos",
-        "otros",
-      ],
-    },
-    store_id: { type: "string" },
-  },
-};
-
-export const OPENAI_WEEKLY_PLAN_JSON_SCHEMA = {
-  type: "object",
-  additionalProperties: false,
-  required: ["summary", "weekly_menu", "shopping_list"],
-  properties: {
-    summary: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "estimated_total_cop",
-        "estimated_daily_kcal",
-        "savings_note",
-      ],
-      properties: {
-        estimated_total_cop: { type: "integer", minimum: 0 },
-        estimated_daily_kcal: { type: "integer", minimum: 1 },
-        savings_note: { type: "string" },
-      },
-    },
-    weekly_menu: {
-      type: "object",
-      additionalProperties: false,
-      required: ["lun", "mar", "mie", "jue", "vie", "sab", "dom"],
-      properties: {
-        lun: openAiDayMenuSchema,
-        mar: openAiDayMenuSchema,
-        mie: openAiDayMenuSchema,
-        jue: openAiDayMenuSchema,
-        vie: openAiDayMenuSchema,
-        sab: openAiDayMenuSchema,
-        dom: openAiDayMenuSchema,
-      },
-    },
-    shopping_list: {
-      type: "array",
-      minItems: 1,
-      items: openAiShoppingItemSchema,
-    },
-  },
-};
-
-export function getOpenAIWeeklyPlanResponseFormat() {
-  return {
-    type: "json_schema" as const,
-    json_schema: {
-      name: "weekly_plan",
-      strict: true,
-      schema: OPENAI_WEEKLY_PLAN_JSON_SCHEMA,
-    },
-  };
 }

@@ -8,7 +8,13 @@ import {
   Lock,
   Trophy,
 } from "lucide-react";
-import { isActivityLevel, upsertProfile, type ActivityLevel } from "@/lib/profile";
+import {
+  isActivityLevel,
+  upsertProfile,
+  type ActivityLevel,
+  type Sex,
+} from "@/lib/profile";
+import { cn } from "@/lib/cn";
 import type { ErrorKey } from "@/lib/errors";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -45,6 +51,8 @@ export function ProfileScreen({ name, onNext, onBack }: Props) {
   const [weight, setWeight] = useState(65);
   const [height, setHeight] = useState(165);
   const [activity, setActivity] = useState<ActivityLevel>("moderate");
+  const [sex, setSex] = useState<Sex | null>(null);
+  const [household, setHousehold] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 
@@ -63,6 +71,8 @@ export function ProfileScreen({ name, onNext, onBack }: Props) {
         weight,
         height,
         activity_level: activity,
+        sex,
+        household_size: household,
       });
 
       if (error) {
@@ -147,6 +157,60 @@ export function ProfileScreen({ name, onNext, onBack }: Props) {
             disabled={isLoading}
           />
         </div>
+
+        <section
+          role="radiogroup"
+          aria-label={t("profile.sex")}
+          className="flex flex-col gap-2.5"
+        >
+          <div>
+            <h2 className="text-[13px] font-semibold text-ink-500">
+              {t("profile.sex")}
+            </h2>
+            <p className="text-xs text-ink-400">{t("profile.sexHint")}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {(
+              [
+                ["female", "sex.female"],
+                ["male", "sex.male"],
+                [null, "sex.none"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={label}
+                type="button"
+                role="radio"
+                aria-checked={sex === value}
+                disabled={isLoading}
+                onClick={() => setSex(value)}
+                className={cn(
+                  "rounded-control border px-2 py-3 text-[13px] font-semibold leading-tight transition-colors focus-visible:outline-2 focus-visible:outline-brand-600",
+                  sex === value
+                    ? "border-brand-600 bg-brand-50 text-brand-800"
+                    : "border-ink-200 bg-white text-ink-600 hover:border-ink-300",
+                )}
+              >
+                {t(label)}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-2.5">
+          <NumberStepper
+            label={t("profile.household")}
+            unit={t("profile.householdUnit")}
+            value={household}
+            min={1}
+            max={8}
+            onChange={setHousehold}
+            decreaseLabel={t("profile.decrease", { field: t("profile.household") })}
+            increaseLabel={t("profile.increase", { field: t("profile.household") })}
+            disabled={isLoading}
+          />
+          <p className="text-xs text-ink-400">{t("profile.householdHint")}</p>
+        </section>
 
         <section
           role="radiogroup"

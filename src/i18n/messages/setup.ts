@@ -16,6 +16,15 @@ export const setup = defineMessages({
       "Tus datos se guardan de forma privada y solo tú puedes verlos.",
     "profile.decrease": "Disminuir {field}",
     "profile.increase": "Aumentar {field}",
+    "profile.sex": "Sexo (opcional)",
+    "profile.sexHint": "Solo se usa para estimar tus calorías.",
+    "sex.female": "Mujer",
+    "sex.male": "Hombre",
+    "sex.none": "Prefiero no decirlo",
+    "profile.household": "Personas en tu hogar",
+    "profile.householdUnit": "personas",
+    "profile.householdHint":
+      "Cuántas personas comen del mismo mercado. Tu presupuesto es para todas.",
 
     "activity.sedentary.label": "Sedentario",
     "activity.sedentary.desc": "Poco o nada de ejercicio",
@@ -109,6 +118,15 @@ export const setup = defineMessages({
       "Your data is stored privately and only you can see it.",
     "profile.decrease": "Decrease {field}",
     "profile.increase": "Increase {field}",
+    "profile.sex": "Sex (optional)",
+    "profile.sexHint": "Only used to estimate your calories.",
+    "sex.female": "Female",
+    "sex.male": "Male",
+    "sex.none": "Prefer not to say",
+    "profile.household": "People in your household",
+    "profile.householdUnit": "people",
+    "profile.householdHint":
+      "How many people eat from the same shopping. Your budget covers all of them.",
 
     "activity.sedentary.label": "Sedentary",
     "activity.sedentary.desc": "Little or no exercise",

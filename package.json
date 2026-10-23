@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test \"supabase/functions/_shared/*.test.mjs\" \"supabase/functions/_shared/planner/*.test.mjs\" \"src/lib/*.test.mjs\"",
     "typecheck:functions": "tsc --noEmit -p tsconfig.functions.json",
-    "check": "npm run typecheck && npm run typecheck:functions && npm test"
+    "check": "npm run typecheck && npm run typecheck:functions && npm test",
+    "eval": "node scripts/eval-plans.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

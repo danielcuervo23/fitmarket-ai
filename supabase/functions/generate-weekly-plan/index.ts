@@ -1,41 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
 import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
-import type { GenerationErrorCode } from "../_shared/errors.ts";
 import { logEvent } from "../_shared/log.ts";
-import { requestWeeklyPlanFromOpenAI } from "../_shared/openai.ts";
-import type { WeeklyPlanPromptInput } from "../_shared/prompts.ts";
-import {
-  parseWeeklyPlanJson,
-  validateWeeklyPlanBusinessRules,
-  validationErrorToMessage,
-  type WeeklyPlanParsed,
-  type WeeklyPlanValidationError,
-} from "../_shared/weeklyPlanSchema.ts";
-
-type PlanGenerationError =
-  | {
-      type: "budget_too_low";
-      currentBudget: number;
-      requiredBudget: number;
-      recommendedIncrease: number;
-    }
-  | { type: "message"; message: string; code: GenerationErrorCode };
-
-function toPlanGenerationError(
-  error: WeeklyPlanValidationError,
-): PlanGenerationError {
-  if (error.code === "budget_too_low") {
-    return {
-      type: "budget_too_low",
-      currentBudget: error.currentBudget,
-      requiredBudget: error.requiredBudget,
-      recommendedIncrease: error.recommendedIncrease,
-    };
-  }
-
-  return { type: "message", message: error.message, code: error.reason };
-}
+import { callOpenAI } from "../_shared/openai.ts";
+import { generatePlan } from "../_shared/planner/generate.ts";
 
 const DEFAULT_DAILY_GENERATION_LIMIT = 10;
 
@@ -173,48 +141,23 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { plan, error: generationError } = await generateAndValidatePlan(
-      input,
-    );
+    const outcome = await generatePlan(input, callOpenAI);
 
-    if (generationError) {
-      if (generationError.type === "budget_too_low") {
-        // 200 para que supabase.functions.invoke entregue el body en `data`
-        return json(
-          {
-            error: "budget_too_low",
-            currentBudget: generationError.currentBudget,
-            requiredBudget: generationError.requiredBudget,
-            recommendedIncrease: generationError.recommendedIncrease,
-          },
-          200,
-        );
-      }
-
-      const status =
-        generationError.code === "server_config"
-          ? 503
-          : generationError.code === "rate_limited"
-            ? 429
-            : 422;
-      return json(
-        { error: generationError.message, code: generationError.code },
-        status,
-      );
+    if ("plan" in outcome) {
+      return json({ plan: outcome.plan }, 200);
     }
 
-    if (!plan) {
-      return json(
-        {
-          error:
-            "No pudimos generar un plan válido. Revisa tus preferencias e intenta de nuevo.",
-          code: "generation_failed",
-        },
-        422,
-      );
+    const { code, message, budget } = outcome.error;
+
+    if (code === "budget_too_low" && budget) {
+      // 200 so supabase.functions.invoke delivers the body in `data`.
+      return json({ error: "budget_too_low", code, ...budget }, 200);
     }
 
-    return json({ plan }, 200);
+    const status =
+      code === "server_config" ? 503 : code === "rate_limited" ? 429 : 422;
+
+    return json({ error: message, code }, status);
   } catch {
     return json(
       { error: "Error inesperado al generar tu plan.", code: "unexpected" },
@@ -222,111 +165,3 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
-
-async function generateAndValidatePlan(
-  input: WeeklyPlanPromptInput,
-): Promise<{ plan: WeeklyPlanParsed | null; error: PlanGenerationError | null }> {
-  let lastError: PlanGenerationError = {
-    type: "message",
-    message:
-      "No pudimos generar un plan válido. Revisa tus preferencias e intenta de nuevo.",
-    code: "generation_failed",
-  };
-  let lastInvalidContent: string | null = null;
-
-  for (const isRetry of [false, true]) {
-    const {
-      content,
-      error: openAiError,
-      errorCode: openAiErrorCode,
-    } = await requestWeeklyPlanFromOpenAI(
-      input,
-      isRetry
-        ? {
-            isRetry: true,
-            ...(lastInvalidContent
-              ? {
-                  validationError:
-                    lastError.type === "message"
-                      ? lastError.message
-                      : validationErrorToMessage({
-                          code: "budget_too_low",
-                          currentBudget: lastError.currentBudget,
-                          requiredBudget: lastError.requiredBudget,
-                          recommendedIncrease: lastError.recommendedIncrease,
-                        }),
-                  previousInvalidJson: lastInvalidContent,
-                }
-              : {}),
-          }
-        : undefined,
-    );
-
-    if (openAiError) {
-      lastError = {
-        type: "message",
-        message: openAiError,
-        code: openAiErrorCode ?? "ai_unavailable",
-      };
-      if (openAiErrorCode === "server_config") {
-        return { plan: null, error: lastError };
-      }
-      continue;
-    }
-
-    if (!content) {
-      continue;
-    }
-
-    let parsed: unknown;
-
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      lastError = {
-        type: "message",
-        message: "El plan generado no tiene un formato válido.",
-        code: "invalid_format",
-      };
-      lastInvalidContent = content;
-      continue;
-    }
-
-    const { data: plan, error: schemaError } = parseWeeklyPlanJson(parsed);
-
-    if (schemaError || !plan) {
-      lastError = {
-        type: "message",
-        message: schemaError ?? "El plan generado no tiene un formato válido.",
-        code: "invalid_format",
-      };
-      lastInvalidContent = content;
-      continue;
-    }
-
-    const businessError = validateWeeklyPlanBusinessRules(plan, {
-      weekly_budget_cop: input.weekly_budget_cop,
-      supermarkets: input.supermarkets,
-      dietary_restrictions: input.dietary_restrictions,
-      goals: input.goals,
-    });
-
-    if (businessError) {
-      logEvent("plan_attempt_rejected", {
-        attempt: isRetry ? "retry" : "first",
-        code: businessError.code,
-      });
-      const planError = toPlanGenerationError(businessError);
-      lastError = planError;
-      lastInvalidContent = content;
-      continue;
-    }
-
-    return { plan, error: null };
-  }
-
-  return {
-    plan: null,
-    error: lastError,
-  };
-}

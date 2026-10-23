@@ -10,7 +10,8 @@ interface Props {
 }
 
 export function ShoppingChecklistItem({ item, checked, onToggle }: Props) {
-  const { formatCurrency } = useI18n();
+  const { formatCurrency, language } = useI18n();
+  const name = language === "en" && item.name_en ? item.name_en : item.name;
 
   return (
     <button
@@ -38,7 +39,7 @@ export function ShoppingChecklistItem({ item, checked, onToggle }: Props) {
           checked ? "text-ink-400 line-through" : "text-ink-900",
         )}
       >
-        {item.name}
+        {name}
         {item.quantity && (
           <span className="text-ink-500"> · {item.quantity}</span>
         )}
