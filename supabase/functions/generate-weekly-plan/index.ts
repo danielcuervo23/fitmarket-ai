@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
 import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
+import type { GenerationErrorCode } from "../_shared/errors.ts";
 import { logEvent } from "../_shared/log.ts";
 import { requestWeeklyPlanFromOpenAI } from "../_shared/openai.ts";
 import type { WeeklyPlanPromptInput } from "../_shared/prompts.ts";
@@ -19,7 +20,7 @@ type PlanGenerationError =
       requiredBudget: number;
       recommendedIncrease: number;
     }
-  | { type: "message"; message: string };
+  | { type: "message"; message: string; code: GenerationErrorCode };
 
 function toPlanGenerationError(
   error: WeeklyPlanValidationError,
@@ -33,7 +34,7 @@ function toPlanGenerationError(
     };
   }
 
-  return { type: "message", message: error.message };
+  return { type: "message", message: error.message, code: error.reason };
 }
 
 const DEFAULT_DAILY_GENERATION_LIMIT = 10;
@@ -55,7 +56,10 @@ Deno.serve(async (req: Request) => {
   }
 
   if (req.method !== "POST") {
-    return json({ error: "Método no permitido." }, 405);
+    return json(
+      { error: "Método no permitido.", code: "method_not_allowed" },
+      405,
+    );
   }
 
   try {
@@ -63,7 +67,10 @@ Deno.serve(async (req: Request) => {
 
     if (!authHeader?.startsWith("Bearer ")) {
       return json(
-        { error: "Debes iniciar sesión para generar tu plan." },
+        {
+          error: "Debes iniciar sesión para generar tu plan.",
+          code: "unauthorized",
+        },
         401,
       );
     }
@@ -73,7 +80,10 @@ Deno.serve(async (req: Request) => {
 
     if (!supabaseUrl || !supabaseAnonKey) {
       return json(
-        { error: "Configuración del servidor incompleta." },
+        {
+          error: "Configuración del servidor incompleta.",
+          code: "server_config",
+        },
         500,
       );
     }
@@ -89,7 +99,10 @@ Deno.serve(async (req: Request) => {
 
     if (authError || !user) {
       return json(
-        { error: "Debes iniciar sesión para generar tu plan." },
+        {
+          error: "Debes iniciar sesión para generar tu plan.",
+          code: "unauthorized",
+        },
         401,
       );
     }
@@ -100,7 +113,13 @@ Deno.serve(async (req: Request) => {
     );
 
     if (inputError || !input) {
-      return json({ error: inputError ?? "Datos incompletos." }, 400);
+      return json(
+        {
+          error: inputError?.message ?? "Datos incompletos.",
+          code: inputError?.code ?? "profile_incomplete",
+        },
+        400,
+      );
     }
 
     // Per-user daily quota: protects the OpenAI bill from abuse. The request is
@@ -114,7 +133,10 @@ Deno.serve(async (req: Request) => {
         code: recordError.code ?? "",
       });
       return json(
-        { error: "No pudimos iniciar la generación. Intenta de nuevo." },
+        {
+          error: "No pudimos iniciar la generación. Intenta de nuevo.",
+          code: "unexpected",
+        },
         500,
       );
     }
@@ -131,7 +153,10 @@ Deno.serve(async (req: Request) => {
         code: countError.code ?? "",
       });
       return json(
-        { error: "No pudimos iniciar la generación. Intenta de nuevo." },
+        {
+          error: "No pudimos iniciar la generación. Intenta de nuevo.",
+          code: "unexpected",
+        },
         500,
       );
     }
@@ -142,6 +167,7 @@ Deno.serve(async (req: Request) => {
         {
           error:
             "Alcanzaste el límite diario de planes generados. Intenta de nuevo mañana.",
+          code: "quota_exceeded",
         },
         429,
       );
@@ -165,8 +191,16 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      const status = generationError.message.includes("configurado") ? 503 : 422;
-      return json({ error: generationError.message }, status);
+      const status =
+        generationError.code === "server_config"
+          ? 503
+          : generationError.code === "rate_limited"
+            ? 429
+            : 422;
+      return json(
+        { error: generationError.message, code: generationError.code },
+        status,
+      );
     }
 
     if (!plan) {
@@ -174,6 +208,7 @@ Deno.serve(async (req: Request) => {
         {
           error:
             "No pudimos generar un plan válido. Revisa tus preferencias e intenta de nuevo.",
+          code: "generation_failed",
         },
         422,
       );
@@ -182,7 +217,7 @@ Deno.serve(async (req: Request) => {
     return json({ plan }, 200);
   } catch {
     return json(
-      { error: "Error inesperado al generar tu plan." },
+      { error: "Error inesperado al generar tu plan.", code: "unexpected" },
       500,
     );
   }
@@ -195,11 +230,16 @@ async function generateAndValidatePlan(
     type: "message",
     message:
       "No pudimos generar un plan válido. Revisa tus preferencias e intenta de nuevo.",
+    code: "generation_failed",
   };
   let lastInvalidContent: string | null = null;
 
   for (const isRetry of [false, true]) {
-    const { content, error: openAiError } = await requestWeeklyPlanFromOpenAI(
+    const {
+      content,
+      error: openAiError,
+      errorCode: openAiErrorCode,
+    } = await requestWeeklyPlanFromOpenAI(
       input,
       isRetry
         ? {
@@ -223,8 +263,12 @@ async function generateAndValidatePlan(
     );
 
     if (openAiError) {
-      lastError = { type: "message", message: openAiError };
-      if (openAiError.includes("configurado")) {
+      lastError = {
+        type: "message",
+        message: openAiError,
+        code: openAiErrorCode ?? "ai_unavailable",
+      };
+      if (openAiErrorCode === "server_config") {
         return { plan: null, error: lastError };
       }
       continue;
@@ -242,6 +286,7 @@ async function generateAndValidatePlan(
       lastError = {
         type: "message",
         message: "El plan generado no tiene un formato válido.",
+        code: "invalid_format",
       };
       lastInvalidContent = content;
       continue;
@@ -252,7 +297,8 @@ async function generateAndValidatePlan(
     if (schemaError || !plan) {
       lastError = {
         type: "message",
-        message: schemaError ?? lastError.message,
+        message: schemaError ?? "El plan generado no tiene un formato válido.",
+        code: "invalid_format",
       };
       lastInvalidContent = content;
       continue;

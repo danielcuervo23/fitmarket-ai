@@ -1,6 +1,7 @@
 import { z } from "npm:zod@3.23.8";
 import { validateDietaryRestrictions } from "./dietaryRestrictions.ts";
 import { validateGoalCoherence } from "./goalRules.ts";
+import type { GenerationErrorCode } from "./errors.ts";
 import { logEvent } from "./log.ts";
 
 const dayMenuSchema = z.object({
@@ -66,7 +67,7 @@ export type WeeklyPlanValidationError =
       requiredBudget: number;
       recommendedIncrease: number;
     }
-  | { code: "message"; message: string };
+  | { code: "message"; message: string; reason: GenerationErrorCode };
 
 export function validationErrorToMessage(
   error: WeeklyPlanValidationError,
@@ -144,6 +145,7 @@ export function validateWeeklyPlanBusinessRules(
     return {
       code: "message",
       message: "Uno o más productos tienen una tienda no válida.",
+      reason: "invalid_store",
     };
   }
 
@@ -154,14 +156,14 @@ export function validateWeeklyPlanBusinessRules(
 
   if (dietaryError) {
     logEvent("plan_validation_failed", { reason: "dietary_restrictions" });
-    return { code: "message", message: dietaryError };
+    return { code: "message", message: dietaryError, reason: "dietary_violation" };
   }
 
   const portionError = validateMealPortionDetail(plan);
 
   if (portionError) {
     logEvent("plan_validation_failed", { reason: "portions" });
-    return { code: "message", message: portionError };
+    return { code: "message", message: portionError, reason: "portions_invalid" };
   }
 
   const goalError = validateGoalCoherence(
@@ -172,7 +174,7 @@ export function validateWeeklyPlanBusinessRules(
 
   if (goalError) {
     logEvent("plan_validation_failed", { reason: "goals" });
-    return { code: "message", message: goalError };
+    return { code: "message", message: goalError, reason: "goal_incoherent" };
   }
 
   return null;

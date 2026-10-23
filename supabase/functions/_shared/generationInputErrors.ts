@@ -1,3 +1,5 @@
+import type { GenerationErrorCode } from "./errors.ts";
+
 interface PostgrestLikeError {
   message: string;
   code?: string;
@@ -5,10 +7,16 @@ interface PostgrestLikeError {
   hint?: string;
 }
 
+export interface GenerationInputError {
+  code: GenerationErrorCode;
+  /** Spanish fallback text; clients translate by `code`. */
+  message: string;
+}
+
 export function mapGenerationInputLoadError(
   error: PostgrestLikeError,
   source: "profiles" | "user_goals" | "user_supermarkets",
-): string {
+): GenerationInputError {
   const message = error.message.toLowerCase();
   const code = error.code ?? "";
 
@@ -21,7 +29,11 @@ export function mapGenerationInputLoadError(
   });
 
   if (code === "42501" || message.includes("row-level security")) {
-    return "No tienes permiso para generar tu plan. Inicia sesión e intenta de nuevo.";
+    return {
+      code: "permission_denied",
+      message:
+        "No tienes permiso para generar tu plan. Inicia sesión e intenta de nuevo.",
+    };
   }
 
   if (
@@ -29,7 +41,10 @@ export function mapGenerationInputLoadError(
     message.includes("fetch") ||
     message.includes("timeout")
   ) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
+    return {
+      code: "network",
+      message: "No pudimos conectar. Revisa tu internet e intenta de nuevo.",
+    };
   }
 
   if (
@@ -37,16 +52,26 @@ export function mapGenerationInputLoadError(
     message.includes("does not exist") ||
     message.includes("schema cache")
   ) {
-    return "Hay un problema de configuración en el servidor. Intenta más tarde o contacta soporte.";
+    return {
+      code: "server_config",
+      message:
+        "Hay un problema de configuración en el servidor. Intenta más tarde o contacta soporte.",
+    };
   }
 
   if (code === "PGRST116" || message.includes("0 rows")) {
-    if (source === "profiles") {
-      return "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.";
-    }
-
-    return "Completa tu configuración en la app antes de generar tu plan.";
+    return {
+      code: "profile_incomplete",
+      message:
+        source === "profiles"
+          ? "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan."
+          : "Completa tu configuración en la app antes de generar tu plan.",
+    };
   }
 
-  return "No pudimos leer tu configuración. Intenta de nuevo en unos segundos.";
+  return {
+    code: "load_failed",
+    message:
+      "No pudimos leer tu configuración. Intenta de nuevo en unos segundos.",
+  };
 }

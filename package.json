@@ -7,7 +7,9 @@
     "build": "vite build",
     "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"supabase/functions/_shared/*.test.mjs\""
+    "test": "node --test \"supabase/functions/_shared/*.test.mjs\"",
+    "typecheck:functions": "tsc --noEmit -p tsconfig.functions.json",
+    "check": "npm run typecheck && npm run typecheck:functions && npm test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

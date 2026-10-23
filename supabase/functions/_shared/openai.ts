@@ -4,6 +4,7 @@ import {
   WEEKLY_PLAN_SYSTEM_PROMPT,
   type WeeklyPlanPromptInput,
 } from "./prompts.ts";
+import type { GenerationErrorCode } from "./errors.ts";
 import { getOpenAIWeeklyPlanResponseFormat } from "./weeklyPlanSchema.ts";
 
 const OPENAI_MODEL = "gpt-4o-mini";
@@ -21,13 +22,18 @@ export async function requestWeeklyPlanFromOpenAI(
     validationError?: string;
     previousInvalidJson?: string;
   },
-): Promise<{ content: string | null; error: string | null }> {
+): Promise<{
+  content: string | null;
+  error: string | null;
+  errorCode: GenerationErrorCode | null;
+}> {
   const apiKey = Deno.env.get("OPENAI_API_KEY");
 
   if (!apiKey) {
     return {
       content: null,
       error: "El servicio de generación no está configurado.",
+      errorCode: "server_config",
     };
   }
 
@@ -77,12 +83,14 @@ export async function requestWeeklyPlanFromOpenAI(
         return {
           content: null,
           error: "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
+          errorCode: "rate_limited",
         };
       }
 
       return {
         content: null,
         error: "No pudimos generar tu plan. Intenta de nuevo en unos segundos.",
+        errorCode: "ai_unavailable",
       };
     }
 
@@ -93,21 +101,24 @@ export async function requestWeeklyPlanFromOpenAI(
       return {
         content: null,
         error: "La respuesta del servicio de IA estaba vacía.",
+        errorCode: "ai_empty",
       };
     }
 
-    return { content, error: null };
+    return { content, error: null, errorCode: null };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       return {
         content: null,
         error: "La generación tardó demasiado. Intenta de nuevo.",
+        errorCode: "ai_timeout",
       };
     }
 
     return {
       content: null,
       error: "No pudimos conectar con el servicio de IA. Intenta de nuevo.",
+      errorCode: "ai_unavailable",
     };
   } finally {
     clearTimeout(timeoutId);

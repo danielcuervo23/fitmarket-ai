@@ -1,6 +1,9 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { DIETARY_PREDEFINED_IDS } from "./dietaryRestrictions.ts";
-import { mapGenerationInputLoadError } from "./generationInputErrors.ts";
+import {
+  mapGenerationInputLoadError,
+  type GenerationInputError,
+} from "./generationInputErrors.ts";
 import { isActivityLevel } from "./goalRules.ts";
 import type { WeeklyPlanPromptInput } from "./prompts.ts";
 
@@ -85,7 +88,10 @@ function normalizeDietaryRestrictions(raw: unknown): string[] {
 export async function buildGenerationInputFromDb(
   supabase: SupabaseClient,
   userId: string,
-): Promise<{ data: WeeklyPlanPromptInput | null; error: string | null }> {
+): Promise<{
+  data: WeeklyPlanPromptInput | null;
+  error: GenerationInputError | null;
+}> {
   const [profileResult, goalsResult, supermarketsResult] = await Promise.all([
     supabase
       .from("profiles")
@@ -141,23 +147,32 @@ export async function buildGenerationInputFromDb(
   if (weeklyBudgetCop == null || weeklyBudgetCop <= 0) {
     return {
       data: null,
-      error:
-        "Configura un presupuesto semanal mayor a cero antes de generar tu plan.",
+      error: {
+        code: "budget_missing",
+        message:
+          "Configura un presupuesto semanal mayor a cero antes de generar tu plan.",
+      },
     };
   }
 
   if (goals.length === 0) {
     return {
       data: null,
-      error: "Selecciona al menos un objetivo antes de generar tu plan.",
+      error: {
+        code: "goals_missing",
+        message: "Selecciona al menos un objetivo antes de generar tu plan.",
+      },
     };
   }
 
   if (supermarkets.length === 0) {
     return {
       data: null,
-      error:
-        "Selecciona al menos un supermercado antes de generar tu plan.",
+      error: {
+        code: "stores_missing",
+        message:
+          "Selecciona al menos un supermercado antes de generar tu plan.",
+      },
     };
   }
 
@@ -176,8 +191,11 @@ export async function buildGenerationInputFromDb(
   ) {
     return {
       data: null,
-      error:
-        "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.",
+      error: {
+        code: "profile_incomplete",
+        message:
+          "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.",
+      },
     };
   }
 
