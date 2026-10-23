@@ -34,6 +34,24 @@ export default defineConfig({
     },
   },
 
+  build: {
+    rollupOptions: {
+      output: {
+        // Vendor code changes rarely: keeping it in its own files lets the
+        // browser cache it across app releases.
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('/@supabase/')) return 'supabase'
+          if (/\/(framer-motion|motion|motion-dom|motion-utils)\//.test(id)) {
+            return 'motion'
+          }
+          if (/\/(react|react-dom|scheduler)\//.test(id)) return 'react'
+          return undefined
+        },
+      },
+    },
+  },
+
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
 })

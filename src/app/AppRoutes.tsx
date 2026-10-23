@@ -10,20 +10,71 @@ import { SplashScreen } from "./components/SplashScreen";
 import { OnboardingScreen } from "./components/OnboardingScreen";
 import { RegisterScreen } from "./components/RegisterScreen";
 import { LoginScreen } from "./components/LoginScreen";
-import { ProfileScreen } from "./components/ProfileScreen";
-import { GoalsScreen } from "./components/GoalsScreen";
-import { BudgetScreen } from "./components/BudgetScreen";
-import { SupermarketsScreen } from "./components/SupermarketsScreen";
-import { DietaryRestrictionsScreen } from "./components/DietaryRestrictionsScreen";
-import { AIGenerationScreen } from "./components/AIGenerationScreen";
-import { DashboardScreen } from "./components/DashboardScreen";
-import { WeeklyMenuScreen } from "./components/WeeklyMenuScreen";
-import { MarketScreen } from "./components/MarketScreen";
-import { ChatScreen } from "./components/ChatScreen";
-import { ProfileSettingsScreen } from "./components/ProfileSettingsScreen";
-import { PlanHistoryScreen } from "./components/PlanHistoryScreen";
 import { AuthLoadingScreen } from "./components/AuthLoadingScreen";
 import { PrivacyScreen } from "./components/PrivacyScreen";
+
+// Post-login screens are loaded on demand so the first paint only downloads
+// the code needed for the splash, onboarding and sign-in screens.
+const ProfileScreen = lazy(() =>
+  import("./components/ProfileScreen").then((module) => ({
+    default: module.ProfileScreen,
+  })),
+);
+const GoalsScreen = lazy(() =>
+  import("./components/GoalsScreen").then((module) => ({
+    default: module.GoalsScreen,
+  })),
+);
+const BudgetScreen = lazy(() =>
+  import("./components/BudgetScreen").then((module) => ({
+    default: module.BudgetScreen,
+  })),
+);
+const SupermarketsScreen = lazy(() =>
+  import("./components/SupermarketsScreen").then((module) => ({
+    default: module.SupermarketsScreen,
+  })),
+);
+const DietaryRestrictionsScreen = lazy(() =>
+  import("./components/DietaryRestrictionsScreen").then((module) => ({
+    default: module.DietaryRestrictionsScreen,
+  })),
+);
+const AIGenerationScreen = lazy(() =>
+  import("./components/AIGenerationScreen").then((module) => ({
+    default: module.AIGenerationScreen,
+  })),
+);
+const DashboardScreen = lazy(() =>
+  import("./components/DashboardScreen").then((module) => ({
+    default: module.DashboardScreen,
+  })),
+);
+const WeeklyMenuScreen = lazy(() =>
+  import("./components/WeeklyMenuScreen").then((module) => ({
+    default: module.WeeklyMenuScreen,
+  })),
+);
+const MarketScreen = lazy(() =>
+  import("./components/MarketScreen").then((module) => ({
+    default: module.MarketScreen,
+  })),
+);
+const ChatScreen = lazy(() =>
+  import("./components/ChatScreen").then((module) => ({
+    default: module.ChatScreen,
+  })),
+);
+const ProfileSettingsScreen = lazy(() =>
+  import("./components/ProfileSettingsScreen").then((module) => ({
+    default: module.ProfileSettingsScreen,
+  })),
+);
+const PlanHistoryScreen = lazy(() =>
+  import("./components/PlanHistoryScreen").then((module) => ({
+    default: module.PlanHistoryScreen,
+  })),
+);
 
 // Development-only screen gallery (see DevPreview.tsx). The condition is a
 // build-time constant, so production bundles contain none of it.
@@ -123,7 +174,8 @@ export function AppRoutes() {
       >
         {/* `location` is passed explicitly so a screen that is animating out
             keeps rendering its own route instead of the new one. */}
-        <Switch location={location}>
+        <Suspense fallback={<AuthLoadingScreen />}>
+          <Switch location={location}>
           <Route path={ROUTES.splash}>
             <SplashRoute />
           </Route>
@@ -282,7 +334,8 @@ export function AppRoutes() {
           <Route>
             <Redirect to={ROUTES.splash} replace />
           </Route>
-        </Switch>
+          </Switch>
+        </Suspense>
       </motion.div>
     </AnimatePresence>
   );

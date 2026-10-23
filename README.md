@@ -1,11 +1,115 @@
+# FitMarket AI
 
-  # FitMarket AI Mobile App Design
+A mobile-first web app that builds a **weekly meal plan and a shopping list with
+AI**, around the user's budget, goals, supermarkets and dietary restrictions
+(prices in Colombian pesos). The interface is available in **Spanish and
+English**.
 
-  This is a code bundle for FitMarket AI Mobile App Design. The original project is available at https://www.figma.com/design/x4unrU1CJpA4L5KXWmyQUo/FitMarket-AI-Mobile-App-Design.
+Live demo: https://fitmarket-ai.vercel.app  
+Original design: [Figma](https://www.figma.com/design/x4unrU1CJpA4L5KXWmyQUo/FitMarket-AI-Mobile-App-Design)
 
-  ## Running the code
+## Features
 
-  Run `npm i` to install the dependencies.
+- Email sign-up / sign-in (Supabase Auth) with a privacy-policy consent step
+- 5-step setup: body data, goals, weekly budget, supermarkets, restrictions
+- AI-generated weekly menu + consolidated shopping list, validated on the
+  server (budget, chosen stores, dietary restrictions, goals, portions)
+- Per-store shopping checklist with progress, plan history, settings
+- Language setting (ES / EN) that follows the user across devices
+- Delete-account option (removes all personal data)
+- Not built yet: the AI chat (the screen says so)
 
-  Run `npm run dev` to start the development server.
-  
+## Tech stack
+
+| Layer | Technology |
+| --- | --- |
+| UI | React 18, TypeScript (strict), Vite, Tailwind CSS v4, Motion |
+| Routing | wouter (URL routes, protected routes) |
+| Backend | Supabase: Auth, Postgres with Row Level Security, Edge Functions (Deno) |
+| AI | OpenAI Chat Completions, called **only** from an Edge Function |
+| Quality | `tsc` for app + functions, `node --test`, GitHub Actions CI |
+
+## Project structure
+
+```
+src/
+  app/            Screens, routes (AppRoutes.tsx, routes.ts), design system (ui/)
+  contexts/       Auth and plan state
+  i18n/           Typed translations (messages/*.ts) and the provider
+  lib/            Data access and domain logic (one file per feature)
+  hooks/          Data hooks
+supabase/
+  migrations/     SQL schema, RLS policies, limits (apply in order)
+  functions/
+    _shared/      Domain logic shared by the functions AND the browser
+    generate-weekly-plan/   AI plan generation (auth, quota, validation)
+    delete-account/         Permanent account deletion
+```
+
+The plan schema in `supabase/functions/_shared` is imported by the browser too
+(`@shared` alias), so client and server always agree on its shape.
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env     # then fill in your Supabase URL and anon key
+npm run dev              # http://localhost:5173
+```
+
+### Supabase setup
+
+1. Create a Supabase project and run the files in `supabase/migrations/` in
+   order (SQL editor, or `supabase db push` after `supabase link`).
+2. Set the function secrets and deploy:
+
+   ```bash
+   supabase secrets set OPENAI_API_KEY=sk-...        # required
+   supabase secrets set GENERATION_DAILY_LIMIT=10    # optional (default 10)
+   supabase secrets set ALLOWED_ORIGINS=https://your-domain.app,http://localhost:5173
+   supabase functions deploy generate-weekly-plan
+   supabase functions deploy delete-account
+   ```
+
+3. In the Supabase dashboard (Authentication): require email confirmation,
+   raise the minimum password length, and add your site URL to the redirect
+   allow-list. Set a monthly spending limit in the OpenAI dashboard.
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm run typecheck` | Type-check the app |
+| `npm run typecheck:functions` | Type-check the Edge Functions |
+| `npm test` | Unit tests for the shared plan-validation logic |
+| `npm run check` | All of the above checks |
+
+In development, `/__preview/<screen>` (for example `/__preview/dashboard`)
+renders screens with sample data and no account. It is excluded from
+production builds.
+
+## Adding or changing text
+
+All user-facing text lives in `src/i18n/messages/`. Each block declares Spanish
+and English together with `defineMessages`; a missing key in either language is
+a compile error. Use `t("key")` from `useI18n()`, never hard-coded strings.
+Library code returns message **keys** (`ErrorKey`), not text.
+
+## Security notes
+
+- Row Level Security is enabled on every table; each user only sees their rows.
+- The OpenAI key and the service-role key exist only as Supabase secrets.
+  `VITE_*` values are public by design.
+- `generate-weekly-plan` verifies the user's JWT, enforces a daily quota per
+  user, limits CORS to known origins, and logs events without personal data.
+- Restriction text is length-limited in the database and the UI.
+- The plan is a guide, not medical advice; the UI says so. Dietary validation
+  uses Spanish food terms, so the generated menu stays in Spanish even when the
+  interface is in English.
+
+## Status
+
+Course project in active development. The privacy policy is an informational
+draft and should be reviewed before real users rely on the app.
