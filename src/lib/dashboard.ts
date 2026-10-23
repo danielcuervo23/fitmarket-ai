@@ -3,6 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import { normalizeDietaryRestrictionsFromDb } from "@/lib/dietaryRestrictions";
 import { type GoalType, isGoalType } from "@/lib/goals";
 import { supabase } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/session";
 
 export interface DashboardGoal {
   id: GoalType;
@@ -87,7 +88,7 @@ export async function fetchDashboardData(): Promise<{
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return { data: null, error: "Debes iniciar sesión para ver tu panel." };

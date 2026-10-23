@@ -2,6 +2,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { parseWeeklyPlanJson } from "@/lib/ai/weeklyPlanSchema";
 import type { WeeklyPlan } from "@/lib/ai/types";
 import { supabase } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/session";
 
 function getWeeklyPlanSaveErrorMessage(error: PostgrestError): string {
   const message = error.message.toLowerCase();
@@ -81,7 +82,7 @@ export async function saveWeeklyPlan(
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return {
@@ -109,7 +110,7 @@ export async function fetchLatestWeeklyPlan(): Promise<{
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return {
@@ -153,7 +154,7 @@ export async function fetchWeeklyPlansHistory(): Promise<{
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return {
@@ -206,7 +207,7 @@ export async function fetchWeeklyPlanById(planId: string): Promise<{
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return {

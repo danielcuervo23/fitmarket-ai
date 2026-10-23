@@ -28,6 +28,9 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+      // Code shared with the Edge Functions (single source of truth)
+      '@shared': path.resolve(__dirname, './supabase/functions/_shared'),
+      'npm:zod@3.23.8': 'zod',
     },
   },
 

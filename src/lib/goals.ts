@@ -1,5 +1,6 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/session";
 
 export type GoalType =
   | "muscle"
@@ -71,7 +72,7 @@ export async function saveUserGoals(
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return { error: "Debes iniciar sesión para guardar tus objetivos." };

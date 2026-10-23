@@ -55,20 +55,21 @@ const SINGLE_GOAL_RULES: Record<GoalType, string> = {
     "family: comidas compartibles y repetibles; ingredientes fáciles de preparar; porciones rendidoras para varias personas.",
 };
 
+// Keys are the two goal ids sorted alphabetically (see pairKey).
 const PAIR_GOAL_RULES: Record<string, string> = {
-  "save|muscle":
+  "muscle|save":
     "save + muscle: proteína alta dentro del presupuesto (huevos, legumbres, pollo, atún económico); evitar suplementos o cortes premium.",
   "fat|healthy":
     "fat + healthy: pérdida de grasa saludable; déficit moderado; mucha fibra y verduras; proteína suficiente sin exceso calórico.",
   "family|save":
     "family + save: comidas rendidoras y económicas (guisos, arroz, legumbres, pollo); compras consolidadas en shopping_list.",
-  "muscle|fat":
+  "fat|muscle":
     "muscle + fat: recomposición; proteína alta; calorías controladas (no superávit grande ni déficit extremo).",
-  "muscle|energy":
+  "energy|muscle":
     "muscle + energy: suficientes carbohidratos complejos alrededor del entrenamiento; proteína en todas las comidas principales.",
   "fat|save":
     "fat + save: porciones controladas con ingredientes baratos (huevo, lenteja, pollo, verduras de temporada).",
-  "healthy|energy":
+  "energy|healthy":
     "healthy + energy: comidas completas con granos integrales y frutas; evitar saltar comidas.",
 };
 

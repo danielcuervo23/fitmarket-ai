@@ -95,15 +95,19 @@ const noProteinPlan = {
       store_id: "D1",
     },
   ],
-  weekly_menu: {
-    ...baseMenu,
-    lun: {
-      desayuno: ["80 g galletas", "1 jugo"],
-      almuerzo: ["100 g pasta", "salsa"],
-      cena: ["pan", "mermelada"],
-      snacks: ["dulce"],
-    },
-  },
+  // Every day must be protein-free, otherwise the validator (which counts the
+  // whole week) correctly finds enough protein signals in the other days.
+  weekly_menu: Object.fromEntries(
+    Object.keys(baseMenu).map((day) => [
+      day,
+      {
+        desayuno: ["80 g galletas", "1 jugo"],
+        almuerzo: ["100 g pasta", "salsa"],
+        cena: ["pan", "mermelada"],
+        snacks: ["dulce"],
+      },
+    ]),
+  ),
 };
 
 const fatHighKcalPlan = {

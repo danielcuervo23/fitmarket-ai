@@ -1,5 +1,6 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/session";
 
 export type ActivityLevel =
   | "sedentary"
@@ -92,7 +93,7 @@ export async function upsertProfile(
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return { error: "Debes iniciar sesión para guardar tu perfil." };

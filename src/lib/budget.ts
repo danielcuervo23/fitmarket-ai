@@ -1,5 +1,6 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/session";
 
 function getBudgetErrorMessage(error: PostgrestError): string {
   const message = error.message.toLowerCase();
@@ -44,7 +45,7 @@ export async function saveWeeklyBudget(
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return { error: "Debes iniciar sesión para guardar tu presupuesto." };
