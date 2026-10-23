@@ -56,6 +56,8 @@ export interface Nutrition {
 export interface Ingredient {
   id: string;
   name: { es: string; en: string };
+  /** Plural names, only for foods counted in units (eggs, fruit). */
+  plural?: { es: string; en: string };
   category: ShoppingCategory;
   unit: FoodUnit;
   /** Grams in one unit (required when unit is "unit"; used for nutrition). */
@@ -87,7 +89,7 @@ const seeds: Seed[] = [
   { id: "carne_molida_res", name: { es: "Carne molida de res", en: "Ground beef" }, category: "proteinas", unit: "g", per100: n(176, 20, 0, 10), tags: ["meat"], pack: 450, price: 38, priceSource: "sample" },
   { id: "res_sobrebarriga", name: { es: "Sobrebarriga de res", en: "Beef flank" }, category: "proteinas", unit: "g", per100: n(150, 21, 0, 7), tags: ["meat"], pack: 500, price: 25 },
   { id: "lomo_cerdo", name: { es: "Lomo de cerdo", en: "Pork loin" }, category: "proteinas", unit: "g", per100: n(143, 21, 0, 6), tags: ["meat", "pork"], pack: 500, price: 14.6, priceSource: "sample" },
-  { id: "huevo", name: { es: "Huevo", en: "Egg" }, category: "proteinas", unit: "unit", gramsPerUnit: 50, per100: n(143, 12.6, 0.7, 9.5), tags: ["egg"], pack: 12, price: 650, priceSource: "sample" },
+  { id: "huevo", plural: { es: "huevos", en: "eggs" }, name: { es: "Huevo", en: "Egg" }, category: "proteinas", unit: "unit", gramsPerUnit: 50, per100: n(143, 12.6, 0.7, 9.5), tags: ["egg"], pack: 12, price: 650, priceSource: "sample" },
   { id: "atun_lata", name: { es: "Atún en lata (en agua)", en: "Canned tuna (in water)" }, category: "proteinas", unit: "g", per100: n(116, 26, 0, 1), tags: ["fish"], pack: 160, price: 38 },
   { id: "sardina_lata", name: { es: "Sardinas en lata", en: "Canned sardines" }, category: "proteinas", unit: "g", per100: n(208, 25, 0, 11.5), tags: ["fish"], pack: 125, price: 36 },
   { id: "tilapia", name: { es: "Filete de tilapia", en: "Tilapia fillet" }, category: "proteinas", unit: "g", per100: n(96, 20, 0, 1.7), tags: ["fish"], pack: 500, price: 25 },
@@ -130,7 +132,7 @@ const seeds: Seed[] = [
   { id: "espinaca", name: { es: "Espinaca", en: "Spinach" }, category: "frutas_verduras", unit: "g", per100: n(23, 2.9, 3.6, 0.4), tags: [], pack: 250, price: 12 },
   { id: "lechuga", name: { es: "Lechuga", en: "Lettuce" }, category: "frutas_verduras", unit: "g", per100: n(15, 1.4, 2.9, 0.2), tags: [], pack: 250, price: 8 },
   { id: "pepino", name: { es: "Pepino cohombro", en: "Cucumber" }, category: "frutas_verduras", unit: "g", per100: n(15, 0.7, 3.6, 0.1), tags: [], pack: 250, price: 8 },
-  { id: "pimenton", name: { es: "Pimentón", en: "Bell pepper" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 150, per100: n(31, 1, 6, 0.3), tags: [], pack: 1, price: 1360, priceSource: "sample" },
+  { id: "pimenton", plural: { es: "pimentones", en: "bell peppers" }, name: { es: "Pimentón", en: "Bell pepper" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 150, per100: n(31, 1, 6, 0.3), tags: [], pack: 1, price: 1360, priceSource: "sample" },
   { id: "ajo", name: { es: "Ajo", en: "Garlic" }, category: "condimentos", unit: "g", per100: n(149, 6.4, 33, 0.5), tags: [], pack: 100, price: 20 },
   { id: "cilantro", name: { es: "Cilantro", en: "Cilantro" }, category: "condimentos", unit: "g", per100: n(23, 2.1, 3.7, 0.5), tags: [], pack: 50, price: 41.8, priceSource: "sample" },
   { id: "repollo", name: { es: "Repollo", en: "Cabbage" }, category: "frutas_verduras", unit: "g", per100: n(25, 1.3, 5.8, 0.1), tags: [], pack: 500, price: 3 },
@@ -139,12 +141,12 @@ const seeds: Seed[] = [
   { id: "calabacin", name: { es: "Calabacín", en: "Zucchini" }, category: "frutas_verduras", unit: "g", per100: n(17, 1.2, 3.1, 0.3), tags: [], pack: 250, price: 6 },
 
   // ---- Fruit
-  { id: "banano", name: { es: "Banano", en: "Banana" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 120, per100: n(89, 1.1, 22.8, 0.3), tags: [], pack: 1, price: 713, priceSource: "sample" },
-  { id: "manzana", name: { es: "Manzana", en: "Apple" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 180, per100: n(52, 0.3, 13.8, 0.2), tags: [], pack: 1, price: 2440, priceSource: "sample" },
-  { id: "naranja", name: { es: "Naranja", en: "Orange" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 150, per100: n(47, 0.9, 11.8, 0.1), tags: [], pack: 1, price: 800 },
-  { id: "mandarina", name: { es: "Mandarina", en: "Mandarin" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 90, per100: n(53, 0.8, 13.3, 0.3), tags: [], pack: 1, price: 500 },
-  { id: "pera", name: { es: "Pera", en: "Pear" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 170, per100: n(57, 0.4, 15.2, 0.1), tags: [], pack: 1, price: 1800 },
-  { id: "aguacate", name: { es: "Aguacate", en: "Avocado" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 200, per100: n(160, 2, 8.5, 14.7), tags: [], pack: 1, price: 3500 },
+  { id: "banano", plural: { es: "bananos", en: "bananas" }, name: { es: "Banano", en: "Banana" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 120, per100: n(89, 1.1, 22.8, 0.3), tags: [], pack: 1, price: 713, priceSource: "sample" },
+  { id: "manzana", plural: { es: "manzanas", en: "apples" }, name: { es: "Manzana", en: "Apple" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 180, per100: n(52, 0.3, 13.8, 0.2), tags: [], pack: 1, price: 2440, priceSource: "sample" },
+  { id: "naranja", plural: { es: "naranjas", en: "oranges" }, name: { es: "Naranja", en: "Orange" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 150, per100: n(47, 0.9, 11.8, 0.1), tags: [], pack: 1, price: 800 },
+  { id: "mandarina", plural: { es: "mandarinas", en: "mandarins" }, name: { es: "Mandarina", en: "Mandarin" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 90, per100: n(53, 0.8, 13.3, 0.3), tags: [], pack: 1, price: 500 },
+  { id: "pera", plural: { es: "peras", en: "pears" }, name: { es: "Pera", en: "Pear" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 170, per100: n(57, 0.4, 15.2, 0.1), tags: [], pack: 1, price: 1800 },
+  { id: "aguacate", plural: { es: "aguacates", en: "avocados" }, name: { es: "Aguacate", en: "Avocado" }, category: "frutas_verduras", unit: "unit", gramsPerUnit: 200, per100: n(160, 2, 8.5, 14.7), tags: [], pack: 1, price: 3500 },
   { id: "papaya", name: { es: "Papaya", en: "Papaya" }, category: "frutas_verduras", unit: "g", per100: n(43, 0.5, 11, 0.3), tags: [], pack: 500, price: 4 },
   { id: "pina", name: { es: "Piña", en: "Pineapple" }, category: "frutas_verduras", unit: "g", per100: n(50, 0.5, 13.1, 0.1), tags: [], pack: 500, price: 4 },
   { id: "mango", name: { es: "Mango", en: "Mango" }, category: "frutas_verduras", unit: "g", per100: n(60, 0.8, 15, 0.4), tags: [], pack: 500, price: 5 },
