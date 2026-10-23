@@ -25,36 +25,6 @@ export const DIETARY_RESTRICTION_IDS: readonly DietaryRestrictionId[] = [
   "vegan",
 ] as const;
 
-export const DIETARY_RESTRICTION_OPTIONS: {
-  id: DietaryRestrictionId;
-  emoji: string;
-  label: string;
-  color: string;
-  bg: string;
-}[] = [
-  { id: "lactose", emoji: "🥛", label: "Lactosa", color: "#2563EB", bg: "#EFF6FF" },
-  { id: "gluten", emoji: "🌾", label: "Gluten", color: "#D97706", bg: "#FFFBEB" },
-  { id: "pork", emoji: "🐷", label: "Cerdo", color: "#EC4899", bg: "#FDF2F8" },
-  { id: "fish", emoji: "🐟", label: "Pescado", color: "#0891B2", bg: "#F0F9FF" },
-  {
-    id: "shellfish",
-    emoji: "🦐",
-    label: "Mariscos",
-    color: "#DC2626",
-    bg: "#FEF2F2",
-  },
-  { id: "peanut", emoji: "🥜", label: "Maní", color: "#92400E", bg: "#FFFBEB" },
-  { id: "nuts", emoji: "🌰", label: "Nueces", color: "#78350F", bg: "#FFFBEB" },
-  {
-    id: "vegetarian",
-    emoji: "🥗",
-    label: "Vegetariano",
-    color: "#16A34A",
-    bg: "#F0FDF4",
-  },
-  { id: "vegan", emoji: "🌱", label: "Vegano", color: "#15803D", bg: "#DCFCE7" },
-];
-
 const PREDEFINED_IDS = new Set<string>(DIETARY_RESTRICTION_IDS);
 
 export function isDietaryRestrictionId(value: string): value is DietaryRestrictionId {

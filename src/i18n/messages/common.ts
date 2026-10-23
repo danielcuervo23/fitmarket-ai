@@ -20,6 +20,7 @@ export const common = defineMessages({
     "errors.permission":
       "No tienes permiso para hacer esto. Inicia sesión e intenta de nuevo.",
 
+    "nav.label": "Navegación principal",
     "nav.home": "Inicio",
     "nav.menu": "Menú",
     "nav.market": "Mercado",
@@ -49,6 +50,7 @@ export const common = defineMessages({
     "errors.permission":
       "You don't have permission to do this. Sign in and try again.",
 
+    "nav.label": "Main navigation",
     "nav.home": "Home",
     "nav.menu": "Menu",
     "nav.market": "Market",

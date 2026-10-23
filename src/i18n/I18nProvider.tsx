@@ -9,7 +9,7 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { en, es, type MessageKey } from "./messages";
+import { en, es, type MessageKey, type PluralBase } from "./messages";
 
 export type Language = "es" | "en";
 
@@ -59,7 +59,10 @@ interface I18nContextValue {
   locale: string;
   setLanguage: (language: Language) => void;
   t: (key: MessageKey, params?: TranslateParams) => string;
+  /** Picks the `_one` / `_other` variant of `base` for `count`. */
+  plural: (base: PluralBase, count: number) => string;
   formatCurrency: (value: number) => string;
+  formatNumber: (value: number) => string;
   formatDate: (isoDate: string) => string;
 }
 
@@ -109,6 +112,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       locale,
       setLanguage,
       t: (key, params) => interpolate(dictionary[key] ?? key, params),
+      plural: (base, count) => {
+        const form = new Intl.PluralRules(locale).select(count);
+        const key: MessageKey =
+          form === "one" ? `${base}_one` : `${base}_other`;
+
+        return interpolate(dictionary[key] ?? key, { count });
+      },
+      formatNumber: (amount) =>
+        new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(
+          amount,
+        ),
       formatCurrency: (amount) =>
         new Intl.NumberFormat(locale, {
           style: "currency",

@@ -1,19 +1,16 @@
+import type { MessageKey } from "@/i18n/messages";
+
 export interface BudgetIncreaseScenario {
   increaseCop: number;
   projectedBudgetCop: number;
-  benefit: string;
+  benefitKey: MessageKey;
 }
 
-const BUDGET_INCREASE_STEPS_COP = [10_000, 20_000, 50_000] as const;
-
-const BENEFIT_BY_INCREASE: Record<
-  (typeof BUDGET_INCREASE_STEPS_COP)[number],
-  string
-> = {
-  10_000: "Mayor flexibilidad para snacks y desayunos.",
-  20_000: "Más variedad de proteínas durante la semana.",
-  50_000: "Plan más variado y mayor cantidad de alimentos.",
-};
+const SCENARIOS: readonly { increaseCop: number; benefitKey: MessageKey }[] = [
+  { increaseCop: 10_000, benefitKey: "market.benefit.10000" },
+  { increaseCop: 20_000, benefitKey: "market.benefit.20000" },
+  { increaseCop: 50_000, benefitKey: "market.benefit.50000" },
+];
 
 export function buildBudgetIncreaseRecommendations(
   currentBudgetCop: number | null | undefined,
@@ -22,15 +19,9 @@ export function buildBudgetIncreaseRecommendations(
     return null;
   }
 
-  return BUDGET_INCREASE_STEPS_COP.map((increaseCop) => ({
+  return SCENARIOS.map(({ increaseCop, benefitKey }) => ({
     increaseCop,
     projectedBudgetCop: currentBudgetCop + increaseCop,
-    benefit: BENEFIT_BY_INCREASE[increaseCop],
+    benefitKey,
   }));
-}
-
-export function formatBudgetIncreaseLabel(increaseCop: number): string {
-  return `+${increaseCop.toLocaleString("es-CO", {
-    maximumFractionDigits: 0,
-  })} COP`;
 }

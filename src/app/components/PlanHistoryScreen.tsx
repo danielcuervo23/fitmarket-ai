@@ -1,13 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ChevronRight, History, Loader2 } from "lucide-react";
+import { CheckCircle2, ChevronRight, FileText, History } from "lucide-react";
 import type { WeeklyPlan } from "@/lib/ai/types";
-import { formatCOP } from "@/lib/formatCop";
+import type { ErrorKey } from "@/lib/errors";
 import {
   fetchWeeklyPlanById,
   fetchWeeklyPlansHistory,
-  formatPlanHistoryDate,
   type WeeklyPlanHistoryItem,
 } from "@/lib/weeklyPlans";
+import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
+import {
+  Alert,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Screen,
+  ScreenBody,
+  ScreenHeader,
+} from "@/app/ui";
 import { WeeklyMenuScreen } from "./WeeklyMenuScreen";
 
 interface Props {
@@ -16,24 +26,23 @@ interface Props {
 }
 
 export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
+  const { t, plural, formatCurrency, formatNumber, formatDate } = useI18n();
   const [items, setItems] = useState<WeeklyPlanHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
+  const [detailError, setDetailError] = useState<ErrorKey | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<WeeklyPlan | null>(null);
-  const [selectedDateLabel, setSelectedDateLabel] = useState<string | null>(
-    null,
-  );
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
   const loadHistory = useCallback(async () => {
     setIsLoading(true);
-    setErrorMessage(null);
+    setErrorKey(null);
 
     const { data, error } = await fetchWeeklyPlansHistory();
 
     if (error) {
-      setErrorMessage(error);
+      setErrorKey(error);
       setItems([]);
     } else {
       setItems(data ?? []);
@@ -52,232 +61,131 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
       return;
     }
 
-    setSelectedId(item.id);
-    setSelectedDateLabel(formatPlanHistoryDate(item.created_at));
+    setDetailError(null);
+    setSelectedDate(formatDate(item.created_at));
     setIsLoadingDetail(true);
     setSelectedPlan(null);
 
     const { data, error } = await fetchWeeklyPlanById(item.id);
 
+    setIsLoadingDetail(false);
+
     if (error || !data) {
-      setErrorMessage(error ?? "No pudimos cargar este plan.");
-      setSelectedId(null);
-      setIsLoadingDetail(false);
+      setDetailError(error ?? "errors.load");
+      setSelectedDate(null);
       return;
     }
 
     setSelectedPlan(data);
-    setIsLoadingDetail(false);
   };
 
   const handleCloseDetail = () => {
-    setSelectedId(null);
     setSelectedPlan(null);
-    setSelectedDateLabel(null);
+    setSelectedDate(null);
   };
 
   if (isLoadingDetail) {
     return (
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center gap-4"
-        style={{ background: "#F7FAF8" }}
-      >
-        <Loader2
-          size={36}
-          className="animate-spin"
-          style={{ color: "#16A34A" }}
-        />
-        <p style={{ color: "#6B8072", fontSize: "0.875rem", fontWeight: 600 }}>
-          Cargando plan...
-        </p>
-      </div>
+      <Screen>
+        <LoadingState message={t("history.loadingPlan")} />
+      </Screen>
     );
   }
 
-  if (selectedId && selectedPlan) {
+  if (selectedPlan) {
     return (
       <WeeklyMenuScreen
         viewPlan={selectedPlan}
         readOnly
         onBack={handleCloseDetail}
         onReturnToCurrent={onViewCurrentPlan}
-        headerTitle="Plan anterior"
-        headerDateLabel={selectedDateLabel ?? undefined}
+        headerTitle={t("menu.previousPlan")}
+        headerDateLabel={selectedDate ?? undefined}
       />
     );
   }
 
   return (
-    <div
-      className="absolute inset-0 flex flex-col"
-      style={{ background: "#F7FAF8" }}
-    >
-      <div
-        className="pt-14 px-6 pb-5"
-        style={{
-          background: "white",
-          borderBottom: "1px solid rgba(0,0,0,0.05)",
-        }}
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 mb-3 -ml-1 px-1 py-1 rounded-lg active:scale-95 transition-transform"
-          style={{ color: "#16A34A", fontWeight: 700, fontSize: "0.82rem" }}
-        >
-          <ArrowLeft size={18} />
-          Mi cuenta
-        </button>
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 900, color: "#0D1F16" }}>
-          Historial de planes
-        </h1>
-        <p style={{ color: "#6B8072", fontSize: "0.8rem", fontWeight: 400 }}>
-          Tus planes generados, del más reciente al más antiguo
-        </p>
-      </div>
+    <Screen>
+      <ScreenHeader
+        title={t("history.title")}
+        subtitle={t("history.subtitle")}
+        onBack={onBack}
+      />
 
-      <div className="flex-1 overflow-y-auto px-6 py-5 pb-10 space-y-3">
+      <ScreenBody className="flex flex-col gap-3 pb-10">
+        {detailError && <Alert tone="error">{t(detailError)}</Alert>}
+
         {isLoading ? (
-          <div className="flex items-center justify-center gap-2 py-16">
-            <Loader2
-              size={24}
-              className="animate-spin"
-              style={{ color: "#16A34A" }}
-            />
-            <span
-              style={{ color: "#6B8072", fontSize: "0.85rem", fontWeight: 600 }}
-            >
-              Cargando historial...
-            </span>
-          </div>
-        ) : errorMessage ? (
-          <div
-            role="alert"
-            className="px-4 py-3 rounded-2xl text-sm"
-            style={{
-              background: "#FEF2F2",
-              border: "1.5px solid rgba(220,38,38,0.2)",
-              color: "#991B1B",
-              fontWeight: 600,
-            }}
-          >
-            {errorMessage}
-          </div>
+          <LoadingState message={t("history.loading")} />
+        ) : errorKey ? (
+          <ErrorState message={t(errorKey)} onRetry={() => void loadHistory()} />
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center text-center py-16 px-4">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-              style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0" }}
-            >
-              <History size={28} style={{ color: "#16A34A" }} />
-            </div>
-            <p
-              style={{
-                fontWeight: 800,
-                color: "#0D1F16",
-                fontSize: "1rem",
-              }}
-            >
-              Aún no hay planes guardados
-            </p>
-            <p
-              className="mt-2"
-              style={{
-                color: "#6B8072",
-                fontSize: "0.85rem",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                maxWidth: "260px",
-              }}
-            >
-              Cuando generes un plan semanal, aparecerá aquí con su fecha y
-              resumen.
-            </p>
-          </div>
+          <EmptyState
+            icon={<History size={26} />}
+            title={t("history.empty")}
+            body={t("history.emptyBody")}
+          />
         ) : (
           items.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => void handleOpenPlan(item)}
-              className="w-full text-left rounded-3xl p-5 flex items-center gap-4 active:scale-[0.98] transition-transform"
-              style={{
-                background: "white",
-                border: item.is_current
-                  ? "1.5px solid rgba(22,163,74,0.35)"
-                  : "1.5px solid rgba(0,0,0,0.06)",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
-              }}
+              className={cn(
+                "flex w-full items-center gap-3.5 rounded-card border bg-white p-4 text-left shadow-card transition-all active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-brand-600",
+                item.is_current ? "border-brand-300" : "border-ink-100",
+              )}
             >
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: item.is_current ? "#DCFCE7" : "#F3F4F6",
-                }}
+              <span
+                className={cn(
+                  "flex size-11 shrink-0 items-center justify-center rounded-xl",
+                  item.is_current
+                    ? "bg-brand-100 text-brand-700"
+                    : "bg-ink-100 text-ink-500",
+                )}
               >
-                <span style={{ fontSize: "1.4rem" }}>
-                  {item.is_current ? "✅" : "📋"}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p
-                    style={{
-                      fontWeight: 800,
-                      color: "#0D1F16",
-                      fontSize: "0.95rem",
-                    }}
-                  >
-                    {item.is_current ? "Plan actual" : "Plan anterior"}
-                  </p>
+                {item.is_current ? (
+                  <CheckCircle2 size={20} aria-hidden />
+                ) : (
+                  <FileText size={20} aria-hidden />
+                )}
+              </span>
+
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="flex items-center gap-2">
+                  <span className="text-[15px] font-bold">
+                    {item.is_current
+                      ? t("history.current")
+                      : t("history.previous")}
+                  </span>
                   {item.is_current && (
-                    <span
-                      className="px-2 py-0.5 rounded-full"
-                      style={{
-                        background: "#DCFCE7",
-                        color: "#16A34A",
-                        fontSize: "0.65rem",
-                        fontWeight: 800,
-                      }}
-                    >
-                      Activo
+                    <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-800">
+                      {t("history.active")}
                     </span>
                   )}
-                </div>
-                <p
-                  style={{
-                    color: "#6B8072",
-                    fontSize: "0.78rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  {formatPlanHistoryDate(item.created_at)}
-                </p>
-                <p
-                  className="mt-1"
-                  style={{
-                    color: "#374151",
-                    fontSize: "0.8rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  {formatCOP(item.estimated_total_cop)} · {item.product_count}{" "}
-                  {item.product_count === 1 ? "producto" : "productos"} ·{" "}
-                  {item.estimated_daily_kcal.toLocaleString("es-CO", {
-                    maximumFractionDigits: 0,
-                  })}{" "}
-                  kcal/día
-                </p>
-              </div>
+                </span>
+                <span className="text-[13px] font-medium text-ink-500">
+                  {formatDate(item.created_at)}
+                </span>
+                <span className="text-[13px] text-ink-700">
+                  {formatCurrency(item.estimated_total_cop)} ·{" "}
+                  {plural("plural.product", item.product_count)} ·{" "}
+                  {t("history.kcalPerDay", {
+                    kcal: formatNumber(item.estimated_daily_kcal),
+                  })}
+                </span>
+              </span>
+
               <ChevronRight
-                size={20}
-                className="flex-shrink-0"
-                style={{ color: "#9CA3AF" }}
+                size={18}
+                className="shrink-0 text-ink-300"
+                aria-hidden
               />
             </button>
           ))
         )}
-      </div>
-    </div>
+      </ScreenBody>
+    </Screen>
   );
 }

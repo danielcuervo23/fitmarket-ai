@@ -1,29 +1,30 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchDashboardData, type DashboardData } from "@/lib/dashboard";
+import type { ErrorKey } from "@/lib/errors";
 
 export function useDashboardData() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 
   const reload = useCallback(async () => {
     setIsLoading(true);
-    setErrorMessage(null);
+    setErrorKey(null);
 
     try {
       const { data: dashboardData, error } = await fetchDashboardData();
 
       if (error) {
         setData(null);
-        setErrorMessage(error);
+        setErrorKey(error);
         return;
       }
 
       setData(dashboardData);
     } catch {
       setData(null);
-      setErrorMessage(
-        "No pudimos conectar. Revisa tu internet e intenta de nuevo.",
+      setErrorKey(
+        "errors.network",
       );
     } finally {
       setIsLoading(false);
@@ -34,5 +35,5 @@ export function useDashboardData() {
     void reload();
   }, [reload]);
 
-  return { data, isLoading, errorMessage, reload };
+  return { data, isLoading, errorKey, reload };
 }

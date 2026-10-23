@@ -1,4 +1,7 @@
-import { Home, CalendarDays, ShoppingCart, User } from "lucide-react";
+import { CalendarDays, Home, ShoppingCart, User } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
+import type { MessageKey } from "@/i18n/messages";
 
 export type NavTab = "dashboard" | "menu" | "market" | "profile";
 
@@ -7,49 +10,47 @@ interface Props {
   onChange: (tab: NavTab) => void;
 }
 
-const tabs: { id: NavTab; label: string; Icon: typeof Home }[] = [
-  { id: "dashboard", label: "Inicio", Icon: Home },
-  { id: "menu", label: "Menú", Icon: CalendarDays },
-  { id: "market", label: "Mercado", Icon: ShoppingCart },
-  { id: "profile", label: "Perfil", Icon: User },
+const TABS: { id: NavTab; label: MessageKey; Icon: typeof Home }[] = [
+  { id: "dashboard", label: "nav.home", Icon: Home },
+  { id: "menu", label: "nav.menu", Icon: CalendarDays },
+  { id: "market", label: "nav.market", Icon: ShoppingCart },
+  { id: "profile", label: "nav.profile", Icon: User },
 ];
 
 export function BottomNav({ active, onChange }: Props) {
+  const { t } = useI18n();
+
   return (
-    <div
-      className="absolute bottom-0 inset-x-0 bg-white border-t border-gray-100 flex items-center justify-around px-2 pb-4 pt-2"
-      style={{ boxShadow: "0 -4px 20px rgba(0,0,0,0.06)" }}
+    <nav
+      aria-label={t("nav.label")}
+      className="absolute inset-x-0 bottom-0 flex border-t border-ink-100 bg-white px-2 pb-6 pt-2"
     >
-      {tabs.map(({ id, label, Icon }) => {
+      {TABS.map(({ id, label, Icon }) => {
         const isActive = active === id;
+
         return (
           <button
             key={id}
+            type="button"
             onClick={() => onChange(id)}
-            className="flex flex-col items-center gap-0.5 flex-1 py-1 transition-all"
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+              "flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-brand-600",
+              isActive ? "text-brand-700" : "text-ink-400 hover:text-ink-600",
+            )}
           >
-            <div
-              className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all"
-              style={{ background: isActive ? "#DCFCE7" : "transparent" }}
-            >
-              <Icon
-                size={20}
-                style={{ color: isActive ? "#16A34A" : "#9CA3AF" }}
-                strokeWidth={isActive ? 2.5 : 1.8}
-              />
-            </div>
             <span
-              className="text-[10px] transition-all"
-              style={{
-                color: isActive ? "#16A34A" : "#9CA3AF",
-                fontWeight: isActive ? 700 : 500,
-              }}
+              className={cn(
+                "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
+                isActive && "bg-brand-100",
+              )}
             >
-              {label}
+              <Icon size={20} strokeWidth={isActive ? 2.4 : 1.9} aria-hidden />
             </span>
+            {t(label)}
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

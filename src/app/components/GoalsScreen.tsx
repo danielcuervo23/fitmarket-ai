@@ -1,54 +1,28 @@
 import { useState } from "react";
-import {
-  Apple,
-  ChevronRight,
-  Dumbbell,
-  Flame,
-  PiggyBank,
-  Users,
-  Zap,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { saveUserGoals, type GoalType } from "@/lib/goals";
 import type { ErrorKey } from "@/lib/errors";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   Alert,
   Button,
-  ChoiceCard,
   Screen,
   ScreenBody,
   ScreenFooter,
   ScreenHeader,
 } from "@/app/ui";
+import { GoalPicker } from "./pickers/GoalPicker";
 
 interface Props {
   onNext: (goals: string[]) => void;
   onBack: () => void;
 }
 
-const GOALS: { id: GoalType; icon: typeof Dumbbell }[] = [
-  { id: "muscle", icon: Dumbbell },
-  { id: "fat", icon: Flame },
-  { id: "healthy", icon: Apple },
-  { id: "save", icon: PiggyBank },
-  { id: "family", icon: Users },
-  { id: "energy", icon: Zap },
-];
-
 export function GoalsScreen({ onNext, onBack }: Props) {
   const { t } = useI18n();
   const [selected, setSelected] = useState<GoalType[]>(["healthy"]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
-
-  const toggle = (id: GoalType) => {
-    setSelected((current) =>
-      current.includes(id)
-        ? current.filter((goal) => goal !== id)
-        : [...current, id],
-    );
-    setErrorKey(null);
-  };
 
   const handleContinue = async () => {
     setErrorKey(null);
@@ -81,23 +55,15 @@ export function GoalsScreen({ onNext, onBack }: Props) {
       />
 
       <ScreenBody className="pb-6">
-        <div
-          role="group"
-          aria-label={t("goals.title")}
-          className="grid grid-cols-2 gap-3"
-        >
-          {GOALS.map(({ id, icon: Icon }) => (
-            <ChoiceCard
-              key={id}
-              layout="tile"
-              selected={selected.includes(id)}
-              onSelect={() => toggle(id)}
-              icon={<Icon size={22} />}
-              title={t(`goal.${id}`)}
-              disabled={isLoading}
-            />
-          ))}
-        </div>
+        <GoalPicker
+          label={t("goals.title")}
+          value={selected}
+          onChange={(value) => {
+            setSelected(value);
+            setErrorKey(null);
+          }}
+          disabled={isLoading}
+        />
       </ScreenBody>
 
       <ScreenFooter>

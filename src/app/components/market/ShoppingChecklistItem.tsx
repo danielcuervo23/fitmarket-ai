@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
-import { formatCOP } from "@/lib/formatCop";
 import type { GroupedShoppingItem } from "@/lib/shoppingListGroups";
+import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface Props {
   item: GroupedShoppingItem;
@@ -9,52 +10,48 @@ interface Props {
 }
 
 export function ShoppingChecklistItem({ item, checked, onToggle }: Props) {
+  const { formatCurrency } = useI18n();
+
   return (
     <button
       type="button"
+      role="checkbox"
+      aria-checked={checked}
       onClick={onToggle}
-      className="w-full flex items-start gap-3 px-4 py-3.5 text-left active:scale-[0.99] transition-transform"
-      style={{
-        borderTop: "1px solid rgba(0,0,0,0.05)",
-        opacity: checked ? 0.55 : 1,
-      }}
+      className="flex w-full items-start gap-3 border-t border-ink-100 px-4 py-3.5 text-left transition-colors hover:bg-ink-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-600"
     >
-      <div
-        className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
-        style={{
-          background: checked ? "#16A34A" : "white",
-          border: checked
-            ? "2px solid #16A34A"
-            : "2px solid rgba(0,0,0,0.15)",
-        }}
+      <span
         aria-hidden
+        className={cn(
+          "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
+          checked
+            ? "border-brand-600 bg-brand-600 text-white"
+            : "border-ink-300 bg-white text-transparent",
+        )}
       >
-        {checked && <Check size={14} style={{ color: "white" }} strokeWidth={3} />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p
-          style={{
-            fontWeight: 700,
-            color: "#0D1F16",
-            fontSize: "0.85rem",
-            textDecoration: checked ? "line-through" : "none",
-          }}
-        >
-          {item.name}
-          {item.quantity ? ` · ${item.quantity}` : ""}
-        </p>
-      </div>
-      <p
-        className="flex-shrink-0"
-        style={{
-          fontWeight: 800,
-          color: "#16A34A",
-          fontSize: "0.82rem",
-          textDecoration: checked ? "line-through" : "none",
-        }}
+        <Check size={13} strokeWidth={3.5} />
+      </span>
+
+      <span
+        className={cn(
+          "min-w-0 flex-1 text-[14px] font-medium leading-snug",
+          checked ? "text-ink-400 line-through" : "text-ink-900",
+        )}
       >
-        {formatCOP(item.estimated_price_cop)}
-      </p>
+        {item.name}
+        {item.quantity && (
+          <span className="text-ink-500"> · {item.quantity}</span>
+        )}
+      </span>
+
+      <span
+        className={cn(
+          "shrink-0 text-[13px] font-bold tabular-nums",
+          checked ? "text-ink-400 line-through" : "text-ink-700",
+        )}
+      >
+        {formatCurrency(item.estimated_price_cop)}
+      </span>
     </button>
   );
 }

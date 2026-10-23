@@ -6,41 +6,23 @@ import { useI18n } from "@/i18n/I18nProvider";
 import {
   Alert,
   Button,
-  ChoiceCard,
   Screen,
   ScreenBody,
   ScreenFooter,
   ScreenHeader,
 } from "@/app/ui";
+import { StorePicker } from "./pickers/StorePicker";
 
 interface Props {
   onNext: (stores: string[]) => void;
   onBack: () => void;
 }
 
-/** Chain names are brand names, so they are not translated. */
-const STORES: { id: SupermarketId; name: string }[] = [
-  { id: "D1", name: "D1" },
-  { id: "Ara", name: "Ara" },
-  { id: "Exito", name: "Éxito" },
-  { id: "Jumbo", name: "Jumbo" },
-  { id: "Carulla", name: "Carulla" },
-];
-
 export function SupermarketsScreen({ onNext, onBack }: Props) {
   const { t } = useI18n();
   const [selected, setSelected] = useState<SupermarketId[]>(["D1", "Ara"]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
-
-  const toggle = (id: SupermarketId) => {
-    setSelected((current) =>
-      current.includes(id)
-        ? current.filter((store) => store !== id)
-        : [...current, id],
-    );
-    setErrorKey(null);
-  };
 
   const handleContinue = async () => {
     setErrorKey(null);
@@ -73,23 +55,15 @@ export function SupermarketsScreen({ onNext, onBack }: Props) {
       />
 
       <ScreenBody className="pb-6">
-        <div
-          role="group"
-          aria-label={t("stores.title")}
-          className="flex flex-col gap-3"
-        >
-          {STORES.map(({ id, name }) => (
-            <ChoiceCard
-              key={id}
-              selected={selected.includes(id)}
-              onSelect={() => toggle(id)}
-              icon={<span className="text-lg font-extrabold">{name[0]}</span>}
-              title={name}
-              description={t(`store.${id}.tagline`)}
-              disabled={isLoading}
-            />
-          ))}
-        </div>
+        <StorePicker
+          label={t("stores.title")}
+          value={selected}
+          onChange={(value) => {
+            setSelected(value);
+            setErrorKey(null);
+          }}
+          disabled={isLoading}
+        />
       </ScreenBody>
 
       <ScreenFooter>
