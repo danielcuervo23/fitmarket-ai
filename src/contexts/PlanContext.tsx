@@ -10,11 +10,10 @@ import type { WeeklyPlan } from "@/lib/ai/types";
 
 interface PlanContextValue {
   plan: WeeklyPlan | null;
-  isGenerating: boolean;
-  error: string | null;
+  /** True when the current plan was generated but could not be saved. */
+  hasUnsavedPlan: boolean;
   setPlan: (plan: WeeklyPlan | null) => void;
-  setGenerating: (isGenerating: boolean) => void;
-  setError: (error: string | null) => void;
+  setHasUnsavedPlan: (hasUnsavedPlan: boolean) => void;
 }
 
 export const PlanContext = createContext<PlanContextValue | undefined>(
@@ -23,31 +22,19 @@ export const PlanContext = createContext<PlanContextValue | undefined>(
 
 export function PlanProvider({ children }: { children: ReactNode }) {
   const [plan, setPlanState] = useState<WeeklyPlan | null>(null);
-  const [isGenerating, setIsGeneratingState] = useState(false);
-  const [error, setErrorState] = useState<string | null>(null);
+  const [hasUnsavedPlan, setHasUnsavedPlanState] = useState(false);
 
   const setPlan = useCallback((nextPlan: WeeklyPlan | null) => {
     setPlanState(nextPlan);
   }, []);
 
-  const setGenerating = useCallback((nextIsGenerating: boolean) => {
-    setIsGeneratingState(nextIsGenerating);
-  }, []);
-
-  const setError = useCallback((nextError: string | null) => {
-    setErrorState(nextError);
+  const setHasUnsavedPlan = useCallback((nextValue: boolean) => {
+    setHasUnsavedPlanState(nextValue);
   }, []);
 
   const value = useMemo(
-    () => ({
-      plan,
-      isGenerating,
-      error,
-      setPlan,
-      setGenerating,
-      setError,
-    }),
-    [plan, isGenerating, error, setPlan, setGenerating, setError],
+    () => ({ plan, hasUnsavedPlan, setPlan, setHasUnsavedPlan }),
+    [plan, hasUnsavedPlan, setPlan, setHasUnsavedPlan],
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
@@ -57,7 +44,7 @@ export function usePlan(): PlanContextValue {
   const context = useContext(PlanContext);
 
   if (context === undefined) {
-    throw new Error("usePlan debe usarse dentro de PlanProvider");
+    throw new Error("usePlan must be used inside PlanProvider");
   }
 
   return context;

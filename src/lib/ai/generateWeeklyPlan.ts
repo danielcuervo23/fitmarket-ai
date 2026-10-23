@@ -1,7 +1,9 @@
+import { FunctionsHttpError } from "@supabase/supabase-js";
+import type { GenerationErrorCode } from "@shared/errors.ts";
 import { parseWeeklyPlanJson } from "@/lib/ai/weeklyPlanSchema";
 import type { WeeklyPlan } from "@/lib/ai/types";
+import type { ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
-import { FunctionsHttpError } from "@supabase/supabase-js";
 
 export interface BudgetTooLowGenerationError {
   kind: "budget_too_low";
@@ -12,64 +14,90 @@ export interface BudgetTooLowGenerationError {
 
 export interface MessageGenerationError {
   kind: "message";
-  message: string;
+  /** Translation key; show it with t(). */
+  messageKey: ErrorKey;
 }
 
 export type GenerateWeeklyPlanError =
   | BudgetTooLowGenerationError
   | MessageGenerationError;
 
-type GenerateWeeklyPlanResponse = {
+interface GenerateWeeklyPlanResponse {
   plan?: unknown;
   error?: string;
+  code?: GenerationErrorCode;
   currentBudget?: number;
   requiredBudget?: number;
   recommendedIncrease?: number;
-  current_budget?: number;
-  required_budget?: number;
-  recommended_increase?: number;
+}
+
+/** Edge Function error code -> translation key. */
+const CODE_TO_MESSAGE: Record<GenerationErrorCode, ErrorKey> = {
+  method_not_allowed: "errors.generic",
+  unauthorized: "errors.notSignedIn",
+  server_config: "gen.error.serverConfig",
+  permission_denied: "errors.permission",
+  network: "errors.network",
+  load_failed: "gen.error.loadFailed",
+  profile_incomplete: "gen.error.profileIncomplete",
+  budget_missing: "gen.error.budgetMissing",
+  goals_missing: "gen.error.goalsMissing",
+  stores_missing: "gen.error.storesMissing",
+  quota_exceeded: "gen.error.quotaExceeded",
+  rate_limited: "gen.error.rateLimited",
+  ai_unavailable: "gen.error.aiUnavailable",
+  ai_timeout: "gen.error.aiTimeout",
+  ai_empty: "gen.error.aiUnavailable",
+  invalid_format: "gen.error.invalidFormat",
+  invalid_store: "gen.error.invalidStore",
+  dietary_violation: "gen.error.dietaryViolation",
+  portions_invalid: "gen.error.portionsInvalid",
+  goal_incoherent: "gen.error.goalIncoherent",
+  budget_too_low: "gen.error.budgetTooLow",
+  generation_failed: "gen.error.failed",
+  unexpected: "errors.generic",
 };
 
-const BUDGET_ERROR_MESSAGE =
-  "La lista de mercado supera tu presupuesto semanal.";
-
-function getFallbackInvokeErrorMessage(): string {
-  return "No pudimos generar tu plan. Intenta de nuevo en unos segundos.";
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 function readNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/** Reads the JSON body whether the call succeeded or failed with an HTTP error. */
+async function readResponseBody(
+  payload: unknown,
+  invokeError: unknown,
+): Promise<GenerateWeeklyPlanResponse | null> {
+  if (isRecord(payload)) {
+    return payload as GenerateWeeklyPlanResponse;
   }
 
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-
-    if (Number.isFinite(parsed)) {
-      return parsed;
+  if (invokeError instanceof FunctionsHttpError) {
+    try {
+      const body: unknown = await invokeError.context.json();
+      return isRecord(body) ? (body as GenerateWeeklyPlanResponse) : null;
+    } catch {
+      return null;
     }
   }
 
   return null;
 }
 
-function parseGenerationErrorBody(
-  body: unknown,
+function toGenerationError(
+  body: GenerateWeeklyPlanResponse | null,
 ): GenerateWeeklyPlanError | null {
-  if (!body || typeof body !== "object") {
+  if (!body) {
     return null;
   }
 
-  const record = body as GenerateWeeklyPlanResponse;
-
-  if (record.error === "budget_too_low") {
-    const currentBudget =
-      readNumber(record.currentBudget) ?? readNumber(record.current_budget);
-    const requiredBudget =
-      readNumber(record.requiredBudget) ?? readNumber(record.required_budget);
-    const recommendedIncrease =
-      readNumber(record.recommendedIncrease) ??
-      readNumber(record.recommended_increase);
+  if (body.error === "budget_too_low" || body.code === "budget_too_low") {
+    const currentBudget = readNumber(body.currentBudget);
+    const requiredBudget = readNumber(body.requiredBudget);
+    const recommendedIncrease = readNumber(body.recommendedIncrease);
 
     if (
       currentBudget !== null &&
@@ -83,111 +111,33 @@ function parseGenerationErrorBody(
         recommendedIncrease,
       };
     }
+
+    return { kind: "message", messageKey: "gen.error.budgetTooLow" };
   }
 
-  if (typeof record.error === "string" && record.error.trim()) {
-    if (record.error === "budget_too_low") {
-      return {
-        kind: "message",
-        message:
-          "No fue posible generar un plan con tu presupuesto actual. Ajusta tu presupuesto e intenta de nuevo.",
-      };
-    }
-
-    return { kind: "message", message: record.error };
+  if (body.code) {
+    return {
+      kind: "message",
+      messageKey: CODE_TO_MESSAGE[body.code] ?? "errors.generic",
+    };
   }
 
-  return null;
-}
-
-async function readFunctionsHttpErrorBody(
-  error: FunctionsHttpError,
-): Promise<unknown> {
-  const { context } = error;
-
-  if (!(context instanceof Response)) {
-    return null;
-  }
-
-  try {
-    return await context.clone().json();
-  } catch {
-    try {
-      return await context.json();
-    } catch {
-      return null;
-    }
-  }
-}
-
-async function extractInvokeResponseBody(
-  payload: unknown,
-  invokeError: unknown,
-): Promise<unknown> {
-  const parsedFromPayload = parseGenerationErrorBody(payload);
-
-  if (parsedFromPayload) {
-    return payload;
-  }
-
-  if (payload && typeof payload === "object") {
-    return payload;
-  }
-
-  if (invokeError instanceof FunctionsHttpError) {
-    const body = await readFunctionsHttpErrorBody(invokeError);
-
-    if (body) {
-      return body;
-    }
-  }
-
-  if (
-    invokeError &&
-    typeof invokeError === "object" &&
-    "context" in invokeError &&
-    (invokeError as { context: unknown }).context instanceof Response
-  ) {
-    try {
-      return await (
-        (invokeError as { context: Response }).context as Response
-      ).clone().json();
-    } catch {
-      return null;
-    }
+  if (typeof body.error === "string" && body.error.trim()) {
+    return { kind: "message", messageKey: "errors.generic" };
   }
 
   return null;
 }
 
-async function getInvokeErrorMessage(error: unknown): Promise<string> {
-  if (error instanceof FunctionsHttpError) {
-    const body = await readFunctionsHttpErrorBody(error);
-    const parsed = parseGenerationErrorBody(body);
-
-    if (parsed?.kind === "message") {
-      return parsed.message;
-    }
-  }
-
+function invokeFailureKey(error: unknown): ErrorKey {
   const message =
     error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
 
   if (message.includes("network") || message.includes("fetch")) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
+    return "errors.network";
   }
 
-  return getFallbackInvokeErrorMessage();
-}
-
-export function generationErrorToMessage(
-  error: GenerateWeeklyPlanError,
-): string {
-  if (error.kind === "budget_too_low") {
-    return "No fue posible generar un plan con tu presupuesto actual.";
-  }
-
-  return error.message;
+  return "gen.error.aiUnavailable";
 }
 
 export async function generateWeeklyPlan(): Promise<{
@@ -200,11 +150,11 @@ export async function generateWeeklyPlan(): Promise<{
       { body: {} },
     );
 
-  const responseBody = await extractInvokeResponseBody(payload, invokeError);
-  const parsedError = parseGenerationErrorBody(responseBody);
+  const body = await readResponseBody(payload, invokeError);
+  const knownError = toGenerationError(body);
 
-  if (parsedError) {
-    return { data: null, error: parsedError };
+  if (knownError) {
+    return { data: null, error: knownError };
   }
 
   if (invokeError) {
@@ -212,35 +162,25 @@ export async function generateWeeklyPlan(): Promise<{
 
     return {
       data: null,
-      error: {
-        kind: "message",
-        message: await getInvokeErrorMessage(invokeError),
-      },
+      error: { kind: "message", messageKey: invokeFailureKey(invokeError) },
     };
   }
 
-  const response = (responseBody ?? payload) as GenerateWeeklyPlanResponse | null;
-
-  if (!response?.plan) {
+  if (!body?.plan) {
     return {
       data: null,
-      error: { kind: "message", message: getFallbackInvokeErrorMessage() },
+      error: { kind: "message", messageKey: "gen.error.failed" },
     };
   }
 
-  const { data: plan, error: parseError } = parseWeeklyPlanJson(response.plan);
+  const { data: plan, error: parseError } = parseWeeklyPlanJson(body.plan);
 
   if (parseError || !plan) {
     return {
       data: null,
-      error: {
-        kind: "message",
-        message: parseError ?? "El plan generado no tiene un formato válido.",
-      },
+      error: { kind: "message", messageKey: "gen.error.invalidFormat" },
     };
   }
 
   return { data: plan as WeeklyPlan, error: null };
 }
-
-export { BUDGET_ERROR_MESSAGE };

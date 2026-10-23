@@ -1,4 +1,4 @@
-import type { PostgrestError } from "@supabase/supabase-js";
+import { dbErrorKey, type ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/session";
 
@@ -166,30 +166,19 @@ export function buildStoredDietaryRestrictions(
   return dedupeDietaryRestrictions(restrictions);
 }
 
-function getDietaryRestrictionsErrorMessage(error: PostgrestError): string {
-  const message = error.message.toLowerCase();
-
-  if (error.code === "42501" || message.includes("row-level security")) {
-    return "No tienes permiso para guardar tus restricciones. Inicia sesión e intenta de nuevo.";
-  }
-
-  if (message.includes("network") || message.includes("fetch")) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
-  }
-
-  return "No pudimos guardar tus restricciones. Intenta de nuevo en unos segundos.";
-}
+/** Limits mirrored from the database constraint (migration 007). */
+export const MAX_OTHER_FOODS_LENGTH = 200;
 
 export async function saveDietaryRestrictions(
   restrictions: string[],
-): Promise<{ error: string | null }> {
+): Promise<{ error: ErrorKey | null }> {
   const {
     data: { user },
     error: authError,
   } = await getSessionUser();
 
   if (authError || !user) {
-    return { error: "Debes iniciar sesión para guardar tus restricciones." };
+    return { error: "errors.notSignedIn" };
   }
 
   const { error } = await supabase
@@ -198,7 +187,7 @@ export async function saveDietaryRestrictions(
     .eq("id", user.id);
 
   if (error) {
-    return { error: getDietaryRestrictionsErrorMessage(error) };
+    return { error: dbErrorKey(error) };
   }
 
   return { error: null };

@@ -1,230 +1,146 @@
 import { useState } from "react";
-import { ArrowLeft, ChevronRight, Loader2 } from "lucide-react";
+import {
+  Bean,
+  Fish,
+  Ham,
+  Milk,
+  Nut,
+  Salad,
+  ShieldAlert,
+  Shrimp,
+  Sparkles,
+  Sprout,
+  Wheat,
+} from "lucide-react";
 import {
   buildStoredDietaryRestrictions,
-  DIETARY_RESTRICTION_OPTIONS,
+  MAX_OTHER_FOODS_LENGTH,
   saveDietaryRestrictions,
+  type DietaryRestrictionId,
 } from "@/lib/dietaryRestrictions";
+import type { ErrorKey } from "@/lib/errors";
+import { useI18n } from "@/i18n/I18nProvider";
+import {
+  Alert,
+  Button,
+  ChoiceCard,
+  Screen,
+  ScreenBody,
+  ScreenFooter,
+  ScreenHeader,
+  TextField,
+} from "@/app/ui";
 
 interface Props {
   onNext: () => void;
   onBack: () => void;
 }
 
+const OPTIONS: { id: DietaryRestrictionId; icon: typeof Milk }[] = [
+  { id: "lactose", icon: Milk },
+  { id: "gluten", icon: Wheat },
+  { id: "pork", icon: Ham },
+  { id: "fish", icon: Fish },
+  { id: "shellfish", icon: Shrimp },
+  { id: "peanut", icon: Bean },
+  { id: "nuts", icon: Nut },
+  { id: "vegetarian", icon: Salad },
+  { id: "vegan", icon: Sprout },
+];
+
 export function DietaryRestrictionsScreen({ onNext, onBack }: Props) {
-  const [selected, setSelected] = useState<string[]>([]);
+  const { t } = useI18n();
+  const [selected, setSelected] = useState<DietaryRestrictionId[]>([]);
   const [otherFoods, setOtherFoods] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 
-  const clearError = () => {
-    if (errorMessage) {
-      setErrorMessage(null);
-    }
-  };
-
-  const toggle = (id: string) => {
-    if (isLoading) {
-      return;
-    }
-
+  const toggle = (id: DietaryRestrictionId) => {
     setSelected((current) =>
       current.includes(id)
         ? current.filter((item) => item !== id)
         : [...current, id],
     );
-    clearError();
+    setErrorKey(null);
   };
 
   const handleContinue = async () => {
-    setErrorMessage(null);
+    setErrorKey(null);
     setIsLoading(true);
 
-    const restrictions = buildStoredDietaryRestrictions(selected, otherFoods);
-
     try {
-      const { error } = await saveDietaryRestrictions(restrictions);
+      const { error } = await saveDietaryRestrictions(
+        buildStoredDietaryRestrictions(selected, otherFoods),
+      );
 
       if (error) {
-        setErrorMessage(error);
+        setErrorKey(error);
         return;
       }
 
       onNext();
     } catch {
-      setErrorMessage(
-        "No pudimos conectar. Revisa tu internet e intenta de nuevo.",
-      );
+      setErrorKey("errors.network");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="absolute inset-0 bg-white flex flex-col">
-      <div className="pt-14 px-6 pb-4 border-b border-gray-50">
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={isLoading}
-          className="w-10 h-10 rounded-full flex items-center justify-center mb-4 disabled:opacity-50"
-          style={{ background: "#F0F5F1" }}
+    <Screen>
+      <ScreenHeader
+        step={{ current: 5, total: 5 }}
+        title={t("dietary.title")}
+        subtitle={t("dietary.subtitle")}
+        onBack={onBack}
+        disabled={isLoading}
+      />
+
+      <ScreenBody className="flex flex-col gap-5 pb-6">
+        <div
+          role="group"
+          aria-label={t("dietary.title")}
+          className="grid grid-cols-2 gap-3"
         >
-          <ArrowLeft size={20} style={{ color: "#374151" }} />
-        </button>
-        <div className="flex items-center gap-2 mb-1">
-          <span
-            className="text-sm px-3 py-1 rounded-full"
-            style={{ background: "#DCFCE7", color: "#16A34A", fontWeight: 700 }}
-          >
-            Paso 5 de 5
-          </span>
+          {OPTIONS.map(({ id, icon: Icon }) => (
+            <ChoiceCard
+              key={id}
+              layout="tile"
+              selected={selected.includes(id)}
+              onSelect={() => toggle(id)}
+              icon={<Icon size={22} />}
+              title={t(`dietary.${id}`)}
+              disabled={isLoading}
+            />
+          ))}
         </div>
-        <h1
-          style={{
-            fontSize: "1.6rem",
-            fontWeight: 900,
-            color: "#0D1F16",
-            lineHeight: 1.2,
+
+        <TextField
+          label={t("dietary.other")}
+          placeholder={t("dietary.otherPlaceholder")}
+          hint={t("dietary.otherHint")}
+          maxLength={MAX_OTHER_FOODS_LENGTH}
+          value={otherFoods}
+          disabled={isLoading}
+          onChange={(event) => {
+            setOtherFoods(event.target.value);
+            setErrorKey(null);
           }}
-        >
-          ¿Hay alimentos que no consumes?
-        </h1>
-        <p
-          style={{
-            color: "#6B8072",
-            fontSize: "0.875rem",
-            marginTop: "4px",
-            fontWeight: 400,
-          }}
-        >
-          Opcional — puedes elegir varias opciones
+        />
+
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-ink-500">
+          <ShieldAlert size={14} className="mt-0.5 shrink-0" aria-hidden />
+          {t("dietary.disclaimer")}
         </p>
-      </div>
+      </ScreenBody>
 
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-        <div className="grid grid-cols-2 gap-3">
-          {DIETARY_RESTRICTION_OPTIONS.map((option) => {
-            const isSelected = selected.includes(option.id);
-
-            return (
-              <button
-                key={option.id}
-                type="button"
-                disabled={isLoading}
-                onClick={() => toggle(option.id)}
-                className="relative flex flex-col items-center gap-3 p-5 rounded-3xl transition-all active:scale-95 disabled:opacity-60"
-                style={{
-                  border: `2px solid ${isSelected ? option.color : "rgba(0,0,0,0.07)"}`,
-                  background: isSelected ? option.bg : "white",
-                  boxShadow: isSelected
-                    ? `0 4px 20px ${option.color}22`
-                    : "0 2px 8px rgba(0,0,0,0.04)",
-                }}
-              >
-                {isSelected && (
-                  <div
-                    className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
-                    style={{ background: option.color }}
-                  >
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                      <path
-                        d="M1 4l3 3 5-6"
-                        stroke="white"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                )}
-                <span style={{ fontSize: "2.2rem" }}>{option.emoji}</span>
-                <p
-                  style={{
-                    fontWeight: 700,
-                    color: isSelected ? option.color : "#374151",
-                    fontSize: "0.8rem",
-                    textAlign: "center",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {option.label}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-
-        <div>
-          <p
-            className="text-xs mb-2"
-            style={{ color: "#6B8072", fontWeight: 700 }}
-          >
-            Otros alimentos a evitar
-          </p>
-          <input
-            type="text"
-            placeholder="Ej: cilantro, huevo, soya..."
-            value={otherFoods}
-            disabled={isLoading}
-            onChange={(event) => {
-              setOtherFoods(event.target.value);
-              clearError();
-            }}
-            className="w-full px-4 py-3.5 rounded-2xl"
-            style={{
-              border: "2px solid rgba(22,163,74,0.2)",
-              background: "#F7FAF8",
-              outline: "none",
-              fontWeight: 600,
-              fontSize: "0.95rem",
-              color: "#0D1F16",
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="px-6 pb-10 space-y-3">
-        {errorMessage && (
-          <div
-            role="alert"
-            className="px-4 py-3 rounded-2xl text-sm"
-            style={{
-              background: "#FEF2F2",
-              border: "1.5px solid rgba(220,38,38,0.2)",
-              color: "#991B1B",
-              fontWeight: 600,
-            }}
-          >
-            {errorMessage}
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => void handleContinue()}
-          disabled={isLoading}
-          className="w-full py-4 rounded-2xl text-white flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            background: "#16A34A",
-            fontWeight: 800,
-            fontSize: "1rem",
-            boxShadow: "0 8px 24px rgba(22,163,74,0.35)",
-          }}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 size={20} className="animate-spin" />
-              Guardando preferencias...
-            </>
-          ) : (
-            <>
-              Generar mi plan con IA ✨
-              <ChevronRight size={20} strokeWidth={2.5} />
-            </>
-          )}
-        </button>
-      </div>
-    </div>
+      <ScreenFooter>
+        {errorKey && <Alert tone="error">{t(errorKey)}</Alert>}
+        <Button size="lg" full loading={isLoading} onClick={handleContinue}>
+          <Sparkles size={18} aria-hidden />
+          {t("dietary.generate")}
+        </Button>
+      </ScreenFooter>
+    </Screen>
   );
 }

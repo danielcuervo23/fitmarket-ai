@@ -1,4 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
+import { dbErrorKey, type ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/session";
 
@@ -33,48 +34,13 @@ export function isActivityLevel(value: string): value is ActivityLevel {
   return ACTIVITY_LEVELS.includes(value as ActivityLevel);
 }
 
-function getProfileErrorMessage(error: PostgrestError): string {
-  const message = error.message.toLowerCase();
-  const code = error.code ?? "";
-
+function getProfileErrorKey(error: PostgrestError): ErrorKey {
   console.error("[upsertProfile] save failed", {
-    code,
+    code: error.code,
     message: error.message,
-    details: error.details,
-    hint: error.hint,
   });
 
-  if (code === "23514" || message.includes("check constraint")) {
-    return "Algunos valores del perfil no son válidos. Revísalos e intenta de nuevo.";
-  }
-
-  if (code === "42501" || message.includes("row-level security")) {
-    return "No tienes permiso para guardar este perfil. Inicia sesión e intenta de nuevo.";
-  }
-
-  if (
-    message.includes("network") ||
-    message.includes("fetch") ||
-    message.includes("timeout")
-  ) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
-  }
-
-  if (
-    code === "42703" ||
-    code === "PGRST204" ||
-    message.includes("does not exist") ||
-    message.includes("schema cache") ||
-    (message.includes("column") && message.includes("profiles"))
-  ) {
-    return "Falta configurar la base de datos (columnas de perfil). Aplica las migraciones de Supabase e intenta de nuevo.";
-  }
-
-  if (code === "23503" || message.includes("foreign key")) {
-    return "Tu sesión no está lista. Cierra sesión, vuelve a iniciar sesión e intenta de nuevo.";
-  }
-
-  return "No pudimos guardar tu perfil. Intenta de nuevo en unos segundos.";
+  return dbErrorKey(error);
 }
 
 function buildProfileRow(userId: string, input: ProfileInput) {
@@ -89,14 +55,14 @@ function buildProfileRow(userId: string, input: ProfileInput) {
 
 export async function upsertProfile(
   input: ProfileInput,
-): Promise<{ error: string | null }> {
+): Promise<{ error: ErrorKey | null }> {
   const {
     data: { user },
     error: authError,
   } = await getSessionUser();
 
   if (authError || !user) {
-    return { error: "Debes iniciar sesión para guardar tu perfil." };
+    return { error: "errors.notSignedIn" };
   }
 
   const row = buildProfileRow(user.id, input);
@@ -108,7 +74,7 @@ export async function upsertProfile(
     .maybeSingle();
 
   if (selectError) {
-    return { error: getProfileErrorMessage(selectError) };
+    return { error: getProfileErrorKey(selectError) };
   }
 
   if (existing?.id) {
@@ -123,7 +89,7 @@ export async function upsertProfile(
       .eq("id", user.id);
 
     if (updateError) {
-      return { error: getProfileErrorMessage(updateError) };
+      return { error: getProfileErrorKey(updateError) };
     }
 
     return { error: null };
@@ -132,7 +98,7 @@ export async function upsertProfile(
   const { error: insertError } = await supabase.from("profiles").insert(row);
 
   if (insertError) {
-    return { error: getProfileErrorMessage(insertError) };
+    return { error: getProfileErrorKey(insertError) };
   }
 
   return { error: null };

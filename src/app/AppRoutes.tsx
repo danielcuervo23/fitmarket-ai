@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { resolvePostAuthRoute } from "@/lib/auth";
@@ -23,6 +23,12 @@ import { ChatScreen } from "./components/ChatScreen";
 import { ProfileSettingsScreen } from "./components/ProfileSettingsScreen";
 import { PlanHistoryScreen } from "./components/PlanHistoryScreen";
 import { AuthLoadingScreen } from "./components/AuthLoadingScreen";
+
+// Development-only screen gallery (see DevPreview.tsx). The condition is a
+// build-time constant, so production bundles contain none of it.
+const DevPreview = import.meta.env.DEV
+  ? lazy(() => import("./DevPreview"))
+  : null;
 
 const slideVariants = {
   enter: { x: "100%", opacity: 0 },
@@ -251,6 +257,14 @@ export function AppRoutes() {
               />
             </Protected>
           </Route>
+
+          {DevPreview && (
+            <Route path="/__preview/:screen">
+              <Suspense fallback={null}>
+                <DevPreview />
+              </Suspense>
+            </Route>
+          )}
 
           <Route>
             <Redirect to={ROUTES.splash} replace />
