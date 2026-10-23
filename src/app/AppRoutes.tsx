@@ -76,7 +76,12 @@ function SplashRoute() {
     return <AuthLoadingScreen />;
   }
 
-  return <SplashScreen onNext={() => navigate(ROUTES.welcome)} />;
+  return (
+    <SplashScreen
+      onNext={() => navigate(ROUTES.welcome)}
+      onGoToLogin={() => navigate(ROUTES.login)}
+    />
+  );
 }
 
 export function AppRoutes() {

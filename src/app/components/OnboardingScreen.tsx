@@ -1,136 +1,113 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { ChevronRight } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { ChevronRight, ShoppingBasket, SlidersHorizontal, Target } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
+import type { MessageKey } from "@/i18n/messages";
+import { Button, LanguageSwitch, Screen } from "@/app/ui";
 
 interface Props {
   onNext: () => void;
   onGoToLogin: () => void;
 }
 
-const slides = [
-  {
-    emoji: '🛒',
-    bg: '#DCFCE7',
-    iconBg: '#16A34A',
-    title: 'Compra mejor',
-    subtitle: 'La IA crea listas de mercado adaptadas a tu presupuesto y al supermercado que prefieras.',
-    accent: '#16A34A',
-  },
-  {
-    emoji: '🥗',
-    bg: '#EFF6FF',
-    iconBg: '#2563EB',
-    title: 'Come mejor',
-    subtitle: 'Recibe menús personalizados según tus objetivos, ya sea ganar músculo, perder grasa o simplemente comer bien.',
-    accent: '#2563EB',
-  },
-  {
-    emoji: '✨',
-    bg: '#FFF7ED',
-    iconBg: '#EA580C',
-    title: 'Adáptate sin culpa',
-    subtitle: 'Si no sigues el plan, la IA reajusta automáticamente el resto de la semana. Sin juzgarte.',
-    accent: '#EA580C',
-  },
+const SLIDES: {
+  icon: typeof ShoppingBasket;
+  title: MessageKey;
+  body: MessageKey;
+}[] = [
+  { icon: ShoppingBasket, title: "onboarding.s1.title", body: "onboarding.s1.body" },
+  { icon: Target, title: "onboarding.s2.title", body: "onboarding.s2.body" },
+  { icon: SlidersHorizontal, title: "onboarding.s3.title", body: "onboarding.s3.body" },
 ];
 
 export function OnboardingScreen({ onNext, onGoToLogin }: Props) {
+  const { t } = useI18n();
   const [current, setCurrent] = useState(0);
-  const slide = slides[current];
-  const isLast = current === slides.length - 1;
+  const slide = SLIDES[current];
+  const Icon = slide.icon;
+  const isLast = current === SLIDES.length - 1;
 
   const handleNext = () => {
-    if (isLast) onNext();
-    else setCurrent((c) => c + 1);
+    if (isLast) {
+      onNext();
+    } else {
+      setCurrent((index) => index + 1);
+    }
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col" style={{ background: slide.bg, transition: 'background 0.5s' }}>
-      {/* Skip */}
-      <div className="flex justify-end px-6 pt-16">
-        {!isLast && (
-          <button onClick={onNext} className="text-sm px-4 py-2 rounded-full" style={{ color: '#6B7280', background: 'rgba(0,0,0,0.06)', fontWeight: 600 }}>
-            Saltar
-          </button>
+    <Screen className="bg-white">
+      <div className="flex items-center justify-between px-6 pt-14">
+        <LanguageSwitch />
+        {!isLast ? (
+          <Button variant="ghost" size="sm" onClick={onNext}>
+            {t("common.skip")}
+          </Button>
+        ) : (
+          <span />
         )}
       </div>
 
-      {/* Illustration */}
-      <div className="flex-1 flex items-center justify-center px-8">
+      <div className="flex flex-1 items-center justify-center px-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
-            initial={{ scale: 0.7, opacity: 0, rotate: -6 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            exit={{ scale: 0.7, opacity: 0, rotate: 6 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-            className="flex flex-col items-center gap-8"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -14 }}
+            transition={{ duration: 0.22 }}
+            className="flex flex-col items-center gap-10 text-center"
           >
-            {/* Big emoji circle */}
-            <div
-              className="w-44 h-44 rounded-[3rem] flex items-center justify-center"
-              style={{ background: slide.iconBg, boxShadow: `0 20px 60px ${slide.iconBg}55` }}
-            >
-              <span style={{ fontSize: '5rem' }}>{slide.emoji}</span>
+            <div className="flex size-48 items-center justify-center rounded-full bg-brand-50">
+              <div className="flex size-32 items-center justify-center rounded-full bg-brand-100">
+                <div className="flex size-20 items-center justify-center rounded-3xl bg-brand-600 text-white shadow-brand">
+                  <Icon size={36} strokeWidth={1.8} aria-hidden />
+                </div>
+              </div>
             </div>
 
-            <div className="text-center">
-              <h2 className="text-[#0D1F16]" style={{ fontSize: '1.9rem', fontWeight: 800, lineHeight: 1.2 }}>
-                {slide.title}
+            <div className="flex flex-col gap-3">
+              <h2 className="text-[28px] font-extrabold leading-tight tracking-tight text-ink-900">
+                {t(slide.title)}
               </h2>
-              <p className="mt-3 text-[#4B6557]" style={{ fontSize: '0.95rem', lineHeight: 1.7, fontWeight: 400 }}>
-                {slide.subtitle}
+              <p className="text-[15px] leading-relaxed text-ink-500">
+                {t(slide.body)}
               </p>
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Bottom */}
-      <div className="px-8 pb-12 space-y-6">
-        {/* Dots */}
-        <div className="flex justify-center gap-2">
-          {slides.map((_, i) => (
-            <button key={i} onClick={() => setCurrent(i)}>
-              <motion.div
-                animate={{ width: i === current ? 24 : 8 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                className="h-2 rounded-full"
-                style={{ background: i === current ? slide.accent : '#CBD5C0' }}
-              />
-            </button>
+      <div className="flex flex-col gap-5 px-6 pb-10">
+        <div className="flex justify-center gap-2" aria-hidden>
+          {SLIDES.map((_, index) => (
+            <span
+              key={index}
+              className={cn(
+                "h-2 rounded-full transition-all duration-300",
+                index === current ? "w-6 bg-brand-600" : "w-2 bg-ink-200",
+              )}
+            />
           ))}
         </div>
 
-        {/* Next button */}
-        <button
-          type="button"
-          onClick={handleNext}
-          className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
-          style={{ background: slide.accent, color: 'white', fontWeight: 800, fontSize: '1rem' }}
-        >
-          {isLast ? 'Crear mi cuenta' : 'Siguiente'}
-          <ChevronRight size={20} strokeWidth={2.5} />
-        </button>
+        <Button size="lg" full onClick={handleNext}>
+          {isLast ? t("onboarding.createAccount") : t("onboarding.next")}
+          <ChevronRight size={20} strokeWidth={2.5} aria-hidden />
+        </Button>
 
-        <p className="text-center text-sm" style={{ color: '#6B8072', fontWeight: 500 }}>
-          ¿Ya tienes cuenta?{' '}
+        <p className="text-center text-sm text-ink-500">
+          {t("onboarding.haveAccount")}{" "}
           <button
             type="button"
             onClick={onGoToLogin}
-            style={{
-              color: slide.accent,
-              fontWeight: 700,
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-            }}
+            className="font-bold text-brand-700 hover:underline"
           >
-            Inicia sesión
+            {t("onboarding.signIn")}
           </button>
         </p>
       </div>
-    </div>
+    </Screen>
   );
 }
