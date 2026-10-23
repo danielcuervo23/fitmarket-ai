@@ -154,7 +154,7 @@ export function buildStoredDietaryRestrictions(
   selectedIds: string[],
   otherText: string,
 ): string[] {
-  const restrictions = [
+  const restrictions: string[] = [
     ...new Set(selectedIds.filter(isDietaryRestrictionId)),
   ];
 

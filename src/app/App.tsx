@@ -54,7 +54,7 @@ const slideVariants = {
 const transition = {
   type: "tween" as const,
   duration: 0.28,
-  ease: [0.4, 0, 0.2, 1],
+  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
 };
 
 function displayNameFromUser(user: User): string {
