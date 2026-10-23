@@ -5,11 +5,14 @@ import {
   generateWeeklyPlan,
   type GenerateWeeklyPlanError,
 } from "@/lib/ai/generateWeeklyPlan";
+import { saveWeeklyBudget } from "@/lib/budget";
+import type { ErrorKey } from "@/lib/errors";
 import { usePlan } from "@/contexts/PlanContext";
 import { saveWeeklyPlan } from "@/lib/weeklyPlans";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { MessageKey } from "@/i18n/messages";
-import { Button, Card, Screen } from "@/app/ui";
+import { Button, Screen } from "@/app/ui";
+import { BudgetShortfallPanel } from "./BudgetShortfallPanel";
 
 interface Props {
   onDone: () => void;
@@ -25,7 +28,7 @@ const STEPS: MessageKey[] = [
 ];
 
 export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
-  const { t, formatCurrency } = useI18n();
+  const { t } = useI18n();
   const { setPlan, setHasUnsavedPlan } = usePlan();
   const [step, setStep] = useState(0);
   const [error, setError] = useState<GenerateWeeklyPlanError | null>(null);
@@ -68,6 +71,21 @@ export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
     onDoneRef.current();
   }, [setPlan, setHasUnsavedPlan]);
 
+  /** Saves a higher budget and, if that worked, generates again right away. */
+  const handleSaveBudgetAndRegenerate = useCallback(
+    async (budgetCop: number): Promise<ErrorKey | null> => {
+      const { error: saveError } = await saveWeeklyBudget(budgetCop);
+
+      if (saveError) {
+        return saveError;
+      }
+
+      void runGeneration();
+      return null;
+    },
+    [runGeneration],
+  );
+
   useEffect(() => {
     mountedRef.current = true;
     void runGeneration();
@@ -89,9 +107,18 @@ export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  if (error) {
-    const budgetError = error.kind === "budget_too_low" ? error : null;
+  if (error?.kind === "budget_too_low") {
+    return (
+      <BudgetShortfallPanel
+        error={error}
+        onSaveAndRegenerate={handleSaveBudgetAndRegenerate}
+        onRetry={() => void runGeneration()}
+        onAdjustSettings={onAdjustSettings}
+      />
+    );
+  }
 
+  if (error) {
     return (
       <Screen className="items-center justify-center gap-6 px-8 text-center">
         <span className="flex size-16 items-center justify-center rounded-full bg-danger-50 text-danger-600">
@@ -100,45 +127,19 @@ export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
 
         <div role="alert" className="flex flex-col gap-2">
           <h1 className="text-2xl font-extrabold tracking-tight text-ink-900">
-            {budgetError ? t("gen.budgetTitle") : t("gen.errorTitle")}
+            {t("gen.errorTitle")}
           </h1>
           <p className="text-[15px] leading-snug text-ink-500">
-            {budgetError
-              ? t("gen.recommend", {
-                  amount: formatCurrency(budgetError.recommendedIncrease),
-                })
-              : t(error.kind === "message" ? error.messageKey : "gen.error.failed")}
+            {t(error.messageKey)}
           </p>
         </div>
 
-        {budgetError && (
-          <Card className="flex w-full flex-col gap-2 text-left text-sm">
-            <div className="flex justify-between gap-3">
-              <span className="text-ink-500">{t("gen.currentBudget")}</span>
-              <span className="font-bold tabular-nums">
-                {formatCurrency(budgetError.currentBudget)}
-              </span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <span className="text-ink-500">{t("gen.requiredBudget")}</span>
-              <span className="font-bold tabular-nums">
-                {formatCurrency(budgetError.requiredBudget)}
-              </span>
-            </div>
-          </Card>
-        )}
-
         <div className="flex w-full flex-col gap-3">
-          <Button size="lg" full onClick={onAdjustSettings}>
-            {t("gen.adjust")}
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            full
-            onClick={() => void runGeneration()}
-          >
+          <Button size="lg" full onClick={() => void runGeneration()}>
             {t("gen.retry")}
+          </Button>
+          <Button variant="secondary" size="lg" full onClick={onAdjustSettings}>
+            {t("gen.adjust")}
           </Button>
         </div>
       </Screen>

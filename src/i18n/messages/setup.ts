@@ -86,6 +86,13 @@ export const setup = defineMessages({
     "gen.recommend": "Te recomendamos aumentarlo en aproximadamente {amount}.",
     "gen.retry": "Reintentar",
     "gen.adjust": "Ajustar configuración",
+    "gen.shortfall.intro":
+      "Con tu presupuesto actual no alcanza para un plan que cumpla tus objetivos. Puedes subirlo aquí y generar de nuevo.",
+    "gen.shortfall.newBudget": "Nuevo presupuesto semanal",
+    "gen.shortfall.recommended": "Recomendado",
+    "gen.shortfall.hint": "Con este monto el plan debería alcanzar.",
+    "gen.shortfall.saveAndRegenerate": "Guardar y regenerar",
+    "gen.shortfall.retrySame": "Reintentar sin cambiar",
   },
   en: {
     "setup.saving": "Saving...",
@@ -172,5 +179,12 @@ export const setup = defineMessages({
     "gen.recommend": "We recommend increasing it by about {amount}.",
     "gen.retry": "Try again",
     "gen.adjust": "Adjust settings",
+    "gen.shortfall.intro":
+      "Your current budget isn't enough for a plan that meets your goals. You can raise it here and generate again.",
+    "gen.shortfall.newBudget": "New weekly budget",
+    "gen.shortfall.recommended": "Recommended",
+    "gen.shortfall.hint": "With this amount the plan should fit.",
+    "gen.shortfall.saveAndRegenerate": "Save and regenerate",
+    "gen.shortfall.retrySame": "Try again without changes",
   },
 });

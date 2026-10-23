@@ -3,6 +3,7 @@ import { useParams } from "wouter";
 import { usePlan } from "@/contexts/PlanContext";
 import { AIGenerationScreen } from "./components/AIGenerationScreen";
 import { BudgetScreen } from "./components/BudgetScreen";
+import { BudgetShortfallPanel } from "./components/BudgetShortfallPanel";
 import { ChatScreen } from "./components/ChatScreen";
 import { DashboardView } from "./components/DashboardScreen";
 import { DietaryRestrictionsScreen } from "./components/DietaryRestrictionsScreen";
@@ -71,6 +72,19 @@ const SCREENS: Record<string, () => ReactNode> = {
     />
   ),
   chat: () => <ChatScreen onTabChange={noop} />,
+  shortfall: () => (
+    <BudgetShortfallPanel
+      error={{
+        kind: "budget_too_low",
+        currentBudget: 200_000,
+        requiredBudget: 212_100,
+        recommendedIncrease: 12_100,
+      }}
+      onSaveAndRegenerate={async () => null}
+      onRetry={noop}
+      onAdjustSettings={noop}
+    />
+  ),
   settings: () => (
     <ProfileSettingsScreen
       onTabChange={noop}
