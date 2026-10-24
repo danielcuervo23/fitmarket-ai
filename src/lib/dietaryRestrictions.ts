@@ -1,5 +1,6 @@
-import type { PostgrestError } from "@supabase/supabase-js";
+import { dbErrorKey, type ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/session";
 
 export type DietaryRestrictionId =
   | "lactose"
@@ -23,36 +24,6 @@ export const DIETARY_RESTRICTION_IDS: readonly DietaryRestrictionId[] = [
   "vegetarian",
   "vegan",
 ] as const;
-
-export const DIETARY_RESTRICTION_OPTIONS: {
-  id: DietaryRestrictionId;
-  emoji: string;
-  label: string;
-  color: string;
-  bg: string;
-}[] = [
-  { id: "lactose", emoji: "🥛", label: "Lactosa", color: "#2563EB", bg: "#EFF6FF" },
-  { id: "gluten", emoji: "🌾", label: "Gluten", color: "#D97706", bg: "#FFFBEB" },
-  { id: "pork", emoji: "🐷", label: "Cerdo", color: "#EC4899", bg: "#FDF2F8" },
-  { id: "fish", emoji: "🐟", label: "Pescado", color: "#0891B2", bg: "#F0F9FF" },
-  {
-    id: "shellfish",
-    emoji: "🦐",
-    label: "Mariscos",
-    color: "#DC2626",
-    bg: "#FEF2F2",
-  },
-  { id: "peanut", emoji: "🥜", label: "Maní", color: "#92400E", bg: "#FFFBEB" },
-  { id: "nuts", emoji: "🌰", label: "Nueces", color: "#78350F", bg: "#FFFBEB" },
-  {
-    id: "vegetarian",
-    emoji: "🥗",
-    label: "Vegetariano",
-    color: "#16A34A",
-    bg: "#F0FDF4",
-  },
-  { id: "vegan", emoji: "🌱", label: "Vegano", color: "#15803D", bg: "#DCFCE7" },
-];
 
 const PREDEFINED_IDS = new Set<string>(DIETARY_RESTRICTION_IDS);
 
@@ -154,7 +125,7 @@ export function buildStoredDietaryRestrictions(
   selectedIds: string[],
   otherText: string,
 ): string[] {
-  const restrictions = [
+  const restrictions: string[] = [
     ...new Set(selectedIds.filter(isDietaryRestrictionId)),
   ];
 
@@ -165,30 +136,19 @@ export function buildStoredDietaryRestrictions(
   return dedupeDietaryRestrictions(restrictions);
 }
 
-function getDietaryRestrictionsErrorMessage(error: PostgrestError): string {
-  const message = error.message.toLowerCase();
-
-  if (error.code === "42501" || message.includes("row-level security")) {
-    return "No tienes permiso para guardar tus restricciones. Inicia sesión e intenta de nuevo.";
-  }
-
-  if (message.includes("network") || message.includes("fetch")) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
-  }
-
-  return "No pudimos guardar tus restricciones. Intenta de nuevo en unos segundos.";
-}
+/** Limits mirrored from the database constraint (migration 007). */
+export const MAX_OTHER_FOODS_LENGTH = 200;
 
 export async function saveDietaryRestrictions(
   restrictions: string[],
-): Promise<{ error: string | null }> {
+): Promise<{ error: ErrorKey | null }> {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
-    return { error: "Debes iniciar sesión para guardar tus restricciones." };
+    return { error: "errors.notSignedIn" };
   }
 
   const { error } = await supabase
@@ -197,7 +157,7 @@ export async function saveDietaryRestrictions(
     .eq("id", user.id);
 
   if (error) {
-    return { error: getDietaryRestrictionsErrorMessage(error) };
+    return { error: dbErrorKey(error) };
   }
 
   return { error: null };

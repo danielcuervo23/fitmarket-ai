@@ -1,115 +1,131 @@
-import {
-  buildWeeklyPlanUserPrompt,
-  buildWeeklyPlanRetryUserContent,
-  WEEKLY_PLAN_SYSTEM_PROMPT,
-  type WeeklyPlanPromptInput,
-} from "./prompts.ts";
-import { getOpenAIWeeklyPlanResponseFormat } from "./weeklyPlanSchema.ts";
+import type { GenerationErrorCode } from "./errors.ts";
 
-const OPENAI_MODEL = "gpt-4o-mini";
-const OPENAI_TIMEOUT_MS = 55_000;
+/**
+ * Thin wrapper around OpenAI Chat Completions with structured (JSON schema)
+ * output. The model is configurable with the OPENAI_MODEL secret so it can be
+ * changed (or upgraded) without a code change.
+ */
+const DEFAULT_MODEL = "gpt-4o";
+const OPENAI_TIMEOUT_MS = 60_000;
 
-interface OpenAIMessage {
-  role: "system" | "user";
-  content: string;
+export interface ModelRequest {
+  system: string;
+  user: string;
+  /** OpenAI `response_format` object (json_schema, strict). */
+  responseFormat: unknown;
 }
 
-export async function requestWeeklyPlanFromOpenAI(
-  input: WeeklyPlanPromptInput,
-  options?: {
-    isRetry?: boolean;
-    validationError?: string;
-    previousInvalidJson?: string;
-  },
-): Promise<{ content: string | null; error: string | null }> {
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
+export interface ModelResponse {
+  content: string | null;
+  error: string | null;
+  errorCode: GenerationErrorCode | null;
+  /** Short technical note for diagnostics (http_400, truncated, refusal). */
+  detail?: string;
+}
 
-  if (!apiKey) {
-    return {
-      content: null,
-      error: "El servicio de generación no está configurado.",
-    };
-  }
+export type ModelCall = (request: ModelRequest) => Promise<ModelResponse>;
 
-  let userContent = buildWeeklyPlanUserPrompt(input);
+function failure(
+  error: string,
+  errorCode: GenerationErrorCode,
+  detail?: string,
+): ModelResponse {
+  return { content: null, error, errorCode, detail };
+}
 
-  if (options?.isRetry) {
-    if (options.validationError && options.previousInvalidJson) {
-      userContent += buildWeeklyPlanRetryUserContent(
-        options.validationError,
-        options.previousInvalidJson,
+/** Builds a caller for the given credentials (used by the function and by the offline evaluation script). */
+export function createOpenAICaller(config: {
+  apiKey: string | undefined;
+  model?: string;
+}): ModelCall {
+  return async (request) => {
+    if (!config.apiKey) {
+      return failure(
+        "El servicio de generación no está configurado.",
+        "server_config",
       );
-    } else {
-      userContent +=
-        "\n\nCorrige el JSON anterior: debe cumplir el schema, respetar el presupuesto, usar solo store_id permitidos, cumplir dietary_restrictions, cumplir goal_guidance y descomponer comidas en ingredientes con cantidades (g, ml o unidades).";
     }
-  }
 
-  const messages: OpenAIMessage[] = [
-    { role: "system", content: WEEKLY_PLAN_SYSTEM_PROMPT },
-    { role: "user", content: userContent },
-  ];
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+    try {
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${config.apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: config.model || DEFAULT_MODEL,
+            temperature: 0.6,
+            max_completion_tokens: 9000,
+            messages: [
+              { role: "system", content: request.system },
+              { role: "user", content: request.user },
+            ],
+            response_format: request.responseFormat,
+          }),
+          signal: controller.signal,
+        },
+      );
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: OPENAI_MODEL,
-        temperature: 0.5,
-        max_tokens: 4096,
-        messages,
-        response_format: getOpenAIWeeklyPlanResponseFormat(),
-      }),
-      signal: controller.signal,
-    });
+      if (!response.ok) {
+        if (response.status === 429) {
+          return failure(
+            "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
+            "rate_limited",
+          );
+        }
 
-    if (!response.ok) {
-      const status = response.status;
+        return failure(
+          "No pudimos generar tu plan. Intenta de nuevo en unos segundos.",
+          "ai_unavailable",
+          `http_${response.status}`,
+        );
+      }
 
-      if (status === 429) {
-        return {
-          content: null,
-          error: "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
-        };
+      const payload = await response.json();
+      const choice = payload?.choices?.[0];
+      const content = choice?.message?.content;
+
+      if (typeof content !== "string" || !content.trim()) {
+        return failure(
+          "La respuesta del servicio de IA estaba vacía.",
+          "ai_empty",
+          choice?.message?.refusal ? "refusal" : choice?.finish_reason,
+        );
       }
 
       return {
-        content: null,
-        error: "No pudimos generar tu plan. Intenta de nuevo en unos segundos.",
+        content,
+        error: null,
+        errorCode: null,
+        detail: choice?.finish_reason === "length" ? "truncated" : undefined,
       };
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return failure(
+          "La generación tardó demasiado. Intenta de nuevo.",
+          "ai_timeout",
+        );
+      }
+
+      return failure(
+        "No pudimos conectar con el servicio de IA. Intenta de nuevo.",
+        "ai_unavailable",
+      );
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    const payload = await response.json();
-    const content = payload?.choices?.[0]?.message?.content;
-
-    if (typeof content !== "string" || !content.trim()) {
-      return {
-        content: null,
-        error: "La respuesta del servicio de IA estaba vacía.",
-      };
-    }
-
-    return { content, error: null };
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      return {
-        content: null,
-        error: "La generación tardó demasiado. Intenta de nuevo.",
-      };
-    }
-
-    return {
-      content: null,
-      error: "No pudimos conectar con el servicio de IA. Intenta de nuevo.",
-    };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  };
 }
+
+/** The caller used inside the Edge Function (secrets come from Deno.env). */
+export const callOpenAI: ModelCall = (request) =>
+  createOpenAICaller({
+    apiKey: Deno.env.get("OPENAI_API_KEY"),
+    model: Deno.env.get("OPENAI_MODEL") || undefined,
+  })(request);

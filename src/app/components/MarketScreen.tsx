@@ -1,9 +1,20 @@
-import { Loader2, RefreshCw, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlan } from "@/contexts/PlanContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useShoppingChecklist } from "@/hooks/useShoppingChecklist";
-import { formatCOP } from "@/lib/formatCop";
+import type { WeeklyPlan } from "@/lib/ai/types";
+import type { DashboardData } from "@/lib/dashboard";
+import { useI18n } from "@/i18n/I18nProvider";
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Screen,
+  ScreenBody,
+} from "@/app/ui";
 import { BottomNav, type NavTab } from "./BottomNav";
 import { BudgetRecommendationsSection } from "./market/BudgetRecommendationsSection";
 import { ShoppingProgressBar } from "./market/ShoppingProgressBar";
@@ -15,237 +26,128 @@ interface Props {
 }
 
 export function MarketScreen({ onTabChange, onGeneratePlan }: Props) {
+  const { t } = useI18n();
   const { user } = useAuth();
   const { plan } = usePlan();
-  const { data, isLoading, errorMessage, reload } = useDashboardData();
-  const checklist = useShoppingChecklist(plan, user?.id);
+  const { data, isLoading, errorKey, reload } = useDashboardData();
 
-  const handleGeneratePlan = () => {
-    if (onGeneratePlan) {
-      onGeneratePlan();
-      return;
-    }
-
-    onTabChange("dashboard");
-  };
-
-  if (isLoading) {
+  if (isLoading || errorKey || !data) {
     return (
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center gap-4"
-        style={{ background: "#F7FAF8" }}
-      >
-        <Loader2
-          size={36}
-          className="animate-spin"
-          style={{ color: "#16A34A" }}
-        />
-        <p style={{ color: "#6B8072", fontSize: "0.875rem", fontWeight: 600 }}>
-          Cargando tu mercado...
-        </p>
-      </div>
-    );
-  }
-
-  if (errorMessage) {
-    return (
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8"
-        style={{ background: "#F7FAF8" }}
-      >
-        <div
-          role="alert"
-          className="px-4 py-3 rounded-2xl text-sm text-center w-full"
-          style={{
-            background: "#FEF2F2",
-            border: "1.5px solid rgba(220,38,38,0.2)",
-            color: "#991B1B",
-            fontWeight: 600,
-          }}
-        >
-          {errorMessage}
-        </div>
-        <button
-          type="button"
-          onClick={() => void reload()}
-          className="flex items-center gap-2 px-5 py-3 rounded-2xl active:scale-95 transition-transform"
-          style={{
-            background: "#16A34A",
-            color: "white",
-            fontWeight: 700,
-            fontSize: "0.9rem",
-          }}
-        >
-          <RefreshCw size={18} />
-          Reintentar
-        </button>
+      <Screen>
+        {errorKey ? (
+          <ErrorState message={t(errorKey)} onRetry={() => void reload()} />
+        ) : (
+          <LoadingState message={t("market.loading")} />
+        )}
         <BottomNav active="market" onChange={onTabChange} />
-      </div>
+      </Screen>
     );
   }
-
-  const supermarkets = data?.supermarkets ?? [];
-  const itemCount = plan?.shopping_list.length ?? 0;
 
   return (
-    <div
-      className="absolute inset-0 flex flex-col"
-      style={{ background: "#F7FAF8" }}
-    >
-      <div
-        className="px-6 pt-14 pb-6"
-        style={{
-          background: "linear-gradient(160deg, #0A3D21, #16A34A)",
-          borderBottomLeftRadius: "2rem",
-          borderBottomRightRadius: "2rem",
-        }}
-      >
-        <div className="mb-5">
-          <p
-            style={{
-              color: "rgba(255,255,255,0.65)",
-              fontSize: "0.8rem",
-              fontWeight: 600,
-            }}
-          >
-            Compras semanales
-          </p>
-          <h1
-            style={{
-              color: "white",
-              fontSize: "1.4rem",
-              fontWeight: 900,
-            }}
-          >
-            Mercado 🛒
-          </h1>
-        </div>
+    <MarketView
+      data={data}
+      plan={plan}
+      userId={user?.id}
+      onTabChange={onTabChange}
+      onGeneratePlan={onGeneratePlan}
+    />
+  );
+}
 
-        <div
-          className="rounded-2xl p-5"
-          style={{
-            background: "rgba(255,255,255,0.12)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "rgba(255,255,255,0.2)" }}
-            >
-              <ShoppingCart size={20} style={{ color: "white" }} />
-            </div>
-            <div>
-              <p
-                style={{
-                  color: "rgba(255,255,255,0.7)",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                }}
-              >
-                Total estimado
-              </p>
-              <p
-                style={{
-                  color: "white",
-                  fontSize: "1.5rem",
-                  fontWeight: 900,
-                  marginTop: "2px",
-                }}
-              >
-                {plan && itemCount > 0
-                  ? formatCOP(plan.summary.estimated_total_cop)
-                  : "—"}
-              </p>
-              {itemCount > 0 && (
-                <p
-                  style={{
-                    color: "rgba(255,255,255,0.55)",
-                    fontSize: "0.72rem",
-                    fontWeight: 500,
-                    marginTop: "4px",
-                  }}
-                >
-                  {itemCount} {itemCount === 1 ? "producto" : "productos"}
+interface ViewProps extends Props {
+  data: DashboardData;
+  plan: WeeklyPlan | null;
+  userId: string | undefined;
+}
+
+/** Presentational market screen; split from the container for previews. */
+export function MarketView({
+  data,
+  plan,
+  userId,
+  onTabChange,
+  onGeneratePlan,
+}: ViewProps) {
+  const { t, plural, formatCurrency } = useI18n();
+  const checklist = useShoppingChecklist(plan, userId);
+  const itemCount = plan?.shopping_list.length ?? 0;
+
+  const handleGenerate = () => {
+    if (onGeneratePlan) {
+      onGeneratePlan();
+    } else {
+      onTabChange("dashboard");
+    }
+  };
+
+  return (
+    <Screen>
+      <header className="flex flex-col gap-1 px-6 pb-4 pt-14">
+        <h1 className="text-[26px] font-extrabold tracking-tight">
+          {t("market.title")}
+        </h1>
+        <p className="text-sm text-ink-500">{t("market.subtitle")}</p>
+      </header>
+
+      <ScreenBody className="flex flex-col gap-5 pb-28">
+        {plan && itemCount > 0 ? (
+          <section className="flex flex-col gap-4 rounded-card bg-brand-900 p-5 text-white shadow-float">
+            <div className="flex items-center gap-3.5">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-brand-200">
+                <ShoppingCart size={20} aria-hidden />
+              </span>
+              <div>
+                <p className="text-[13px] font-medium text-brand-200">
+                  {t("market.totalEstimated")}
                 </p>
-              )}
+                <p className="text-2xl font-extrabold tabular-nums tracking-tight">
+                  {formatCurrency(plan.summary.estimated_total_cop)}
+                </p>
+                <p className="text-xs text-brand-200/80">
+                  {plural("plural.product", itemCount)}
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {checklist.hasPlan && (
-          <div
-            className="rounded-2xl p-4 mt-4"
-            style={{
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.2)",
-            }}
-          >
-            <ShoppingProgressBar
-              label="Progreso de compras"
-              checked={checklist.overallProgress.checked}
-              total={checklist.overallProgress.total}
-              percent={checklist.overallProgress.percent}
-              variant="header"
+            {checklist.hasPlan && (
+              <ShoppingProgressBar
+                tone="onDark"
+                label={t("market.progress")}
+                checked={checklist.overallProgress.checked}
+                total={checklist.overallProgress.total}
+                percent={checklist.overallProgress.percent}
+              />
+            )}
+          </section>
+        ) : (
+          <Card>
+            <EmptyState
+              icon={<ShoppingCart size={26} />}
+              title={t("market.title")}
+              body={t("market.noPlan")}
+              action={
+                <Button onClick={handleGenerate}>{t("market.generate")}</Button>
+              }
             />
-          </div>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto pb-24 space-y-5 pt-5">
-        {!plan && (
-          <div className="px-6">
-            <div
-              className="rounded-3xl px-4 py-6 text-center"
-              style={{
-                background: "white",
-                border: "1.5px solid rgba(22,163,74,0.1)",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
-              }}
-            >
-              <p
-                style={{
-                  color: "#6B8072",
-                  fontSize: "0.85rem",
-                  fontWeight: 500,
-                  lineHeight: 1.5,
-                  marginBottom: "16px",
-                }}
-              >
-                Aún no tienes un plan activo. Genera uno para ver tu plan de
-                compras por supermercado.
-              </p>
-              <button
-                type="button"
-                onClick={handleGeneratePlan}
-                className="px-6 py-3 rounded-2xl active:scale-95 transition-transform"
-                style={{
-                  background: "#16A34A",
-                  color: "white",
-                  fontWeight: 800,
-                  fontSize: "0.9rem",
-                }}
-              >
-                Generar plan
-              </button>
-            </div>
-          </div>
+          </Card>
         )}
 
-        <StoreShoppingPlanSection
-          plan={plan}
-          supermarkets={supermarkets}
-          checklist={checklist}
-        />
+        {plan && itemCount > 0 && (
+          <StoreShoppingPlanSection
+            plan={plan}
+            supermarkets={data.supermarkets}
+            checklist={checklist}
+          />
+        )}
 
         <BudgetRecommendationsSection
           plan={plan}
-          weeklyBudgetCop={data?.weeklyBudgetCop}
+          weeklyBudgetCop={data.weeklyBudgetCop}
         />
-      </div>
+      </ScreenBody>
 
       <BottomNav active="market" onChange={onTabChange} />
-    </div>
+    </Screen>
   );
 }

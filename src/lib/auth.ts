@@ -1,45 +1,81 @@
 import type { AuthError } from "@supabase/supabase-js";
+import type { ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 
 export type PostAuthRoute = "dashboard" | "profile";
 
-function getSignInErrorMessage(error: AuthError): string {
+export const MIN_PASSWORD_LENGTH = 8;
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function signInErrorKey(error: AuthError): ErrorKey {
   const message = error.message.toLowerCase();
 
   if (
     message.includes("invalid login credentials") ||
     message.includes("invalid credentials")
   ) {
-    return "Correo o contraseña incorrectos.";
+    return "auth.error.invalidCredentials";
   }
 
   if (message.includes("email not confirmed")) {
-    return "Confirma tu correo antes de iniciar sesión.";
+    return "auth.error.emailNotConfirmed";
   }
 
   if (message.includes("rate limit")) {
-    return "Demasiados intentos. Espera un momento e intenta de nuevo.";
+    return "auth.error.rateLimit";
   }
 
-  return "No pudimos iniciar sesión. Revisa tus datos e intenta de nuevo.";
+  return "auth.error.signInFailed";
 }
 
+export function signUpErrorKey(error: AuthError): ErrorKey {
+  const message = error.message.toLowerCase();
+
+  if (
+    message.includes("already registered") ||
+    message.includes("already been registered")
+  ) {
+    return "auth.error.emailTaken";
+  }
+
+  if (message.includes("invalid") && message.includes("email")) {
+    return "auth.error.emailInvalid";
+  }
+
+  if (message.includes("password")) {
+    return "auth.error.passwordTooShort";
+  }
+
+  if (message.includes("rate limit")) {
+    return "auth.error.rateLimit";
+  }
+
+  return "auth.error.signUpFailed";
+}
+
+/** Validates the sign-in form; `requireStrongPassword` adds the sign-up rules. */
 export function validateAuthForm(
   email: string,
   password: string,
-): string | null {
+  options: { requireStrongPassword?: boolean } = {},
+): ErrorKey | null {
   const trimmedEmail = email.trim();
 
   if (!trimmedEmail) {
-    return "Ingresa tu correo electrónico.";
+    return "auth.error.emailRequired";
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-    return "Ingresa un correo electrónico válido.";
+  if (!EMAIL_PATTERN.test(trimmedEmail)) {
+    return "auth.error.emailInvalid";
   }
 
   if (!password) {
-    return "Ingresa una contraseña.";
+    return "auth.error.passwordRequired";
+  }
+
+  if (options.requireStrongPassword && password.length < MIN_PASSWORD_LENGTH) {
+    return "auth.error.passwordTooShort";
   }
 
   return null;
@@ -48,24 +84,24 @@ export function validateAuthForm(
 export async function signInWithEmail(
   email: string,
   password: string,
-): Promise<{ error: string | null }> {
+): Promise<{ error: ErrorKey | null }> {
   const { error } = await supabase.auth.signInWithPassword({
     email: email.trim(),
     password,
   });
 
   if (error) {
-    return { error: getSignInErrorMessage(error) };
+    return { error: signInErrorKey(error) };
   }
 
   return { error: null };
 }
 
-export async function signOut(): Promise<{ error: string | null }> {
+export async function signOut(): Promise<{ error: ErrorKey | null }> {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    return { error: "No pudimos cerrar sesión. Intenta de nuevo." };
+    return { error: "errors.signOut" };
   }
 
   return { error: null };

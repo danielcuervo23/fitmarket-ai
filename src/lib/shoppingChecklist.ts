@@ -69,7 +69,11 @@ export function saveCheckedIndices(
 
   const payload = [...checked].sort((a, b) => a - b);
 
-  window.localStorage.setItem(storageKey, JSON.stringify(payload));
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(payload));
+  } catch {
+    // Storage unavailable: the checklist still works for this session.
+  }
 }
 
 export function calcChecklistProgress(checked: number, total: number): {

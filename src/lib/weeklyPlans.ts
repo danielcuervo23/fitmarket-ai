@@ -1,36 +1,8 @@
-import type { PostgrestError } from "@supabase/supabase-js";
 import { parseWeeklyPlanJson } from "@/lib/ai/weeklyPlanSchema";
 import type { WeeklyPlan } from "@/lib/ai/types";
+import { dbErrorKey, type ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
-
-function getWeeklyPlanSaveErrorMessage(error: PostgrestError): string {
-  const message = error.message.toLowerCase();
-  const code = error.code;
-
-  if (code === "42501" || message.includes("row-level security")) {
-    return "No tienes permiso para guardar tu plan. Inicia sesión e intenta de nuevo.";
-  }
-
-  if (message.includes("network") || message.includes("fetch")) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
-  }
-
-  return "No pudimos guardar tu plan. Intenta de nuevo en unos segundos.";
-}
-
-function getWeeklyPlanFetchErrorMessage(error: PostgrestError): string {
-  const message = error.message.toLowerCase();
-
-  if (message.includes("row-level security") || error.code === "42501") {
-    return "No tienes permiso para ver tu plan. Inicia sesión e intenta de nuevo.";
-  }
-
-  if (message.includes("network") || message.includes("fetch")) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
-  }
-
-  return "No pudimos cargar tu plan. Intenta de nuevo en unos segundos.";
-}
+import { getSessionUser } from "@/lib/session";
 
 export interface WeeklyPlanHistoryItem {
   id: string;
@@ -40,20 +12,6 @@ export interface WeeklyPlanHistoryItem {
   product_count: number;
   estimated_daily_kcal: number;
   is_current: boolean;
-}
-
-export function formatPlanHistoryDate(isoDate: string): string {
-  const date = new Date(isoDate);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
-
-  return date.toLocaleDateString("es-CO", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 function buildHistorySummary(
@@ -77,16 +35,16 @@ function buildHistorySummary(
 
 export async function saveWeeklyPlan(
   plan: WeeklyPlan,
-): Promise<{ data: WeeklyPlan | null; error: string | null }> {
+): Promise<{ data: WeeklyPlan | null; error: ErrorKey | null }> {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return {
       data: null,
-      error: "Debes iniciar sesión para guardar tu plan.",
+      error: "errors.notSignedIn",
     };
   }
 
@@ -96,7 +54,7 @@ export async function saveWeeklyPlan(
   });
 
   if (insertError) {
-    return { data: null, error: getWeeklyPlanSaveErrorMessage(insertError) };
+    return { data: null, error: dbErrorKey(insertError, "errors.save") };
   }
 
   return { data: plan, error: null };
@@ -104,17 +62,17 @@ export async function saveWeeklyPlan(
 
 export async function fetchLatestWeeklyPlan(): Promise<{
   data: WeeklyPlan | null;
-  error: string | null;
+  error: ErrorKey | null;
 }> {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return {
       data: null,
-      error: "Debes iniciar sesión para ver tu plan.",
+      error: "errors.notSignedIn",
     };
   }
 
@@ -127,7 +85,7 @@ export async function fetchLatestWeeklyPlan(): Promise<{
     .maybeSingle();
 
   if (selectError) {
-    return { data: null, error: getWeeklyPlanFetchErrorMessage(selectError) };
+    return { data: null, error: dbErrorKey(selectError, "errors.load") };
   }
 
   if (!row?.plan_json) {
@@ -139,7 +97,7 @@ export async function fetchLatestWeeklyPlan(): Promise<{
   if (parseError || !plan) {
     return {
       data: null,
-      error: parseError ?? "El plan guardado no tiene un formato válido.",
+      error: "errors.planInvalid",
     };
   }
 
@@ -148,17 +106,17 @@ export async function fetchLatestWeeklyPlan(): Promise<{
 
 export async function fetchWeeklyPlansHistory(): Promise<{
   data: WeeklyPlanHistoryItem[] | null;
-  error: string | null;
+  error: ErrorKey | null;
 }> {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return {
       data: null,
-      error: "Debes iniciar sesión para ver tu historial.",
+      error: "errors.notSignedIn",
     };
   }
 
@@ -169,7 +127,7 @@ export async function fetchWeeklyPlansHistory(): Promise<{
     .order("created_at", { ascending: false });
 
   if (selectError) {
-    return { data: null, error: getWeeklyPlanFetchErrorMessage(selectError) };
+    return { data: null, error: dbErrorKey(selectError, "errors.load") };
   }
 
   if (!rows?.length) {
@@ -201,17 +159,17 @@ export async function fetchWeeklyPlansHistory(): Promise<{
 
 export async function fetchWeeklyPlanById(planId: string): Promise<{
   data: WeeklyPlan | null;
-  error: string | null;
+  error: ErrorKey | null;
 }> {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
     return {
       data: null,
-      error: "Debes iniciar sesión para ver este plan.",
+      error: "errors.notSignedIn",
     };
   }
 
@@ -223,11 +181,11 @@ export async function fetchWeeklyPlanById(planId: string): Promise<{
     .maybeSingle();
 
   if (selectError) {
-    return { data: null, error: getWeeklyPlanFetchErrorMessage(selectError) };
+    return { data: null, error: dbErrorKey(selectError, "errors.load") };
   }
 
   if (!row?.plan_json) {
-    return { data: null, error: "No encontramos este plan." };
+    return { data: null, error: "errors.planNotFound" };
   }
 
   const { data: plan, error: parseError } = parseWeeklyPlanJson(row.plan_json);
@@ -235,7 +193,7 @@ export async function fetchWeeklyPlanById(planId: string): Promise<{
   if (parseError || !plan) {
     return {
       data: null,
-      error: parseError ?? "El plan guardado no tiene un formato válido.",
+      error: "errors.planInvalid",
     };
   }
 

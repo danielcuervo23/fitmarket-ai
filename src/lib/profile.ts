@@ -1,5 +1,7 @@
 import type { PostgrestError } from "@supabase/supabase-js";
+import { dbErrorKey, type ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/session";
 
 export type ActivityLevel =
   | "sedentary"
@@ -8,11 +10,17 @@ export type ActivityLevel =
   | "active"
   | "very_active";
 
+export type Sex = "female" | "male";
+
 export interface ProfileInput {
   age: number;
   weight: number;
   height: number;
   activity_level: ActivityLevel;
+  /** Optional: only used to estimate calories. null = prefer not to say. */
+  sex: Sex | null;
+  /** People who share the same shopping (1-8). */
+  household_size: number;
 }
 
 /** Campos de preferencias almacenados en public.profiles */
@@ -32,48 +40,13 @@ export function isActivityLevel(value: string): value is ActivityLevel {
   return ACTIVITY_LEVELS.includes(value as ActivityLevel);
 }
 
-function getProfileErrorMessage(error: PostgrestError): string {
-  const message = error.message.toLowerCase();
-  const code = error.code ?? "";
-
+function getProfileErrorKey(error: PostgrestError): ErrorKey {
   console.error("[upsertProfile] save failed", {
-    code,
+    code: error.code,
     message: error.message,
-    details: error.details,
-    hint: error.hint,
   });
 
-  if (code === "23514" || message.includes("check constraint")) {
-    return "Algunos valores del perfil no son válidos. Revísalos e intenta de nuevo.";
-  }
-
-  if (code === "42501" || message.includes("row-level security")) {
-    return "No tienes permiso para guardar este perfil. Inicia sesión e intenta de nuevo.";
-  }
-
-  if (
-    message.includes("network") ||
-    message.includes("fetch") ||
-    message.includes("timeout")
-  ) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
-  }
-
-  if (
-    code === "42703" ||
-    code === "PGRST204" ||
-    message.includes("does not exist") ||
-    message.includes("schema cache") ||
-    (message.includes("column") && message.includes("profiles"))
-  ) {
-    return "Falta configurar la base de datos (columnas de perfil). Aplica las migraciones de Supabase e intenta de nuevo.";
-  }
-
-  if (code === "23503" || message.includes("foreign key")) {
-    return "Tu sesión no está lista. Cierra sesión, vuelve a iniciar sesión e intenta de nuevo.";
-  }
-
-  return "No pudimos guardar tu perfil. Intenta de nuevo en unos segundos.";
+  return dbErrorKey(error);
 }
 
 function buildProfileRow(userId: string, input: ProfileInput) {
@@ -83,19 +56,21 @@ function buildProfileRow(userId: string, input: ProfileInput) {
     weight_kg: Number(input.weight),
     height_cm: Math.round(input.height),
     activity_level: input.activity_level,
+    sex: input.sex,
+    household_size: Math.min(8, Math.max(1, Math.round(input.household_size))),
   };
 }
 
 export async function upsertProfile(
   input: ProfileInput,
-): Promise<{ error: string | null }> {
+): Promise<{ error: ErrorKey | null }> {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
-    return { error: "Debes iniciar sesión para guardar tu perfil." };
+    return { error: "errors.notSignedIn" };
   }
 
   const row = buildProfileRow(user.id, input);
@@ -107,7 +82,7 @@ export async function upsertProfile(
     .maybeSingle();
 
   if (selectError) {
-    return { error: getProfileErrorMessage(selectError) };
+    return { error: getProfileErrorKey(selectError) };
   }
 
   if (existing?.id) {
@@ -118,11 +93,13 @@ export async function upsertProfile(
         weight_kg: row.weight_kg,
         height_cm: row.height_cm,
         activity_level: row.activity_level,
+        sex: row.sex,
+        household_size: row.household_size,
       })
       .eq("id", user.id);
 
     if (updateError) {
-      return { error: getProfileErrorMessage(updateError) };
+      return { error: getProfileErrorKey(updateError) };
     }
 
     return { error: null };
@@ -131,8 +108,56 @@ export async function upsertProfile(
   const { error: insertError } = await supabase.from("profiles").insert(row);
 
   if (insertError) {
-    return { error: getProfileErrorMessage(insertError) };
+    return { error: getProfileErrorKey(insertError) };
   }
 
   return { error: null };
+}
+
+/** The saved body data and household of the signed-in user (null if not set yet). */
+export async function fetchProfile(): Promise<{
+  data: ProfileInput | null;
+  error: ErrorKey | null;
+}> {
+  const {
+    data: { user },
+    error: authError,
+  } = await getSessionUser();
+
+  if (authError || !user) {
+    return { data: null, error: "errors.notSignedIn" };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("age, weight_kg, height_cm, activity_level, sex, household_size")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    return { data: null, error: dbErrorKey(error, "errors.load") };
+  }
+
+  if (
+    !data ||
+    data.age == null ||
+    data.weight_kg == null ||
+    data.height_cm == null
+  ) {
+    return { data: null, error: null };
+  }
+
+  return {
+    data: {
+      age: Number(data.age),
+      weight: Number(data.weight_kg),
+      height: Number(data.height_cm),
+      activity_level: isActivityLevel(String(data.activity_level))
+        ? (data.activity_level as ActivityLevel)
+        : "moderate",
+      sex: data.sex === "female" || data.sex === "male" ? data.sex : null,
+      household_size: Number(data.household_size) || 1,
+    },
+    error: null,
+  };
 }

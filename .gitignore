@@ -2,3 +2,7 @@ node_modules/
 .env
 dist/
 .vscode/
+# Supabase CLI local state (contains project identifiers)
+supabase/.temp/
+.env.*
+!.env.example

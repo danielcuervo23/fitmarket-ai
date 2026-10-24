@@ -1,0 +1,28 @@
+store,product,size,unit,regular_price_cop,price_per_unit_cop,notes
+D1,Arroz estandar Albar,500,g,1650,3.30,
+D1,Lenteja El Estio,500,g,1500,3.00,
+D1,Huevo AA Sol Naciente,12,und,7490,624.17,
+D1,Aceite canola Don Olio,2000,ml,19990,9.99,
+D1,Leche entera UHT bolsa Latti,900,ml,3090,3.43,
+D1,Papa capira,2500,g,11990,4.80,
+Exito,Huevos AAA Kikes,15,und,14700,980.00,promo 20% off shown
+Exito,Huevos AA SMN rojo,30,und,17500,583.33,promo 20% off shown
+Exito,Huevos A SMN rojo,30,und,13990,466.33,
+Exito,Leche Frescampo entera UHT,5400,ml,18540,3.43,
+Exito,Mantequilla Alpina con sal,250,g,20800,83.20,promo 20% off shown
+Exito,Limon Tahiti malla,1000,g,6000,6.00,promo 40% off shown
+Exito,Manzana combinada,1000,g,13560,13.56,promo 51% off shown
+Exito,Banano (5 und),5,und,3564,712.80,promo 40% off shown
+Exito,Zanahoria Frescampo,1000,g,2740,2.74,promo 40% off shown
+Exito,Tomate chonto Frescampo,1000,g,6800,6.80,promo 40% off shown
+Exito,Platano Frescampo,1600,g,7500,4.69,promo 40% off shown
+Exito,Cebolla junca,500,g,5460,10.92,promo 40% off shown
+Exito,Papa Frescampo,2000,g,13900,6.95,promo 40% off shown
+Exito,Ajo malla importado,1,und,1700,1700.00,promo 40% off shown
+Exito,Pimenton,1,und,1360,1360.00,promo 40% off shown
+Exito,Cilantro,100,g,4180,41.80,promo 40% off shown
+Exito,Pierna pernil de pollo I.Marin,1000,g,9900,9.90,promo 30% off shown
+Exito,Filete de pechuga Friko marinado,850,g,32600,38.35,promo 30% off shown
+Exito,Carne de res molida TAEQ,450,g,17050,37.89,promo 20% off shown
+Exito,Lomito/solomito de cerdo,1000,g,14600,14.60,promo 52% off shown
+Jumbo,Arroz Diana blanco,5000,g,19490,3.90,default location (city not set); promo prices may apply

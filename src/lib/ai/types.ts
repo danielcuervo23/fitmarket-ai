@@ -67,6 +67,8 @@ export function isShoppingCategory(value: string): value is ShoppingCategory {
 /** Consolidated market item with estimated COP price and target store. */
 export interface ShoppingItem {
   name: string;
+  /** English name (newer plans). */
+  name_en?: string;
   quantity: string;
   estimated_price_cop: number;
   category: ShoppingCategory;
@@ -78,6 +80,10 @@ export interface ShoppingItem {
 export interface PlanSummary {
   estimated_total_cop: number;
   estimated_daily_kcal: number;
+  /** Newer plans: computed daily protein, the calorie target and household. */
+  estimated_daily_protein_g?: number;
+  target_kcal?: number;
+  household_size?: number;
   savings_note?: string;
 }
 
@@ -85,5 +91,9 @@ export interface PlanSummary {
 export interface WeeklyPlan {
   summary: PlanSummary;
   weekly_menu: WeeklyMenu;
+  /** Same menu in English (newer plans). */
+  weekly_menu_en?: WeeklyMenu;
+  /** Dish name of every meal, in both languages (newer plans). */
+  dish_names?: Record<DayId, Record<MealSlot, { es: string; en: string }>>;
   shopping_list: ShoppingItem[];
 }

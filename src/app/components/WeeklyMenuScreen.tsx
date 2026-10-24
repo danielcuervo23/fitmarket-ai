@@ -1,14 +1,40 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import {
+  Apple,
+  ArrowLeft,
+  Coffee,
+  Eye,
+  Moon,
+  Sparkles,
+  Utensils,
+  type LucideIcon,
+} from "lucide-react";
 import { usePlan } from "@/contexts/PlanContext";
-import type { DayId, DayMenu, MealSlot, WeeklyMenu, WeeklyPlan } from "@/lib/ai/types";
-import { isDayId } from "@/lib/ai/types";
+import type {
+  DayId,
+  DayMenu,
+  MealSlot,
+  WeeklyMenu,
+  WeeklyPlan,
+} from "@/lib/ai/types";
+import { DAY_IDS, isDayId } from "@/lib/ai/types";
+import { saveWeeklyPlan } from "@/lib/weeklyPlans";
+import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  Screen,
+  ScreenBody,
+} from "@/app/ui";
 import { BottomNav, type NavTab } from "./BottomNav";
 
 interface Props {
   onTabChange?: (tab: NavTab) => void;
   onGeneratePlan?: () => void;
-  /** Plan a mostrar (historial). Si no se pasa, usa el plan del contexto. */
+  /** Plan to show (history). If omitted, the plan from context is used. */
   viewPlan?: WeeklyPlan;
   readOnly?: boolean;
   onBack?: () => void;
@@ -17,56 +43,12 @@ interface Props {
   headerDateLabel?: string;
 }
 
-const days: { id: DayId; label: string; full: string }[] = [
-  { id: "lun", label: "L", full: "Lunes" },
-  { id: "mar", label: "M", full: "Martes" },
-  { id: "mie", label: "X", full: "Miércoles" },
-  { id: "jue", label: "J", full: "Jueves" },
-  { id: "vie", label: "V", full: "Viernes" },
-  { id: "sab", label: "S", full: "Sábado" },
-  { id: "dom", label: "D", full: "Domingo" },
+const MEALS: { key: MealSlot; icon: LucideIcon }[] = [
+  { key: "desayuno", icon: Coffee },
+  { key: "almuerzo", icon: Utensils },
+  { key: "cena", icon: Moon },
+  { key: "snacks", icon: Apple },
 ];
-
-const mealSections: {
-  key: MealSlot;
-  emoji: string;
-  label: string;
-  color: string;
-  bg: string;
-}[] = [
-  {
-    key: "desayuno",
-    emoji: "🌅",
-    label: "Desayuno",
-    color: "#D97706",
-    bg: "#FFFBEB",
-  },
-  {
-    key: "almuerzo",
-    emoji: "☀️",
-    label: "Almuerzo",
-    color: "#16A34A",
-    bg: "#F0FDF4",
-  },
-  {
-    key: "cena",
-    emoji: "🌙",
-    label: "Cena",
-    color: "#7C3AED",
-    bg: "#F3F0FF",
-  },
-  {
-    key: "snacks",
-    emoji: "🍎",
-    label: "Snacks",
-    color: "#0891B2",
-    bg: "#F0F9FF",
-  },
-];
-
-function formatDailyKcal(kcal: number): string {
-  return kcal.toLocaleString("es-CO", { maximumFractionDigits: 0 });
-}
 
 const WEEKDAY_TO_DAY_ID: Record<number, DayId> = {
   0: "dom",
@@ -78,18 +60,10 @@ const WEEKDAY_TO_DAY_ID: Record<number, DayId> = {
   6: "sab",
 };
 
-function getTodayDayId(): DayId {
-  return WEEKDAY_TO_DAY_ID[new Date().getDay()];
-}
-
 function getInitialActiveDay(weeklyMenu: WeeklyMenu | undefined): DayId {
-  const today = getTodayDayId();
+  const today = WEEKDAY_TO_DAY_ID[new Date().getDay()];
 
-  if (weeklyMenu && isDayId(today) && weeklyMenu[today]) {
-    return today;
-  }
-
-  return "lun";
+  return weeklyMenu && isDayId(today) && weeklyMenu[today] ? today : "lun";
 }
 
 export function WeeklyMenuScreen({
@@ -99,279 +73,226 @@ export function WeeklyMenuScreen({
   readOnly = false,
   onBack,
   onReturnToCurrent,
-  headerTitle = "Menú semanal",
+  headerTitle,
   headerDateLabel,
 }: Props) {
-  const { plan: contextPlan } = usePlan();
+  const { t, language, formatNumber } = useI18n();
+  const { plan: contextPlan, hasUnsavedPlan, setHasUnsavedPlan } = usePlan();
   const plan = viewPlan ?? contextPlan;
   const [activeDay, setActiveDay] = useState<DayId>(() =>
     getInitialActiveDay(plan?.weekly_menu),
   );
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
-  const handleGeneratePlan = () => {
+  const title = headerTitle ?? t("menu.title");
+  const nav = onTabChange && <BottomNav active="menu" onChange={onTabChange} />;
+
+  const handleGenerate = () => {
     if (onGeneratePlan) {
       onGeneratePlan();
+    } else {
+      onTabChange?.("dashboard");
+    }
+  };
+
+  const handleSaveNow = async () => {
+    if (!plan) {
       return;
     }
 
-    onTabChange?.("dashboard");
+    setIsSaving(true);
+    setSaveFailed(false);
+
+    const { error } = await saveWeeklyPlan(plan);
+
+    setIsSaving(false);
+
+    if (error) {
+      setSaveFailed(true);
+      return;
+    }
+
+    setHasUnsavedPlan(false);
   };
 
   if (!plan) {
     return (
-      <div
-        className="absolute inset-0 flex flex-col"
-        style={{ background: "#F7FAF8" }}
-      >
-        <div
-          className="pt-14 px-6 pb-4"
-          style={{
-            background: "white",
-            borderBottom: "1px solid rgba(0,0,0,0.05)",
-          }}
-        >
-          <h1
-            style={{ fontSize: "1.4rem", fontWeight: 900, color: "#0D1F16" }}
-          >
-            Menú semanal
-          </h1>
-        </div>
-
-        <div className="flex-1 flex flex-col items-center justify-center px-8 pb-24 text-center">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
-            style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0" }}
-          >
-            <span style={{ fontSize: "2.2rem" }}>🥗</span>
-          </div>
-          <h2
-            style={{
-              fontSize: "1.15rem",
-              fontWeight: 800,
-              color: "#0D1F16",
-              lineHeight: 1.35,
-            }}
-          >
-            Aún no has generado un plan
-          </h2>
-          <p
-            className="mt-3"
-            style={{
-              color: "#6B8072",
-              fontSize: "0.88rem",
-              fontWeight: 500,
-              lineHeight: 1.55,
-              maxWidth: "280px",
-            }}
-          >
-            Genera tu menú semanal con IA según tu presupuesto, objetivos y
-            supermercados.
-          </p>
-          <button
-            type="button"
-            onClick={handleGeneratePlan}
-            className="mt-8 px-8 py-3.5 rounded-2xl active:scale-95 transition-transform"
-            style={{
-              background: "#16A34A",
-              color: "white",
-              fontWeight: 800,
-              fontSize: "0.95rem",
-              boxShadow: "0 4px 16px rgba(22,163,74,0.35)",
-            }}
-          >
-            Generar plan
-          </button>
-        </div>
-
-        {onTabChange && <BottomNav active="menu" onChange={onTabChange} />}
-      </div>
+      <Screen>
+        <header className="px-6 pb-4 pt-14">
+          <h1 className="text-[26px] font-extrabold tracking-tight">{title}</h1>
+        </header>
+        <ScreenBody className="pb-28">
+          <EmptyState
+            icon={<Sparkles size={26} />}
+            title={t("menu.emptyTitle")}
+            body={t("menu.emptyBody")}
+            action={
+              <Button onClick={handleGenerate}>{t("menu.generate")}</Button>
+            }
+          />
+        </ScreenBody>
+        {nav}
+      </Screen>
     );
   }
 
-  const dayMenu: DayMenu = plan.weekly_menu[activeDay];
-  const dayFull = days.find((d) => d.id === activeDay)?.full ?? "";
-  const dailyKcalLabel = formatDailyKcal(plan.summary.estimated_daily_kcal);
+  // Newer plans carry the menu in both languages; older ones only in Spanish.
+  const hasEnglishMenu = plan.weekly_menu_en !== undefined;
+  const menuSource =
+    language === "en" && plan.weekly_menu_en
+      ? plan.weekly_menu_en
+      : plan.weekly_menu;
+  const dayMenu: DayMenu = menuSource[activeDay];
+  const kcal = formatNumber(plan.summary.estimated_daily_kcal);
+  const subtitle = headerDateLabel
+    ? t("menu.subtitleWithDate", { date: headerDateLabel, kcal })
+    : t("menu.subtitle", { kcal });
 
   return (
-    <div
-      className="absolute inset-0 flex flex-col"
-      style={{ background: "#F7FAF8" }}
-    >
-      <div
-        className="pt-14 px-6 pb-4"
-        style={{
-          background: "white",
-          borderBottom: "1px solid rgba(0,0,0,0.05)",
-        }}
-      >
+    <Screen>
+      <header className="flex flex-col gap-1 px-6 pb-3 pt-14">
         {readOnly && onBack && (
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center gap-1.5 mb-3 -ml-1 px-1 py-1 rounded-lg active:scale-95 transition-transform"
-            style={{ color: "#16A34A", fontWeight: 700, fontSize: "0.82rem" }}
+            className="-ml-1 mb-2 flex w-fit items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-semibold text-brand-700 hover:underline"
           >
-            <ArrowLeft size={18} />
-            Historial de planes
+            <ArrowLeft size={16} aria-hidden />
+            {t("menu.backToHistory")}
           </button>
         )}
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 900, color: "#0D1F16" }}>
-          {headerTitle}
-        </h1>
-        <p style={{ color: "#6B8072", fontSize: "0.8rem", fontWeight: 400 }}>
-          {headerDateLabel
-            ? `${headerDateLabel} · ${dailyKcalLabel} kcal/día`
-            : `${dailyKcalLabel} kcal/día · Generado por IA`}
-        </p>
-      </div>
+        <h1 className="text-[26px] font-extrabold tracking-tight">{title}</h1>
+        <p className="text-sm text-ink-500">{subtitle}</p>
+      </header>
 
       <div
-        className="px-4 py-3"
-        style={{
-          background: "white",
-          borderBottom: "1px solid rgba(0,0,0,0.05)",
-        }}
+        role="tablist"
+        aria-label={title}
+        className="grid grid-cols-7 gap-1.5 px-5 pb-3"
       >
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
-          {days.map((day) => {
-            const isActive = activeDay === day.id;
+        {DAY_IDS.map((day) => {
+          const isActive = activeDay === day;
 
-            return (
-              <button
-                key={day.id}
-                type="button"
-                onClick={() => setActiveDay(day.id)}
-                className="flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-2xl transition-all active:scale-90"
-                style={{
-                  background: isActive ? "#16A34A" : "#F0F5F1",
-                  minWidth: "44px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "0.75rem",
-                    fontWeight: 800,
-                    color: isActive ? "white" : "#6B8072",
-                  }}
-                >
-                  {day.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="px-6 py-3 flex items-center justify-between">
-        <div>
-          <p
-            style={{ fontWeight: 800, color: "#0D1F16", fontSize: "1.05rem" }}
-          >
-            {dayFull}
-          </p>
-          <p
-            style={{ color: "#9CA3AF", fontSize: "0.75rem", fontWeight: 500 }}
-          >
-            4 comidas · {dailyKcalLabel} kcal
-          </p>
-        </div>
-        <div
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-          style={{ background: readOnly ? "#F3F4F6" : "#DCFCE7" }}
-        >
-          <span style={{ fontSize: "0.8rem" }}>{readOnly ? "📋" : "✅"}</span>
-          <span
-            style={{
-              color: readOnly ? "#6B7280" : "#16A34A",
-              fontSize: "0.72rem",
-              fontWeight: 700,
-            }}
-          >
-            {readOnly ? "Solo lectura" : "Plan activo"}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto pb-24 px-6 space-y-4">
-        {mealSections.map(({ key, emoji, label, color, bg }) => (
-          <div
-            key={key}
-            className="rounded-3xl overflow-hidden"
-            style={{
-              background: "white",
-              border: `1.5px solid ${color}15`,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-            }}
-          >
-            <div
-              className="flex items-center gap-2.5 px-5 py-3.5"
-              style={{ background: bg, borderBottom: `1px solid ${color}15` }}
+          return (
+            <button
+              key={day}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveDay(day)}
+              className={cn(
+                "rounded-xl border py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-brand-600",
+                isActive
+                  ? "border-brand-600 bg-brand-600 text-white"
+                  : "border-ink-200 bg-white text-ink-600 hover:border-ink-300",
+              )}
             >
-              <span style={{ fontSize: "1.3rem" }}>{emoji}</span>
-              <span style={{ fontWeight: 800, color, fontSize: "0.9rem" }}>
-                {label}
-              </span>
-            </div>
+              {t(`dayShort.${day}`)}
+            </button>
+          );
+        })}
+      </div>
 
-            <div className="px-5 py-3 space-y-2">
-              {dayMenu[key].map((item, index) => (
-                <div key={`${key}-${index}`} className="flex items-center gap-3">
-                  <div
-                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                    style={{ background: color }}
-                  />
-                  <p
-                    style={{
-                      color: "#374151",
-                      fontSize: "0.85rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {item}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {readOnly && (onReturnToCurrent ?? onBack) ? (
-          <button
-            type="button"
-            onClick={onReturnToCurrent ?? onBack}
-            className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
-            style={{
-              background: "#16A34A",
-              color: "white",
-              fontWeight: 800,
-              fontSize: "0.9rem",
-              boxShadow: "0 4px 16px rgba(22,163,74,0.35)",
-            }}
-          >
-            Volver al plan actual
-          </button>
-        ) : (
-          onGeneratePlan && (
+      <ScreenBody className="flex flex-col gap-4 pb-28">
+        {hasUnsavedPlan && !readOnly && (
+          <Alert tone="warning">
+            <p>{t("menu.unsaved")}</p>
+            {saveFailed && (
+              <p className="mt-1 font-semibold">{t("errors.save")}</p>
+            )}
             <button
               type="button"
-              onClick={onGeneratePlan}
-              className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
-              style={{
-                background: "white",
-                border: "1.5px solid rgba(22,163,74,0.35)",
-                color: "#16A34A",
-                fontWeight: 800,
-                fontSize: "0.9rem",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-              }}
+              onClick={() => void handleSaveNow()}
+              disabled={isSaving}
+              className="mt-2 font-bold underline disabled:opacity-60"
             >
-              Regenerar plan
+              {t("menu.saveNow")}
             </button>
+          </Alert>
+        )}
+
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold">{t(`day.${activeDay}`)}</h2>
+            <p className="text-[13px] text-ink-500">
+              {t("menu.dayInfo", { kcal })}
+            </p>
+          </div>
+          <span
+            className={cn(
+              "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold",
+              readOnly
+                ? "bg-ink-100 text-ink-600"
+                : "bg-brand-50 text-brand-700",
+            )}
+          >
+            {readOnly && <Eye size={13} aria-hidden />}
+            {readOnly ? t("menu.readOnly") : t("menu.active")}
+          </span>
+        </div>
+
+        {MEALS.map(({ key, icon: Icon }) => {
+          const dish = plan.dish_names?.[activeDay]?.[key]?.[language];
+
+          return (
+          <Card key={key} className="flex flex-col gap-3 p-0">
+            <div className="flex items-start gap-3 border-b border-ink-100 px-4 py-3.5">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                <Icon size={17} aria-hidden />
+              </span>
+              <div className="min-w-0">
+                {dish && (
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
+                    {t(`meal.${key}`)}
+                  </p>
+                )}
+                <h3 className="text-[16px] font-bold leading-snug text-ink-900">
+                  {dish ?? t(`meal.${key}`)}
+                </h3>
+              </div>
+            </div>
+            <p className="px-4 text-xs font-semibold text-ink-500">
+              {t("menu.ingredients")}
+            </p>
+            <ul className="-mt-1 flex flex-col gap-2 px-4 pb-4">
+              {dayMenu[key].map((item, index) => (
+                <li
+                  key={`${key}-${index}`}
+                  className="flex items-start gap-3 text-[14px] leading-snug text-ink-700"
+                >
+                  <span
+                    className="mt-[7px] size-1.5 shrink-0 rounded-full bg-brand-400"
+                    aria-hidden
+                  />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </Card>
+          );
+        })}
+
+        {language !== "es" && !hasEnglishMenu && (
+          <p className="text-center text-xs text-ink-400">
+            {t("menu.contentNote")}
+          </p>
+        )}
+
+        {readOnly && (onReturnToCurrent ?? onBack) ? (
+          <Button size="lg" full onClick={onReturnToCurrent ?? onBack}>
+            {t("menu.backToCurrent")}
+          </Button>
+        ) : (
+          onGeneratePlan && (
+            <Button variant="secondary" size="lg" full onClick={onGeneratePlan}>
+              {t("menu.regenerate")}
+            </Button>
           )
         )}
-      </div>
+      </ScreenBody>
 
-      {onTabChange && <BottomNav active="menu" onChange={onTabChange} />}
-    </div>
+      {nav}
+    </Screen>
   );
 }

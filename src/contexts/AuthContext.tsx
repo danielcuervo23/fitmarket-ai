@@ -9,13 +9,14 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { signOut as authSignOut } from "@/lib/auth";
+import type { ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
-  signOut: () => Promise<{ error: string | null }>;
+  signOut: () => Promise<{ error: ErrorKey | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);

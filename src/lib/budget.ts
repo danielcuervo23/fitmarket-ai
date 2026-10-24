@@ -1,53 +1,21 @@
-import type { PostgrestError } from "@supabase/supabase-js";
+import { dbErrorKey, type ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
-
-function getBudgetErrorMessage(error: PostgrestError): string {
-  const message = error.message.toLowerCase();
-  const code = error.code;
-
-  if (code === "23514" || message.includes("check constraint")) {
-    return "El presupuesto debe ser mayor a cero.";
-  }
-
-  if (code === "PGRST116" || message.includes("0 rows")) {
-    return "Completa tu perfil antes de guardar el presupuesto.";
-  }
-
-  if (code === "42501" || message.includes("row-level security")) {
-    return "No tienes permiso para guardar tu presupuesto. Inicia sesión e intenta de nuevo.";
-  }
-
-  if (message.includes("network") || message.includes("fetch")) {
-    return "No pudimos conectar. Revisa tu internet e intenta de nuevo.";
-  }
-
-  return "No pudimos guardar tu presupuesto. Intenta de nuevo en unos segundos.";
-}
-
-function validateBudget(amountCop: number): string | null {
-  if (!Number.isFinite(amountCop) || amountCop <= 0) {
-    return "Ingresa un presupuesto válido mayor a cero.";
-  }
-
-  return null;
-}
+import { getSessionUser } from "@/lib/session";
 
 export async function saveWeeklyBudget(
   amountCop: number,
-): Promise<{ error: string | null }> {
-  const validationError = validateBudget(amountCop);
-
-  if (validationError) {
-    return { error: validationError };
+): Promise<{ error: ErrorKey | null }> {
+  if (!Number.isFinite(amountCop) || amountCop <= 0) {
+    return { error: "errors.budgetInvalid" };
   }
 
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await getSessionUser();
 
   if (authError || !user) {
-    return { error: "Debes iniciar sesión para guardar tu presupuesto." };
+    return { error: "errors.notSignedIn" };
   }
 
   const { error } = await supabase
@@ -56,7 +24,15 @@ export async function saveWeeklyBudget(
     .eq("id", user.id);
 
   if (error) {
-    return { error: getBudgetErrorMessage(error) };
+    // No profile row yet (the budget step was reached before the profile step).
+    if (
+      error.code === "PGRST116" ||
+      error.message.toLowerCase().includes("0 rows")
+    ) {
+      return { error: "errors.profileFirst" };
+    }
+
+    return { error: dbErrorKey(error) };
   }
 
   return { error: null };
