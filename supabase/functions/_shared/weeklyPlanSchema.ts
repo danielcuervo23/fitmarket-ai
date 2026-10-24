@@ -1,4 +1,4 @@
-import { z } from "npm:zod@3.23.8";
+import { z } from "npm:zod@4.6.7";
 
 /**
  * Shape of a generated weekly plan, shared by the Edge Function and the

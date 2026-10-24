@@ -6,7 +6,7 @@
       "https://esm.sh/@supabase/supabase-js@2.49.1": [
         "./node_modules/@supabase/supabase-js"
       ],
-      "npm:zod@3.23.8": ["./node_modules/zod"]
+      "npm:zod@4.6.7": ["./node_modules/zod"]
     }
   },
   "include": ["supabase/functions/**/*.ts", "supabase/deno-globals.d.ts"],
