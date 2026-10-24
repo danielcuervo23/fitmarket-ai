@@ -17,10 +17,9 @@ export interface ComposedMeal {
 
 export type ComposedWeek = Record<Day, Record<Slot, ComposedMeal>>;
 
-/** Allowed number of ingredient lines per meal. */
-export const ITEMS_PER_MEAL: Record<Slot, { min: number; max: number }> = {
-  desayuno: { min: 2, max: 5 },
-  almuerzo: { min: 2, max: 6 },
-  cena: { min: 2, max: 6 },
-  snacks: { min: 1, max: 3 },
-};
+/**
+ * Ingredient lines per meal. Real meals include seasonings (oil, salt, garlic,
+ * cilantro) so the upper bound is generous; extra lines are trimmed, not
+ * rejected, because rejecting a whole week over one long lunch wastes money.
+ */
+export const ITEMS_PER_MEAL = { min: 1, max: 8 } as const;

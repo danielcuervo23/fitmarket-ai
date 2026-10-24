@@ -1,4 +1,4 @@
-import type { Ingredient } from "../catalog.ts";
+import { getIngredient, nutritionOf, type Ingredient } from "../catalog.ts";
 import type { NutritionTargets } from "../nutrition.ts";
 import {
   DAYS,
@@ -85,18 +85,10 @@ function readMeal(value: unknown): RawMeal | null {
     return null;
   }
 
-  const { name_es, name_en } = value;
-
-  if (
-    typeof name_es !== "string" ||
-    typeof name_en !== "string" ||
-    !name_es.trim() ||
-    !name_en.trim() ||
-    name_es.length > 80 ||
-    name_en.length > 80
-  ) {
-    return null;
-  }
+  // Dish names are cosmetic: a missing or very long one is cleaned up, never
+  // a reason to throw the whole week away (a name is rebuilt later if empty).
+  const cleanName = (name: unknown): string =>
+    typeof name === "string" ? name.trim().slice(0, 80) : "";
 
   const items: RawMeal["items"] = [];
 
@@ -112,15 +104,51 @@ function readMeal(value: unknown): RawMeal | null {
     items.push({ id: item.id, qty: item.qty });
   }
 
-  return { name_es, name_en, items };
+  return {
+    name_es: cleanName(value.name_es),
+    name_en: cleanName(value.name_en),
+    items,
+  };
 }
 
 export type ComposeIssue =
   | { code: "invalid_format" }
   | { code: "wrong_days" }
   | { code: "item_count"; day: Day; slot: Slot }
-  | { code: "unknown_ingredient"; id: string }
-  | { code: "bad_quantity"; id: string };
+  | { code: "unknown_ingredient"; id: string };
+
+/**
+ * Tidies one meal's lines: drops zero/negative/NaN amounts, merges repeated
+ * ingredients, and keeps at most ITEMS_PER_MEAL.max lines (the ones that
+ * contribute the most calories; seasonings go first).
+ */
+export function cleanItems(
+  items: { id: string; qty: number }[],
+): { id: string; qty: number }[] {
+  const merged = new Map<string, number>();
+
+  for (const item of items) {
+    if (Number.isFinite(item.qty) && item.qty > 0) {
+      merged.set(item.id, (merged.get(item.id) ?? 0) + item.qty);
+    }
+  }
+
+  const lines = [...merged].map(([id, qty]) => ({ id, qty }));
+
+  if (lines.length <= ITEMS_PER_MEAL.max) {
+    return lines;
+  }
+
+  const weight = (line: { id: string; qty: number }) => {
+    const ingredient = getIngredient(line.id);
+
+    return ingredient ? nutritionOf(ingredient, line.qty).kcal : 0;
+  };
+
+  return lines
+    .sort((a, b) => weight(b) - weight(a))
+    .slice(0, ITEMS_PER_MEAL.max);
+}
 
 /** Parses and structurally validates the AI answer. */
 export function parseComposition(
@@ -163,28 +191,26 @@ export function parseComposition(
         return { week: null, issue: { code: "invalid_format" } };
       }
 
-      const { min, max } = ITEMS_PER_MEAL[slot];
+      // An ingredient that was never offered (forbidden by the user's
+      // restrictions) must not slip through: reject so the retry can fix it.
+      const unknown = meal.items.find((item) => !allowedIds.has(item.id));
 
-      if (meal.items.length < min || meal.items.length > max) {
+      if (unknown) {
+        return {
+          week: null,
+          issue: { code: "unknown_ingredient", id: unknown.id },
+        };
+      }
+
+      const items = cleanItems(meal.items);
+
+      if (items.length < ITEMS_PER_MEAL.min) {
         return { week: null, issue: { code: "item_count", day, slot } };
       }
 
-      for (const item of meal.items) {
-        if (!allowedIds.has(item.id)) {
-          return {
-            week: null,
-            issue: { code: "unknown_ingredient", id: item.id },
-          };
-        }
-
-        if (!Number.isFinite(item.qty) || item.qty <= 0) {
-          return { week: null, issue: { code: "bad_quantity", id: item.id } };
-        }
-      }
-
       meals[slot] = {
-        name: { es: meal.name_es.trim(), en: meal.name_en.trim() },
-        items: meal.items.map((item) => ({ id: item.id, qty: item.qty })),
+        name: { es: meal.name_es, en: meal.name_en },
+        items,
       };
     }
 
@@ -213,7 +239,8 @@ You compose a 7-day meal plan for ONE person using ONLY the ingredient ids you a
 
 Rules:
 - Return 7 days (lun, mar, mie, jue, vie, sab, dom). Each day has four meals: desayuno (breakfast), almuerzo (lunch), cena (dinner), snacks.
-- Each meal lists 2-5 ingredients (snacks 1-3) with a quantity. Quantities are DRY / RAW weights as bought: grams for "g" foods, millilitres for "ml" foods, and a count for "unit" foods.
+- Each meal lists its ingredients with a quantity: the main components plus any small seasonings, at most 8 lines (snacks 1-3). Quantities are DRY / RAW weights as bought: grams for "g" foods, millilitres for "ml" foods, and a whole count for "unit" foods (eggs, fruit).
+- The dish name (name_es / name_en) must describe exactly the ingredients you list for that meal: never name an ingredient that is not in the list.
 - Aim for the daily calorie and protein targets. Quantities will be fine-tuned automatically, so focus on a good, realistic combination of foods.
 - Cook like people do in Colombia: arepas, rice with lentils or beans, eggs with tomato and onion, sancocho-style soups, potato, plantain, fruit with oatmeal, etc. Give each meal a short, appetising dish name in Spanish (name_es) and English (name_en).
 - Use a sensible variety (roughly 20-35 different ingredients in the week), reusing staples across meals to keep the shopping list short and cheap. Do not repeat the exact same dinner more than twice.
@@ -244,6 +271,11 @@ export function buildComposerUserPrompt(input: ComposerInput): string {
     `Daily targets for one person: about ${targets.kcal} kcal and at least ${targets.proteinG} g of protein.`,
     `Weekly food budget for one person: ${input.budgetPerPersonCop} COP.`,
     `Goals: ${input.goals.join(", ") || "eat healthy"}.`,
+    ...(input.goals.includes("save")
+      ? [
+          "The user wants to SAVE MONEY: keep the cost per meal as low as possible, build most meals on legumes, eggs, rice, potato, plantain, oats and seasonal produce, and avoid premium items.",
+        ]
+      : []),
     "",
     "Allowed ingredients (id | name | unit | kcal per 100 | protein per 100 | price):",
     ...input.allowed.map(formatCatalogLine),

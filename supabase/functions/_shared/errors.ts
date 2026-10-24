@@ -14,6 +14,7 @@ export type GenerationErrorCode =
   | "budget_missing"
   | "goals_missing"
   | "stores_missing"
+  | "restrictions_too_strict"
   | "quota_exceeded"
   | "rate_limited"
   | "ai_unavailable"

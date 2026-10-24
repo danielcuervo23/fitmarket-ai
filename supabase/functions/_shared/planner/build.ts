@@ -8,6 +8,7 @@ import {
   type ShoppingCategory,
 } from "../catalog.ts";
 import type { NutritionTargets } from "../nutrition.ts";
+import { cheapestStore } from "./stores.ts";
 import { SWAP_RULES } from "./swaps.ts";
 import {
   DAYS,
@@ -29,7 +30,10 @@ import {
 
 function roundQty(ingredient: Ingredient, qty: number): number {
   if (ingredient.unit === "unit") {
-    return Math.max(0.5, Math.round(qty * 2) / 2);
+    // Eggs and fruit come whole; avocados and peppers may be halved.
+    return ingredient.wholeUnits
+      ? Math.max(1, Math.round(qty))
+      : Math.max(0.5, Math.round(qty * 2) / 2);
   }
 
   if (qty >= 20) {
@@ -172,14 +176,32 @@ export function totalsByIngredient(
   return totals;
 }
 
-export function weekCost(week: ComposedWeek, householdSize: number): number {
+/**
+ * What buying `qty` costs at the cheapest of the user's stores that sells it
+ * (whole packs, then the store's price level).
+ */
+export function costAt(
+  ingredient: Ingredient,
+  qty: number,
+  stores: string[],
+): number {
+  const { factor } = cheapestStore(ingredient, stores);
+
+  return Math.round(costOf(ingredient, qty) * factor);
+}
+
+export function weekCost(
+  week: ComposedWeek,
+  householdSize: number,
+  stores: string[],
+): number {
   let total = 0;
 
   for (const [id, qty] of totalsByIngredient(week, householdSize)) {
     const ingredient = getIngredient(id);
 
     if (ingredient) {
-      total += costOf(ingredient, qty);
+      total += costAt(ingredient, qty, stores);
     }
   }
 
@@ -295,11 +317,12 @@ export function fitToBudget(
     householdSize: number;
     targetKcal: number;
     allowedIds: ReadonlySet<string>;
+    stores: string[];
   },
 ): FitResult {
-  const { budgetCop, householdSize, targetKcal, allowedIds } = options;
+  const { budgetCop, householdSize, targetKcal, allowedIds, stores } = options;
   let current = normalizeWeek(week, targetKcal);
-  let cost = weekCost(current, householdSize);
+  let cost = weekCost(current, householdSize, stores);
   let swaps = 0;
 
   // Each swap removes an ingredient from the plan, so this always terminates.
@@ -316,7 +339,7 @@ export function fitToBudget(
         applySwap(current, rule.from, rule.to, rule.keep),
         targetKcal,
       );
-      const candidateCost = weekCost(candidate, householdSize);
+      const candidateCost = weekCost(candidate, householdSize, stores);
 
       if (candidateCost < cost && (!best || candidateCost < best.cost)) {
         best = { week: candidate, cost: candidateCost };
@@ -337,32 +360,6 @@ export function fitToBudget(
 
 // --------------------------------------------------------------------- output
 
-const DISCOUNT_STORES = ["D1", "Ara"];
-const FULL_STORES = ["Exito", "Jumbo", "Carulla"];
-
-/**
- * Picks where to buy each item. We have no per-store stock data, so the rule
- * is simple and explainable: fresh food (meat, fish, produce) from the first
- * full-service store the user chose, everything else from their first
- * discount store; with a single store it all comes from there.
- */
-export function assignStore(
-  ingredient: Ingredient,
-  stores: string[],
-): string {
-  const full = stores.find((store) => FULL_STORES.includes(store));
-  const discount = stores.find((store) => DISCOUNT_STORES.includes(store));
-  const fresh =
-    ingredient.category === "proteinas" ||
-    ingredient.category === "frutas_verduras";
-
-  if (full && discount) {
-    return fresh ? full : discount;
-  }
-
-  return stores[0] ?? "";
-}
-
 function trimNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
@@ -379,14 +376,18 @@ export function formatPurchase(ingredient: Ingredient, qty: number): string {
   return `${trimNumber(qty)} ${ingredient.unit}`;
 }
 
-function formatCount(qty: number): string {
+function formatCount(qty: number, lang: "es" | "en"): string {
   if (Number.isInteger(qty)) {
     return String(qty);
   }
 
-  const whole = Math.floor(qty);
+  if (qty === 0.5) {
+    return "1/2";
+  }
 
-  return whole === 0 ? "1/2" : `${whole} 1/2`;
+  const text = qty.toFixed(1);
+
+  return lang === "es" ? text.replace(".", ",") : text;
 }
 
 /** "80 g de avena en hojuelas" / "2 huevos". */
@@ -399,7 +400,7 @@ export function mealLine(
 
   if (ingredient.unit === "unit") {
     const plural = ingredient.plural?.[lang] ?? name;
-    return `${formatCount(qty)} ${qty <= 1 ? name : plural}`;
+    return `${formatCount(qty, lang)} ${qty <= 1 ? name : plural}`;
   }
 
   return lang === "es"
@@ -480,7 +481,8 @@ export function assemblePlan(
     }
 
     const packs = Math.ceil(qty / ingredient.pack - 1e-9);
-    const cost = costOf(ingredient, qty);
+    const { store } = cheapestStore(ingredient, stores);
+    const cost = costAt(ingredient, qty, stores);
     total += cost;
 
     shopping_list.push({
@@ -489,7 +491,7 @@ export function assemblePlan(
       quantity: formatPurchase(ingredient, packs * ingredient.pack),
       estimated_price_cop: cost,
       category: ingredient.category,
-      store_id: assignStore(ingredient, stores),
+      store_id: store,
     });
   }
 

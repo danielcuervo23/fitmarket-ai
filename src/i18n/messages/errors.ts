@@ -55,7 +55,10 @@ export const errors = defineMessages({
     "gen.error.aiUnavailable":
       "No pudimos generar tu plan. Intenta de nuevo en unos segundos.",
     "gen.error.aiTimeout": "La generación tardó demasiado. Intenta de nuevo.",
-    "gen.error.invalidFormat": "El plan generado no tiene un formato válido.",
+    "gen.error.invalidFormat":
+      "El asistente envió un plan incompleto. Casi siempre funciona al intentarlo de nuevo.",
+    "gen.error.restrictionsTooStrict":
+      "Tus restricciones dejan muy pocos alimentos disponibles. Quita alguna para poder armar un plan variado.",
     "gen.error.invalidStore":
       "El plan incluía una tienda que no elegiste. Intenta de nuevo.",
     "gen.error.dietaryViolation":
@@ -120,7 +123,10 @@ export const errors = defineMessages({
     "gen.error.aiUnavailable":
       "We couldn't generate your plan. Please try again in a few seconds.",
     "gen.error.aiTimeout": "Generation took too long. Please try again.",
-    "gen.error.invalidFormat": "The generated plan has an invalid format.",
+    "gen.error.invalidFormat":
+      "The assistant sent an incomplete plan. It almost always works on the next try.",
+    "gen.error.restrictionsTooStrict":
+      "Your restrictions leave too few foods to work with. Remove some so we can build a varied plan.",
     "gen.error.invalidStore":
       "The plan included a store you didn't choose. Please try again.",
     "gen.error.dietaryViolation":

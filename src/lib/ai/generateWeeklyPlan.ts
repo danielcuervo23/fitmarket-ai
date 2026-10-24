@@ -16,6 +16,8 @@ export interface MessageGenerationError {
   kind: "message";
   /** Translation key; show it with t(). */
   messageKey: ErrorKey;
+  /** Server error code when there is one; lets the screen offer a fix. */
+  code?: GenerationErrorCode;
 }
 
 export type GenerateWeeklyPlanError =
@@ -43,6 +45,7 @@ const CODE_TO_MESSAGE: Record<GenerationErrorCode, ErrorKey> = {
   budget_missing: "gen.error.budgetMissing",
   goals_missing: "gen.error.goalsMissing",
   stores_missing: "gen.error.storesMissing",
+  restrictions_too_strict: "gen.error.restrictionsTooStrict",
   quota_exceeded: "gen.error.quotaExceeded",
   rate_limited: "gen.error.rateLimited",
   ai_unavailable: "gen.error.aiUnavailable",
@@ -119,6 +122,7 @@ function toGenerationError(
     return {
       kind: "message",
       messageKey: CODE_TO_MESSAGE[body.code] ?? "errors.generic",
+      code: body.code,
     };
   }
 

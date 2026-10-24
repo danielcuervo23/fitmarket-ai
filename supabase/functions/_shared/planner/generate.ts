@@ -17,7 +17,9 @@ import {
   parseComposition,
   type ComposeIssue,
 } from "./compose.ts";
+import { changedMeals, renameMeals, unnamedMeals } from "./naming.ts";
 import { allowedCatalog, buildRestrictionRules } from "./restrictions.ts";
+import { carriedByAny } from "./stores.ts";
 
 export interface GenerateInput {
   weeklyBudgetCop: number;
@@ -45,6 +47,12 @@ export type GenerateOutcome = { plan: BuiltPlan } | GenerateFailure;
 const MAX_ATTEMPTS = 2;
 /** A catalog this small cannot make a varied week. */
 const MIN_ALLOWED_INGREDIENTS = 20;
+/**
+ * Lowest weekly food budget per person worth sending to the AI. Below this no
+ * realistic plan exists, so we answer immediately (saves a paid request) and
+ * tell the user what the floor is.
+ */
+export const MIN_WEEKLY_BUDGET_PER_PERSON_COP = 40_000;
 
 function issueFeedback(issue: ComposeIssue): string {
   switch (issue.code) {
@@ -53,11 +61,9 @@ function issueFeedback(issue: ComposeIssue): string {
     case "wrong_days":
       return "Return exactly 7 days: lun, mar, mie, jue, vie, sab, dom, each once.";
     case "item_count":
-      return `Day ${issue.day}, meal ${issue.slot} has the wrong number of ingredients (2-5, snacks 1-3).`;
+      return `Day ${issue.day}, meal ${issue.slot} has no valid ingredients. Every meal needs at least one ingredient with a positive quantity.`;
     case "unknown_ingredient":
       return `"${issue.id}" is not an allowed ingredient id. Use only the ids listed.`;
-    case "bad_quantity":
-      return `Ingredient "${issue.id}" has an invalid quantity. Quantities must be positive numbers.`;
   }
 }
 
@@ -69,13 +75,32 @@ export async function generatePlan(
   input: GenerateInput,
   callModel: ModelCall,
 ): Promise<GenerateOutcome> {
+  const floor = MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
+
+  if (input.weeklyBudgetCop < floor) {
+    return {
+      error: {
+        code: "budget_too_low",
+        message: "El presupuesto es demasiado bajo para un plan semanal.",
+        budget: {
+          currentBudget: input.weeklyBudgetCop,
+          requiredBudget: floor,
+          recommendedIncrease: floor - input.weeklyBudgetCop,
+        },
+      },
+    };
+  }
+
   const rules = buildRestrictionRules(input.restrictions);
-  const allowed = allowedCatalog(rules);
+  // Only offer foods the user's own supermarkets sell.
+  const allowed = allowedCatalog(rules).filter((ingredient) =>
+    carriedByAny(input.stores, ingredient.id),
+  );
 
   if (allowed.length < MIN_ALLOWED_INGREDIENTS) {
     return {
       error: {
-        code: "generation_failed",
+        code: "restrictions_too_strict",
         message:
           "Tus restricciones dejan muy pocos ingredientes disponibles para armar un plan.",
       },
@@ -133,6 +158,7 @@ export async function generatePlan(
       raw = JSON.parse(response.content);
     } catch {
       feedback = "The answer was not valid JSON.";
+      logEvent("plan_attempt_rejected", { attempt, code: "not_json" });
       continue;
     }
 
@@ -176,6 +202,7 @@ export async function generatePlan(
       householdSize: input.householdSize,
       targetKcal: targets.kcal,
       allowedIds,
+      stores: input.stores,
     });
 
     if (fitted.cost > input.weeklyBudgetCop) {
@@ -194,10 +221,24 @@ export async function generatePlan(
       };
     }
 
-    logEvent("plan_generated", { attempt, swaps: fitted.swaps });
+    // Swaps change what is on the plate: rename those meals (and any the AI
+    // left unnamed) so every dish name matches its ingredients.
+    const toRename = [
+      ...new Set([
+        ...changedMeals(normalized, fitted.week),
+        ...unnamedMeals(fitted.week),
+      ]),
+    ];
+    const finalWeek = await renameMeals(fitted.week, toRename, callModel);
+
+    logEvent("plan_generated", {
+      attempt,
+      swaps: fitted.swaps,
+      renamed: toRename.length,
+    });
 
     return {
-      plan: assemblePlan(fitted.week, {
+      plan: assemblePlan(finalWeek, {
         householdSize: input.householdSize,
         stores: input.stores,
         targets,

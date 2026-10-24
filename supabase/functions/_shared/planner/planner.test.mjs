@@ -11,7 +11,9 @@ import {
   weekCost,
   weekStats,
 } from "./build.ts";
-import { parseComposition } from "./compose.ts";
+import { cleanItems, parseComposition } from "./compose.ts";
+import { changedMeals, fallbackName, parseNaming, renameMeals, unnamedMeals } from "./naming.ts";
+import { cheapestStore, carriedByAny } from "./stores.ts";
 import { allowedCatalog, buildRestrictionRules } from "./restrictions.ts";
 import { DAYS, SLOTS } from "./types.ts";
 
@@ -36,6 +38,7 @@ function sampleWeek(overrides = {}) {
 const woman = { age: 28, weightKg: 65, heightCm: 165, activity: "moderate", sex: "female" };
 const targets = calcTargets(woman, ["healthy"]);
 const ALL_IDS = new Set(CATALOG.map((i) => i.id));
+const STORES = ["Exito", "D1"];
 
 // ---------------------------------------------------------------- restrictions
 {
@@ -90,13 +93,15 @@ const ALL_IDS = new Set(CATALOG.map((i) => i.id));
   const shortWeek = { days: raw.days.slice(0, 6) };
   assert.equal(parseComposition(shortWeek, ALL_IDS).issue.code, "wrong_days");
 
+  // A single-ingredient breakfast is fine (the quality gate judges variety).
   const oneItem = structuredClone(raw);
   oneItem.days[2].desayuno.items = [{ id: "avena", qty: 60 }];
-  assert.equal(parseComposition(oneItem, ALL_IDS).issue.code, "item_count");
+  assert.equal(parseComposition(oneItem, ALL_IDS).issue, null);
 
+  // A meal whose only amount is invalid ends up empty and is rejected.
   const negative = structuredClone(raw);
   negative.days[1].snacks.items[0].qty = -3;
-  assert.equal(parseComposition(negative, ALL_IDS).issue.code, "bad_quantity");
+  assert.equal(parseComposition(negative, ALL_IDS).issue.code, "item_count");
 
   // A forbidden ingredient is "unknown" because it was never offered.
   const noEggs = new Set([...ALL_IDS].filter((id) => id !== "huevo"));
@@ -120,23 +125,24 @@ const ALL_IDS = new Set(CATALOG.map((i) => i.id));
 // ------------------------------------------------------------- cost and fit
 {
   const week = normalizeWeek(sampleWeek(), targets.kcal);
-  const cost = weekCost(week, 1);
+  const cost = weekCost(week, 1, STORES);
   assert.ok(cost > 20_000 && cost < 400_000, `weekly cost looks off: ${cost}`);
 
   // Household of 3 buys more (cost rises, though packs make it sub-linear).
-  assert.ok(weekCost(week, 3) > cost * 1.5);
+  assert.ok(weekCost(week, 3, STORES) > cost * 1.5);
 
   // Fit: an expensive week gets cheaper, and swaps respect the allowed set.
   const expensive = sampleWeek({
     almuerzo: meal("Salmón", ["salmon", 160], ["arroz_integral", 80], ["brocoli", 100]),
     snacks: meal("Nueces", ["nueces", 30], ["fresa", 150]),
   });
-  const before = weekCost(normalizeWeek(expensive, targets.kcal), 1);
+  const before = weekCost(normalizeWeek(expensive, targets.kcal), 1, STORES);
   const fitted = fitToBudget(expensive, {
     budgetCop: Math.round(before * 0.7),
     householdSize: 1,
     targetKcal: targets.kcal,
     allowedIds: ALL_IDS,
+    stores: STORES,
   });
   assert.ok(fitted.cost < before, "fitting must lower the cost");
   assert.ok(fitted.swaps > 0);
@@ -147,6 +153,7 @@ const ALL_IDS = new Set(CATALOG.map((i) => i.id));
     householdSize: 1,
     targetKcal: targets.kcal,
     allowedIds: new Set(["pechuga_pollo"]),
+    stores: STORES,
   });
   assert.ok(noSubs.cost > 1);
 
@@ -156,6 +163,7 @@ const ALL_IDS = new Set(CATALOG.map((i) => i.id));
     householdSize: 1,
     targetKcal: targets.kcal,
     allowedIds: ALL_IDS,
+    stores: STORES,
   });
   assert.equal(fine.swaps, 0);
 }
@@ -166,7 +174,7 @@ const ALL_IDS = new Set(CATALOG.map((i) => i.id));
   const plan = assemblePlan(week, { householdSize: 2, stores: ["Exito", "D1"], targets });
 
   assert.equal(plan.summary.household_size, 2);
-  assert.equal(plan.summary.estimated_total_cop, weekCost(week, 2));
+  assert.equal(plan.summary.estimated_total_cop, weekCost(week, 2, STORES));
   assert.equal(
     plan.shopping_list.reduce((sum, item) => sum + item.estimated_price_cop, 0),
     plan.summary.estimated_total_cop,
@@ -174,10 +182,10 @@ const ALL_IDS = new Set(CATALOG.map((i) => i.id));
   );
   assert.ok(Math.abs(plan.summary.estimated_daily_kcal - targets.kcal) < targets.kcal * 0.06);
 
-  // Fresh food from the full-service store, pantry from the discount one.
+  // Everything comes from the cheaper of the user's stores (here D1 beats Exito).
   const chicken = plan.shopping_list.find((i) => i.name === "Pechuga de pollo");
   const rice = plan.shopping_list.find((i) => i.name === "Arroz blanco");
-  assert.equal(chicken.store_id, "Exito");
+  assert.equal(chicken.store_id, "D1");
   assert.equal(rice.store_id, "D1");
   assert.ok(chicken.name_en && rice.name_en);
 
@@ -190,6 +198,8 @@ const ALL_IDS = new Set(CATALOG.map((i) => i.id));
   assert.equal(mealLine(getIngredient("huevo"), 2, "es"), "2 huevos");
   assert.equal(mealLine(getIngredient("huevo"), 1, "en"), "1 egg");
   assert.equal(mealLine(getIngredient("aguacate"), 0.5, "es"), "1/2 aguacate");
+  assert.equal(mealLine(getIngredient("aguacate"), 1.5, "es"), "1,5 aguacates");
+  assert.equal(mealLine(getIngredient("aguacate"), 1.5, "en"), "1.5 avocados");
   assert.ok(plan.weekly_menu.lun.desayuno.every((line) => /\d/.test(line)));
   assert.ok(plan.dish_names.lun.cena.es && plan.dish_names.lun.cena.en);
 }
@@ -238,6 +248,125 @@ const ALL_IDS = new Set(CATALOG.map((i) => i.id));
   assert.equal(issue.code, "low_protein");
   // A varied-enough week passes the variety gate; our uniform sample does not.
   assert.equal(weekStats(poor).distinctIngredients < 14, true);
+}
+
+// ------------------------------------------------------------------- stores
+{
+  // The user's complaint: eggs must not be bought at Jumbo when D1 is cheaper.
+  const eggs = getIngredient("huevo");
+  assert.equal(cheapestStore(eggs, ["Jumbo", "D1"]).store, "D1");
+  assert.equal(cheapestStore(eggs, ["D1", "Ara", "Jumbo"]).store, "D1");
+
+  // Fresh produce is cheapest at Ara, so Ara gets used when it is selected.
+  assert.equal(cheapestStore(getIngredient("tomate_chonto"), ["D1", "Ara", "Jumbo"]).store, "Ara");
+
+  // Foods the discount chains do not stock fall back to a store that has them.
+  assert.equal(cheapestStore(getIngredient("salmon"), ["D1", "Ara", "Jumbo"]).store, "Jumbo");
+  assert.equal(carriedByAny(["D1", "Ara"], "salmon"), false);
+  assert.equal(carriedByAny(["D1", "Jumbo"], "salmon"), true);
+
+  // A plan with all three stores uses more than one of them.
+  const week = normalizeWeek(sampleWeek(), targets.kcal);
+  const plan = assemblePlan(week, { householdSize: 1, stores: ["D1", "Ara", "Jumbo"], targets });
+  const used = new Set(plan.shopping_list.map((item) => item.store_id));
+  assert.ok(used.has("D1") && used.has("Ara"), "D1 and Ara should both be used");
+  assert.ok(!used.has("Jumbo"), "nothing here needs the expensive store");
+  assert.equal(
+    plan.shopping_list.reduce((s, i) => s + i.estimated_price_cop, 0),
+    weekCost(week, 1, ["D1", "Ara", "Jumbo"]),
+  );
+
+  // Buying at the cheaper stores really costs less than at Jumbo alone.
+  assert.ok(weekCost(week, 1, ["D1", "Ara"]) < weekCost(week, 1, ["Jumbo"]));
+}
+
+// ------------------------------------------------------------ whole units
+{
+  // Eggs and fruit are never fractional after scaling.
+  const week = normalizeWeek(sampleWeek({ cena: meal("Huevos", ["huevo", 1], ["tomate_chonto", 60]) }), 3200);
+  for (const day of DAYS) {
+    for (const slot of SLOTS) {
+      for (const item of week[day][slot].items) {
+        if (["huevo", "banano", "manzana"].includes(item.id)) {
+          assert.ok(Number.isInteger(item.qty), `${item.id} must be whole, got ${item.qty}`);
+        }
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------- lenient parsing
+{
+  const allowed = ALL_IDS;
+  const base = (items) => ({
+    days: DAYS.map((day) => ({
+      day,
+      desayuno: { name_es: "a", name_en: "a", items: [{ id: "avena", qty: 60 }, { id: "banano", qty: 1 }] },
+      almuerzo: { name_es: "b", name_en: "b", items },
+      cena: { name_es: "c", name_en: "c", items: [{ id: "huevo", qty: 2 }, { id: "papa", qty: 200 }] },
+      snacks: { name_es: "d", name_en: "d", items: [{ id: "manzana", qty: 1 }] },
+    })),
+  });
+
+  // A lunch with 9 lines (main parts plus seasonings) is trimmed, not rejected.
+  const long = base([
+    { id: "arroz_blanco", qty: 90 }, { id: "lentejas", qty: 80 }, { id: "zanahoria", qty: 60 },
+    { id: "cebolla_cabezona", qty: 40 }, { id: "tomate_chonto", qty: 60 }, { id: "aceite_vegetal", qty: 8 },
+    { id: "sal", qty: 2 }, { id: "ajo", qty: 5 }, { id: "cilantro", qty: 5 },
+  ]);
+  const parsed = parseComposition(long, allowed);
+  assert.equal(parsed.issue, null);
+  assert.equal(parsed.week.lun.almuerzo.items.length, 8);
+  assert.ok(parsed.week.lun.almuerzo.items.some((i) => i.id === "arroz_blanco"), "big items are kept");
+
+  // A zero or negative amount drops that line instead of failing the week.
+  const withZero = base([{ id: "arroz_blanco", qty: 90 }, { id: "sal", qty: 0 }, { id: "lentejas", qty: -4 }]);
+  const cleaned = parseComposition(withZero, allowed);
+  assert.equal(cleaned.issue, null);
+  assert.deepEqual(cleaned.week.lun.almuerzo.items, [{ id: "arroz_blanco", qty: 90 }]);
+
+  // Repeated ingredients in a meal are merged.
+  assert.deepEqual(cleanItems([{ id: "huevo", qty: 1 }, { id: "huevo", qty: 2 }]), [{ id: "huevo", qty: 3 }]);
+
+  // A meal with nothing usable is still an error; a missing name is not.
+  assert.equal(parseComposition(base([{ id: "sal", qty: 0 }]), allowed).issue.code, "item_count");
+  const unnamed = base([{ id: "arroz_blanco", qty: 90 }]);
+  unnamed.days[0].desayuno.name_es = "";
+  const unnamedResult = parseComposition(unnamed, allowed);
+  assert.equal(unnamedResult.issue, null);
+  assert.deepEqual(unnamedResult.week && unnamedMeals(unnamedResult.week), ["lun.desayuno"]);
+}
+
+// -------------------------------------------------------------------- naming
+{
+  const before = normalizeWeek(sampleWeek(), targets.kcal);
+  const swapped = JSON.parse(JSON.stringify(before));
+  swapped.mar.cena.items[0].id = "lentejas"; // the beef became lentils
+
+  assert.deepEqual(changedMeals(before, before), []);
+  assert.deepEqual(changedMeals(before, swapped), ["mar.cena"]);
+
+  // Fallback names describe the three biggest components, not seasonings.
+  const name = fallbackName(meal("x", ["lentejas", 80], ["arroz_blanco", 90], ["aguacate", 1], ["sal", 2], ["aceite_vegetal", 8]));
+  assert.equal(name.es, "Arroz blanco, aguacate y lentejas");
+  assert.equal(name.en, "White rice, avocado and lentils");
+
+  // The model's names are used when valid; otherwise the fallback.
+  const keys = new Set(["mar.cena"]);
+  const parsedNames = parseNaming({ meals: [{ key: "mar.cena", name_es: "Lentejas guisadas", name_en: "Stewed lentils" }, { key: "zzz", name_es: "x", name_en: "x" }] }, keys);
+  assert.deepEqual([...parsedNames.keys()], ["mar.cena"]);
+
+  const viaModel = await renameMeals(swapped, ["mar.cena"], async () => ({
+    content: JSON.stringify({ meals: [{ key: "mar.cena", name_es: "Lentejas guisadas", name_en: "Stewed lentils" }] }),
+    error: null,
+    errorCode: null,
+  }));
+  assert.equal(viaModel.mar.cena.name.es, "Lentejas guisadas");
+  assert.equal(viaModel.lun.cena.name.es, before.lun.cena.name.es, "other meals keep their names");
+
+  const viaFallback = await renameMeals(swapped, ["mar.cena"], async () => ({ content: null, error: "x", errorCode: "ai_unavailable" }));
+  assert.ok(viaFallback.mar.cena.name.es.length > 0);
+  assert.notEqual(viaFallback.mar.cena.name.es, before.mar.cena.name.es);
 }
 
 console.log("planner: all checks passed");

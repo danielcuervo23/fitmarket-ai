@@ -103,15 +103,34 @@ const respond = (content) => ({ content: JSON.stringify(content), error: null, e
 
 // 4. A budget that cannot work is reported with the real required amount.
 {
-  const result = await generatePlan({ ...baseInput, weeklyBudgetCop: 30_000 }, async () =>
+  const result = await generatePlan({ ...baseInput, weeklyBudgetCop: 45_000 }, async () =>
     respond(goodComposition()),
   );
 
   assert.equal(result.error.code, "budget_too_low");
   const { currentBudget, requiredBudget, recommendedIncrease } = result.error.budget;
-  assert.equal(currentBudget, 30_000);
-  assert.ok(requiredBudget > 30_000);
-  assert.equal(recommendedIncrease, requiredBudget - 30_000);
+  assert.equal(currentBudget, 45_000);
+  assert.ok(requiredBudget > 45_000);
+  assert.equal(recommendedIncrease, requiredBudget - 45_000);
+}
+
+// 4b. An absurd budget (someone typed 150 instead of 150,000) is answered at
+// once, without paying for an AI request.
+{
+  let calls = 0;
+  const result = await generatePlan({ ...baseInput, weeklyBudgetCop: 150 }, async () => {
+    calls += 1;
+    return respond(goodComposition());
+  });
+
+  assert.equal(calls, 0);
+  assert.equal(result.error.code, "budget_too_low");
+  assert.equal(result.error.budget.requiredBudget, 40_000);
+  assert.equal(
+    (await generatePlan({ ...baseInput, weeklyBudgetCop: 100_000, householdSize: 3 }, async () => respond(goodComposition()))).error.budget.requiredBudget,
+    120_000,
+    "the floor scales with the household",
+  );
 }
 
 // 5. The fitter makes an over-budget but fixable week fit.
@@ -126,6 +145,65 @@ const respond = (content) => ({ content: JSON.stringify(content), error: null, e
 
   assert.ok(tight.plan, "a 10% shortfall should be fixed with cheaper swaps");
   assert.ok(tight.plan.summary.estimated_total_cop < open.plan.summary.estimated_total_cop);
+}
+
+// 5b. Swapped meals are renamed from their final ingredients, so a dish name
+// never mentions a food that is no longer on the plate.
+{
+  const open = await generatePlan({ ...baseInput, weeklyBudgetCop: 10_000_000 }, async () =>
+    respond(goodComposition()),
+  );
+  const namingCalls = [];
+  const tight = await generatePlan(
+    { ...baseInput, weeklyBudgetCop: Math.round(open.plan.summary.estimated_total_cop * 0.85) },
+    async (request) => {
+      if (request.responseFormat.json_schema.name === "meal_names") {
+        const keys = request.responseFormat.json_schema.schema.properties.meals.items.properties.key.enum;
+        namingCalls.push(keys);
+        return respond({
+          meals: keys.map((key) => ({ key, name_es: `Plato renombrado ${key}`, name_en: `Renamed dish ${key}` })),
+        });
+      }
+      return respond(goodComposition());
+    },
+  );
+
+  assert.ok(tight.plan);
+  assert.equal(namingCalls.length, 1, "one naming call for all changed meals");
+  assert.ok(namingCalls[0].length > 0 && namingCalls[0].length < 28, "only changed meals are renamed");
+
+  const renamed = new Set(namingCalls[0]);
+  for (const day of ["lun", "mar", "mie", "jue", "vie", "sab", "dom"]) {
+    for (const slot of ["desayuno", "almuerzo", "cena", "snacks"]) {
+      const name = tight.plan.dish_names[day][slot].es;
+      assert.equal(name.startsWith("Plato renombrado"), renamed.has(`${day}.${slot}`), `${day}.${slot}`);
+    }
+  }
+}
+
+// 5c. No swaps needed -> no extra naming request is made.
+{
+  let calls = 0;
+  const result = await generatePlan({ ...baseInput, weeklyBudgetCop: 10_000_000 }, async () => {
+    calls += 1;
+    return respond(goodComposition());
+  });
+  assert.ok(result.plan);
+  assert.equal(calls, 1);
+}
+
+// 5d. With D1, Ara and Jumbo selected the list is bought at the cheap ones,
+// and uses both discount stores (the app used to ignore Ara).
+{
+  const result = await generatePlan(
+    { ...baseInput, stores: ["Ara", "D1", "Jumbo"], goals: ["save"] },
+    async () => respond(goodComposition()),
+  );
+  const used = new Set(result.plan.shopping_list.map((i) => i.store_id));
+  assert.ok(used.has("D1") && used.has("Ara"));
+  // Jumbo is only needed for what the discount chains do not stock (almonds).
+  const atJumbo = result.plan.shopping_list.filter((i) => i.store_id === "Jumbo").map((i) => i.name);
+  assert.deepEqual(atJumbo, ["Almendras"]);
 }
 
 // 6. Household size scales the shopping list but not the per-person menu.
@@ -165,11 +243,13 @@ const respond = (content) => ({ content: JSON.stringify(content), error: null, e
 
 // 8. Too many restrictions leave too few foods to plan with.
 {
+  const { CATALOG } = await import("../catalog.ts");
+  const tooMany = CATALOG.slice(0, 55).map((item) => item.name.es);
   const result = await generatePlan(
-    { ...baseInput, restrictions: ["vegan", "gluten", "peanut", "nuts", "arroz", "papa", "lentejas", "frijol", "yuca", "platano", "avena", "garbanzo"] },
+    { ...baseInput, restrictions: tooMany },
     async () => respond(goodComposition()),
   );
-  assert.ok(result.error);
+  assert.equal(result.error.code, "restrictions_too_strict");
 }
 
 console.log("generate: all checks passed");
