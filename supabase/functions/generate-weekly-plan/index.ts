@@ -181,7 +181,7 @@ Deno.serve(async (req: Request) => {
       return json({ plan: outcome.plan }, 200);
     }
 
-    const { code, message, budget } = outcome.error;
+    const { code, message, budget, diagnostics } = outcome.error;
 
     if (REFUNDED_CODES.has(code)) {
       await refund();
@@ -195,7 +195,7 @@ Deno.serve(async (req: Request) => {
     const status =
       code === "server_config" ? 503 : code === "rate_limited" ? 429 : 422;
 
-    return json({ error: message, code }, status);
+    return json({ error: message, code, diagnostics }, status);
   } catch {
     return json(
       { error: "Error inesperado al generar tu plan.", code: "unexpected" },

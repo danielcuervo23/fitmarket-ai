@@ -18,6 +18,7 @@ import {
   type ComposeIssue,
 } from "./compose.ts";
 import { changedMeals, renameMeals, unnamedMeals } from "./naming.ts";
+import { CATALOG } from "../catalog.ts";
 import { allowedCatalog, buildRestrictionRules } from "./restrictions.ts";
 import { carriedByAny } from "./stores.ts";
 
@@ -30,10 +31,20 @@ export interface GenerateInput {
   profile: BodyProfile;
 }
 
+/** Why a plan could not be made, so the app can tell the user what to change. */
+export interface FailureDiagnostics {
+  /** Foods the AI was allowed to use after restrictions and stores. */
+  availableFoods: number;
+  totalFoods: number;
+  /** One short code per rejected attempt (item_count, low_protein, ...). */
+  reasons: string[];
+}
+
 export interface GenerateFailure {
   error: {
     code: GenerationErrorCode;
     message: string;
+    diagnostics?: FailureDiagnostics;
     budget?: {
       currentBudget: number;
       requiredBudget: number;
@@ -103,6 +114,11 @@ export async function generatePlan(
         code: "restrictions_too_strict",
         message:
           "Tus restricciones dejan muy pocos ingredientes disponibles para armar un plan.",
+        diagnostics: {
+          availableFoods: allowed.length,
+          totalFoods: CATALOG.length,
+          reasons: [],
+        },
       },
     };
   }
@@ -115,6 +131,17 @@ export async function generatePlan(
 
   let feedback: string | undefined;
   let transportFailures = 0;
+  const reasons: string[] = [];
+  const withDiagnostics = (failure: GenerateFailure): GenerateFailure => ({
+    error: {
+      ...failure.error,
+      diagnostics: {
+        availableFoods: allowed.length,
+        totalFoods: CATALOG.length,
+        reasons,
+      },
+    },
+  });
   let lastError: GenerateFailure = {
     error: {
       code: "generation_failed",
@@ -146,11 +173,12 @@ export async function generatePlan(
       };
 
       transportFailures += 1;
+      reasons.push(response.errorCode ?? "ai_unavailable");
 
       // Configuration problems will not fix themselves on a retry, and a
       // service that failed twice would only run into the function time limit.
       if (response.errorCode === "server_config" || transportFailures >= 2) {
-        return lastError;
+        return withDiagnostics(lastError);
       }
 
       continue;
@@ -163,6 +191,7 @@ export async function generatePlan(
     } catch {
       feedback =
         "The answer was cut off or not valid JSON. Use short dish names and at most 5 ingredients per meal.";
+      reasons.push("not_json");
       logEvent("plan_attempt_rejected", { attempt, code: "not_json" });
       continue;
     }
@@ -171,6 +200,7 @@ export async function generatePlan(
 
     if (!week || issue) {
       feedback = issue ? issueFeedback(issue) : undefined;
+      reasons.push(issue?.code ?? "invalid_format");
       logEvent("plan_attempt_rejected", {
         attempt,
         code: issue?.code ?? "unknown",
@@ -192,6 +222,7 @@ export async function generatePlan(
     // below the protein target is not.
     if (quality && !(isLastAttempt && quality.code === "low_variety")) {
       feedback = feedbackFor(quality);
+      reasons.push(quality.code);
       logEvent("plan_attempt_rejected", { attempt, code: quality.code });
       lastError = {
         error: {
@@ -251,5 +282,5 @@ export async function generatePlan(
     };
   }
 
-  return lastError;
+  return withDiagnostics(lastError);
 }

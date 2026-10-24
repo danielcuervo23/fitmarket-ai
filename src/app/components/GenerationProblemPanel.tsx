@@ -20,6 +20,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import type { MessageKey } from "@/i18n/messages";
 import { Alert, Button, ProblemScreen } from "@/app/ui";
 import { BudgetEditor } from "./BudgetEditor";
+import { PlanTroublePanel } from "./PlanTroublePanel";
 import { DietaryPicker } from "./pickers/DietaryPicker";
 import { GoalPicker } from "./pickers/GoalPicker";
 import { StorePicker } from "./pickers/StorePicker";
@@ -36,6 +37,15 @@ interface Props {
   onEditProfile: () => void;
   onViewCurrentPlan: () => void;
 }
+
+const TROUBLE_CODES = new Set([
+  "invalid_format",
+  "goal_incoherent",
+  "generation_failed",
+  "ai_unavailable",
+  "ai_timeout",
+  "ai_empty",
+]);
 
 const TITLES: Partial<Record<string, MessageKey>> = {
   budget_missing: "gen.problem.budgetMissing",
@@ -291,8 +301,20 @@ export function GenerationProblemPanel({
     );
   }
 
-  // Temporary problems (AI busy, network, incomplete answer): nothing to
-  // change, so the honest option is to try again.
+  // The AI could not finish: explain what happened and what gives it more room.
+  if (TROUBLE_CODES.has(code)) {
+    return (
+      <PlanTroublePanel
+        error={error}
+        onFix={onFix}
+        onRetry={onRetry}
+        onAdjustSettings={onAdjustSettings}
+      />
+    );
+  }
+
+  // Other temporary problems (network): nothing to change, so the honest
+  // option is to try again.
   return (
     <ProblemScreen
       title={title}

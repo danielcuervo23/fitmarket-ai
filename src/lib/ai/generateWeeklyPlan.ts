@@ -18,6 +18,15 @@ export interface MessageGenerationError {
   messageKey: ErrorKey;
   /** Server error code when there is one; lets the screen offer a fix. */
   code?: GenerationErrorCode;
+  /** What the server learned, to tell the user what to change. */
+  diagnostics?: GenerationDiagnostics;
+}
+
+export interface GenerationDiagnostics {
+  availableFoods: number;
+  totalFoods: number;
+  /** One code per failed attempt, e.g. "item_count" or "low_protein". */
+  reasons: string[];
 }
 
 export type GenerateWeeklyPlanError =
@@ -28,6 +37,7 @@ interface GenerateWeeklyPlanResponse {
   plan?: unknown;
   error?: string;
   code?: GenerationErrorCode;
+  diagnostics?: unknown;
   currentBudget?: number;
   requiredBudget?: number;
   recommendedIncrease?: number;
@@ -90,6 +100,27 @@ async function readResponseBody(
   return null;
 }
 
+function readDiagnostics(value: unknown): GenerationDiagnostics | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const availableFoods = readNumber(value.availableFoods);
+  const totalFoods = readNumber(value.totalFoods);
+
+  if (availableFoods === null || totalFoods === null) {
+    return undefined;
+  }
+
+  return {
+    availableFoods,
+    totalFoods,
+    reasons: Array.isArray(value.reasons)
+      ? value.reasons.filter((item): item is string => typeof item === "string")
+      : [],
+  };
+}
+
 function toGenerationError(
   body: GenerateWeeklyPlanResponse | null,
 ): GenerateWeeklyPlanError | null {
@@ -123,6 +154,7 @@ function toGenerationError(
       kind: "message",
       messageKey: CODE_TO_MESSAGE[body.code] ?? "errors.generic",
       code: body.code,
+      diagnostics: readDiagnostics(body.diagnostics),
     };
   }
 

@@ -31,13 +31,22 @@ const PREVIEW_MESSAGES = {
   restrictions_too_strict: "gen.error.restrictionsTooStrict",
   profile_incomplete: "gen.error.profileIncomplete",
   quota_exceeded: "gen.error.quotaExceeded",
-  ai_unavailable: "gen.error.invalidFormat",
+  invalid_format: "gen.error.invalidFormat",
 } as const;
 
 function ProblemPreview({ code }: { code: keyof typeof PREVIEW_MESSAGES }) {
   return (
     <GenerationProblemPanel
-      error={{ kind: "message", messageKey: PREVIEW_MESSAGES[code], code }}
+      error={{
+        kind: "message",
+        messageKey: PREVIEW_MESSAGES[code],
+        code,
+        diagnostics: {
+          availableFoods: 38,
+          totalFoods: 70,
+          reasons: ["item_count", "not_json", "wrong_days"],
+        },
+      }}
       onFix={async () => null}
       onRetry={noop}
       onAdjustSettings={noop}
@@ -101,7 +110,7 @@ const SCREENS: Record<string, () => ReactNode> = {
     />
   ),
   chat: () => <ChatScreen onTabChange={noop} />,
-  problem: () => <ProblemPreview code="ai_unavailable" />,
+  problem: () => <ProblemPreview code="invalid_format" />,
   "problem-goals": () => <ProblemPreview code="goals_missing" />,
   "problem-stores": () => <ProblemPreview code="stores_missing" />,
   "problem-budget": () => <ProblemPreview code="budget_missing" />,
