@@ -12,6 +12,7 @@ import {
   weekStats,
 } from "./build.ts";
 import { cleanItems, parseComposition } from "./compose.ts";
+import { explainRestriction } from "./restrictions.ts";
 import { changedMeals, fallbackName, parseNaming, renameMeals, unnamedMeals } from "./naming.ts";
 import { cheapestStore, carriedByAny } from "./stores.ts";
 import { allowedCatalog, buildRestrictionRules } from "./restrictions.ts";
@@ -76,6 +77,20 @@ const STORES = ["Exito", "D1"];
   assert.ok(!grains.excludedIds.has("papa"), "tubers are not grains");
   const legumes = buildRestrictionRules(["Legumbres"]);
   assert.ok(legumes.excludedIds.has("frijol") && !legumes.excludedIds.has("arroz_blanco"));
+
+  // Colombian and regional names, plurals and typos are understood.
+  const ids = (text) => explainRestriction(text).ingredients.map((i) => i.id);
+  assert.deepEqual(ids("auyama"), ["ahuyama"]);
+  assert.deepEqual(ids("Aguacte"), ["aguacate"], "one typo is forgiven");
+  assert.deepEqual(ids("cuajada"), ["queso_campesino"]);
+  assert.deepEqual(ids("cebolla larga"), ["cebolla_junca"], "all words must fit when they can");
+  assert.deepEqual(ids("tomate"), ["tomate_chonto"], "tomate is not tomate de árbol");
+  assert.ok(ids("papas").includes("papa") && ids("papas").includes("papa_criolla"));
+  assert.ok(ids("verduras").includes("zanahoria") && !ids("verduras").includes("mango"));
+  assert.ok(ids("frutas").includes("mango") && !ids("frutas").includes("zanahoria"));
+  assert.ok(ids("huevos").includes("huevo") && ids("Huevos").length === 1);
+  assert.equal(explainRestriction("agua").matched, false, "generic words exclude nothing");
+  assert.equal(explainRestriction("zzzz").matched, false);
 
   assert.ok(buildRestrictionRules(["peanuts"]).excludedIds.has("mani"));
   assert.ok(buildRestrictionRules(["nueces"]).excludedTags.has("tree_nut"));
