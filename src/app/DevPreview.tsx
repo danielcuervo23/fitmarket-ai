@@ -5,6 +5,7 @@ import { AIGenerationScreen } from "./components/AIGenerationScreen";
 import { BudgetScreen } from "./components/BudgetScreen";
 import { BudgetShortfallPanel } from "./components/BudgetShortfallPanel";
 import { ChatScreen } from "./components/ChatScreen";
+import { GenerationProblemPanel } from "./components/GenerationProblemPanel";
 import { DashboardView } from "./components/DashboardScreen";
 import { DietaryRestrictionsScreen } from "./components/DietaryRestrictionsScreen";
 import { GoalsScreen } from "./components/GoalsScreen";
@@ -23,6 +24,29 @@ import { MOCK_DASHBOARD, MOCK_PLAN } from "./devMockData";
  */
 const noop = () => undefined;
 
+const PREVIEW_MESSAGES = {
+  budget_missing: "gen.error.budgetMissing",
+  goals_missing: "gen.error.goalsMissing",
+  stores_missing: "gen.error.storesMissing",
+  restrictions_too_strict: "gen.error.restrictionsTooStrict",
+  profile_incomplete: "gen.error.profileIncomplete",
+  quota_exceeded: "gen.error.quotaExceeded",
+  ai_unavailable: "gen.error.invalidFormat",
+} as const;
+
+function ProblemPreview({ code }: { code: keyof typeof PREVIEW_MESSAGES }) {
+  return (
+    <GenerationProblemPanel
+      error={{ kind: "message", messageKey: PREVIEW_MESSAGES[code], code }}
+      onFix={async () => null}
+      onRetry={noop}
+      onAdjustSettings={noop}
+      onEditProfile={noop}
+      onViewCurrentPlan={noop}
+    />
+  );
+}
+
 /** Seeds the plan context with sample data so plan screens have content. */
 function WithPlan({ children }: { children: ReactNode }) {
   const { setPlan } = usePlan();
@@ -40,7 +64,12 @@ const SCREENS: Record<string, () => ReactNode> = {
   budget: () => <BudgetScreen onNext={noop} onBack={noop} />,
   supermarkets: () => <SupermarketsScreen onNext={noop} onBack={noop} />,
   dietary: () => <DietaryRestrictionsScreen onNext={noop} onBack={noop} />,
-  generating: () => <AIGenerationScreen onDone={noop} onAdjustSettings={noop} />,
+  generating: () => <AIGenerationScreen
+      onDone={noop}
+      onAdjustSettings={noop}
+      onEditProfile={noop}
+      onViewCurrentPlan={noop}
+    />,
   dashboard: () => (
     <DashboardView
       data={MOCK_DASHBOARD}
@@ -72,6 +101,13 @@ const SCREENS: Record<string, () => ReactNode> = {
     />
   ),
   chat: () => <ChatScreen onTabChange={noop} />,
+  problem: () => <ProblemPreview code="ai_unavailable" />,
+  "problem-goals": () => <ProblemPreview code="goals_missing" />,
+  "problem-stores": () => <ProblemPreview code="stores_missing" />,
+  "problem-budget": () => <ProblemPreview code="budget_missing" />,
+  "problem-restrictions": () => <ProblemPreview code="restrictions_too_strict" />,
+  "problem-profile": () => <ProblemPreview code="profile_incomplete" />,
+  "problem-quota": () => <ProblemPreview code="quota_exceeded" />,
   shortfall: () => (
     <BudgetShortfallPanel
       error={{

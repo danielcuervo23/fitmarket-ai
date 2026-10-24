@@ -7,6 +7,7 @@ export { IconButton } from "./IconButton";
 export { LanguageSwitch } from "./LanguageSwitch";
 export { NumberStepper } from "./NumberStepper";
 export { PasswordField } from "./PasswordField";
+export { ProblemScreen } from "./ProblemScreen";
 export {
   Screen,
   ScreenBody,

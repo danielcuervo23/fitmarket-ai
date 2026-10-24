@@ -11,6 +11,11 @@ import {
 import { deleteAccount } from "@/lib/account";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveWeeklyBudget } from "@/lib/budget";
+import {
+  budgetIssue,
+  MIN_WEEKLY_BUDGET_COP,
+  thousandsSuggestion,
+} from "@/lib/budgetSuggestion";
 import { fetchDashboardData } from "@/lib/dashboard";
 import {
   buildStoredDietaryRestrictions,
@@ -71,7 +76,7 @@ export function ProfileSettingsScreen({
   onOpenPlanHistory,
   onOpenPrivacy,
 }: Props) {
-  const { t, formatNumber } = useI18n();
+  const { t, formatNumber, formatCurrency } = useI18n();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteText, setDeleteText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -153,11 +158,21 @@ export function ProfileSettingsScreen({
     );
   }, [savedPrefs, budgetCop, goals, stores, dietary, otherFoods]);
 
+  const budgetProblem = budgetIssue(budgetCop);
+  const budgetSuggestion = thousandsSuggestion(budgetCop);
+  const budgetError =
+    budgetProblem === "too_low"
+      ? t("budget.minimum", { amount: formatCurrency(MIN_WEEKLY_BUDGET_COP) })
+      : budgetProblem === "too_high"
+        ? t("budget.tooHigh")
+        : null;
+
   const canSave =
     !isLoadingPrefs &&
     !isSaving &&
     hasChanges &&
     budgetCop > 0 &&
+    budgetProblem === null &&
     goals.length > 0 &&
     stores.length > 0;
 
@@ -349,6 +364,7 @@ export function ProfileSettingsScreen({
               inputMode="numeric"
               icon={<span className="text-sm font-bold">$</span>}
               placeholder={t("budget.customPlaceholder")}
+              error={budgetError}
               value={budgetInput}
               disabled={busy}
               onChange={(event) => {
@@ -356,6 +372,20 @@ export function ProfileSettingsScreen({
                 markEdited();
               }}
             />
+
+            {budgetSuggestion && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setBudgetInput(formatNumber(budgetSuggestion));
+                  markEdited();
+                }}
+                className="-mt-3 w-fit rounded-full border border-brand-600 bg-brand-50 px-3.5 py-1.5 text-[13px] font-semibold text-brand-800 focus-visible:outline-2 focus-visible:outline-brand-600"
+              >
+                {t("budget.didYouMean", { amount: formatCurrency(budgetSuggestion) })}
+              </button>
+            )}
 
             <section className="flex flex-col gap-3">
               <h3 className="text-sm font-bold">{t("settings.goals")}</h3>

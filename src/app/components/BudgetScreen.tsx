@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { saveWeeklyBudget } from "@/lib/budget";
+import {
+  budgetIssue,
+  MIN_WEEKLY_BUDGET_COP,
+  thousandsSuggestion,
+} from "@/lib/budgetSuggestion";
 import type { ErrorKey } from "@/lib/errors";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -23,7 +28,7 @@ const PRESETS = [50_000, 100_000, 150_000, 200_000] as const;
 const MAX_BUDGET_COP = 20_000_000;
 
 export function BudgetScreen({ onNext, onBack }: Props) {
-  const { t, formatCurrency } = useI18n();
+  const { t, formatCurrency, formatNumber } = useI18n();
   const [preset, setPreset] = useState<number | null>(150_000);
   const [custom, setCustom] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +40,15 @@ export function BudgetScreen({ onNext, onBack }: Props) {
     usingCustom ? customAmount : (preset ?? 0),
     MAX_BUDGET_COP,
   );
+
+  const issue = usingCustom ? budgetIssue(customAmount) : null;
+  const suggestion = usingCustom ? thousandsSuggestion(customAmount) : null;
+  const issueText =
+    issue === "too_low"
+      ? t("budget.minimum", { amount: formatCurrency(MIN_WEEKLY_BUDGET_COP) })
+      : issue === "too_high"
+        ? t("budget.tooHigh")
+        : null;
 
   const handleContinue = async () => {
     setErrorKey(null);
@@ -134,6 +148,7 @@ export function BudgetScreen({ onNext, onBack }: Props) {
           icon={<span className="text-sm font-bold">$</span>}
           placeholder={t("budget.customPlaceholder")}
           hint={t("budget.currencyNote")}
+          error={issueText}
           value={custom}
           disabled={isLoading}
           onChange={(event) => {
@@ -141,6 +156,16 @@ export function BudgetScreen({ onNext, onBack }: Props) {
             setErrorKey(null);
           }}
         />
+        {suggestion && (
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => setCustom(formatNumber(suggestion))}
+            className="-mt-2 w-fit rounded-full border border-brand-600 bg-brand-50 px-3.5 py-1.5 text-[13px] font-semibold text-brand-800 focus-visible:outline-2 focus-visible:outline-brand-600"
+          >
+            {t("budget.didYouMean", { amount: formatCurrency(suggestion) })}
+          </button>
+        )}
       </ScreenBody>
 
       <ScreenFooter>
@@ -149,7 +174,7 @@ export function BudgetScreen({ onNext, onBack }: Props) {
           size="lg"
           full
           loading={isLoading}
-          disabled={budget === 0}
+          disabled={budget === 0 || issue !== null}
           onClick={handleContinue}
         >
           {t("common.continue")}

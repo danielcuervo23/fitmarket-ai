@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import {
+  budgetIssue,
+  thousandsSuggestion,
   MAX_WEEKLY_BUDGET_COP,
   parseBudgetInput,
   roundUpToStep,
@@ -26,5 +28,17 @@ assert.equal(parseBudgetInput("180.000"), 180_000);
 assert.equal(parseBudgetInput("$ 180,000"), 180_000);
 assert.equal(parseBudgetInput("abc"), 0);
 assert.equal(parseBudgetInput(""), 0);
+
+// Typed budgets: too low, too high, or a forgotten "thousand".
+assert.equal(budgetIssue(0), null);
+assert.equal(budgetIssue(150), "too_low");
+assert.equal(budgetIssue(39_999), "too_low");
+assert.equal(budgetIssue(40_000), null);
+assert.equal(budgetIssue(MAX_WEEKLY_BUDGET_COP + 1), "too_high");
+assert.equal(thousandsSuggestion(150), 150_000);
+assert.equal(thousandsSuggestion(40), 40_000);
+assert.equal(thousandsSuggestion(20), null, "20,000 is still below the minimum");
+assert.equal(thousandsSuggestion(150_000), null);
+assert.equal(thousandsSuggestion(0), null);
 
 console.log("budgetSuggestion: all checks passed");

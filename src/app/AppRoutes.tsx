@@ -266,6 +266,8 @@ export function AppRoutes() {
               <AIGenerationScreen
                 onDone={() => navigate(ROUTES.app.menu)}
                 onAdjustSettings={() => navigate(ROUTES.app.settings)}
+                onEditProfile={() => navigate(ROUTES.setup.profile)}
+                onViewCurrentPlan={() => navigate(ROUTES.app.menu)}
               />
             </Protected>
           </Route>

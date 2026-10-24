@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { AlertTriangle, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import {
   generateWeeklyPlan,
   type GenerateWeeklyPlanError,
@@ -11,12 +11,18 @@ import { usePlan } from "@/contexts/PlanContext";
 import { saveWeeklyPlan } from "@/lib/weeklyPlans";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { MessageKey } from "@/i18n/messages";
-import { Button, Screen } from "@/app/ui";
+import { Screen } from "@/app/ui";
 import { BudgetShortfallPanel } from "./BudgetShortfallPanel";
+import {
+  GenerationProblemPanel,
+  type FixAction,
+} from "./GenerationProblemPanel";
 
 interface Props {
   onDone: () => void;
   onAdjustSettings: () => void;
+  onEditProfile: () => void;
+  onViewCurrentPlan: () => void;
 }
 
 const STEPS: MessageKey[] = [
@@ -27,7 +33,12 @@ const STEPS: MessageKey[] = [
   "gen.step5",
 ];
 
-export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
+export function AIGenerationScreen({
+  onDone,
+  onAdjustSettings,
+  onEditProfile,
+  onViewCurrentPlan,
+}: Props) {
   const { t } = useI18n();
   const { setPlan, setHasUnsavedPlan } = usePlan();
   const [step, setStep] = useState(0);
@@ -71,10 +82,10 @@ export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
     onDoneRef.current();
   }, [setPlan, setHasUnsavedPlan]);
 
-  /** Saves a higher budget and, if that worked, generates again right away. */
-  const handleSaveBudgetAndRegenerate = useCallback(
-    async (budgetCop: number): Promise<ErrorKey | null> => {
-      const { error: saveError } = await saveWeeklyBudget(budgetCop);
+  /** Saves a fix (budget, goals, ...) and, if that worked, generates again. */
+  const handleFix = useCallback(
+    async (save: FixAction): Promise<ErrorKey | null> => {
+      const { error: saveError } = await save();
 
       if (saveError) {
         return saveError;
@@ -111,7 +122,9 @@ export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
     return (
       <BudgetShortfallPanel
         error={error}
-        onSaveAndRegenerate={handleSaveBudgetAndRegenerate}
+        onSaveAndRegenerate={(budgetCop) =>
+          handleFix(() => saveWeeklyBudget(budgetCop))
+        }
         onRetry={() => void runGeneration()}
         onAdjustSettings={onAdjustSettings}
       />
@@ -120,29 +133,14 @@ export function AIGenerationScreen({ onDone, onAdjustSettings }: Props) {
 
   if (error) {
     return (
-      <Screen className="items-center justify-center gap-6 px-8 text-center">
-        <span className="flex size-16 items-center justify-center rounded-full bg-danger-50 text-danger-600">
-          <AlertTriangle size={28} aria-hidden />
-        </span>
-
-        <div role="alert" className="flex flex-col gap-2">
-          <h1 className="text-2xl font-extrabold tracking-tight text-ink-900">
-            {t("gen.errorTitle")}
-          </h1>
-          <p className="text-[15px] leading-snug text-ink-500">
-            {t(error.messageKey)}
-          </p>
-        </div>
-
-        <div className="flex w-full flex-col gap-3">
-          <Button size="lg" full onClick={() => void runGeneration()}>
-            {t("gen.retry")}
-          </Button>
-          <Button variant="secondary" size="lg" full onClick={onAdjustSettings}>
-            {t("gen.adjust")}
-          </Button>
-        </div>
-      </Screen>
+      <GenerationProblemPanel
+        error={error}
+        onFix={handleFix}
+        onRetry={() => void runGeneration()}
+        onAdjustSettings={onAdjustSettings}
+        onEditProfile={onEditProfile}
+        onViewCurrentPlan={onViewCurrentPlan}
+      />
     );
   }
 
