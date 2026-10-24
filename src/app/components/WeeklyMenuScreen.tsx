@@ -169,7 +169,7 @@ export function WeeklyMenuScreen({
       <div
         role="tablist"
         aria-label={title}
-        className="no-scrollbar flex gap-2 overflow-x-auto px-6 pb-3"
+        className="grid grid-cols-7 gap-1.5 px-5 pb-3"
       >
         {DAY_IDS.map((day) => {
           const isActive = activeDay === day;
@@ -182,7 +182,7 @@ export function WeeklyMenuScreen({
               aria-selected={isActive}
               onClick={() => setActiveDay(day)}
               className={cn(
-                "shrink-0 rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-brand-600",
+                "rounded-xl border py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-brand-600",
                 isActive
                   ? "border-brand-600 bg-brand-600 text-white"
                   : "border-ink-200 bg-white text-ink-600 hover:border-ink-300",
@@ -232,22 +232,30 @@ export function WeeklyMenuScreen({
           </span>
         </div>
 
-        {MEALS.map(({ key, icon: Icon }) => (
+        {MEALS.map(({ key, icon: Icon }) => {
+          const dish = plan.dish_names?.[activeDay]?.[key]?.[language];
+
+          return (
           <Card key={key} className="flex flex-col gap-3 p-0">
-            <div className="flex items-center gap-2.5 border-b border-ink-100 px-4 py-3">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
-                <Icon size={16} aria-hidden />
+            <div className="flex items-start gap-3 border-b border-ink-100 px-4 py-3.5">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                <Icon size={17} aria-hidden />
               </span>
               <div className="min-w-0">
-                <h3 className="text-[15px] font-bold">{t(`meal.${key}`)}</h3>
-                {plan.dish_names?.[activeDay]?.[key] && (
-                  <p className="truncate text-[13px] text-ink-500">
-                    {plan.dish_names[activeDay][key][language]}
+                {dish && (
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">
+                    {t(`meal.${key}`)}
                   </p>
                 )}
+                <h3 className="text-[16px] font-bold leading-snug text-ink-900">
+                  {dish ?? t(`meal.${key}`)}
+                </h3>
               </div>
             </div>
-            <ul className="flex flex-col gap-2 px-4 pb-4">
+            <p className="px-4 text-xs font-semibold text-ink-500">
+              {t("menu.ingredients")}
+            </p>
+            <ul className="-mt-1 flex flex-col gap-2 px-4 pb-4">
               {dayMenu[key].map((item, index) => (
                 <li
                   key={`${key}-${index}`}
@@ -262,7 +270,8 @@ export function WeeklyMenuScreen({
               ))}
             </ul>
           </Card>
-        ))}
+          );
+        })}
 
         {language !== "es" && !hasEnglishMenu && (
           <p className="text-center text-xs text-ink-400">

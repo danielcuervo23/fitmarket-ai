@@ -15,7 +15,17 @@ const DAY: DayMenu = {
   snacks: ["1 manzana", "20 g de nueces"],
 };
 
+const DISH_NAMES = {
+  desayuno: { es: "Avena con banano y leche", en: "Oatmeal with banana and milk" },
+  almuerzo: { es: "Pollo con arroz y ensalada", en: "Chicken with rice and salad" },
+  cena: { es: "Huevos con arepa y queso", en: "Eggs with arepa and cheese" },
+  snacks: { es: "Manzana con nueces", en: "Apple with walnuts" },
+};
+
 export const MOCK_PLAN: WeeklyPlan = {
+  dish_names: Object.fromEntries(
+    DAY_IDS.map((day: DayId) => [day, DISH_NAMES]),
+  ) as WeeklyPlan["dish_names"],
   summary: { estimated_total_cop: 138_500, estimated_daily_kcal: 2150 },
   weekly_menu: Object.fromEntries(
     DAY_IDS.map((day: DayId) => [day, DAY]),
