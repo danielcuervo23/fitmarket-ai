@@ -19,6 +19,8 @@ export interface ModelResponse {
   content: string | null;
   error: string | null;
   errorCode: GenerationErrorCode | null;
+  /** Short technical note for diagnostics (http_400, truncated, refusal). */
+  detail?: string;
 }
 
 export type ModelCall = (request: ModelRequest) => Promise<ModelResponse>;
@@ -26,8 +28,9 @@ export type ModelCall = (request: ModelRequest) => Promise<ModelResponse>;
 function failure(
   error: string,
   errorCode: GenerationErrorCode,
+  detail?: string,
 ): ModelResponse {
-  return { content: null, error, errorCode };
+  return { content: null, error, errorCode, detail };
 }
 
 /** Builds a caller for the given credentials (used by the function and by the offline evaluation script). */
@@ -80,20 +83,28 @@ export function createOpenAICaller(config: {
         return failure(
           "No pudimos generar tu plan. Intenta de nuevo en unos segundos.",
           "ai_unavailable",
+          `http_${response.status}`,
         );
       }
 
       const payload = await response.json();
-      const content = payload?.choices?.[0]?.message?.content;
+      const choice = payload?.choices?.[0];
+      const content = choice?.message?.content;
 
       if (typeof content !== "string" || !content.trim()) {
         return failure(
           "La respuesta del servicio de IA estaba vacía.",
           "ai_empty",
+          choice?.message?.refusal ? "refusal" : choice?.finish_reason,
         );
       }
 
-      return { content, error: null, errorCode: null };
+      return {
+        content,
+        error: null,
+        errorCode: null,
+        detail: choice?.finish_reason === "length" ? "truncated" : undefined,
+      };
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return failure(

@@ -51,9 +51,16 @@ const REASON_CODES = new Set([
 ]);
 
 function reasonKey(reason: string): MessageKey {
+  const code = reason.split(":")[0];
+
   return (
-    REASON_CODES.has(reason) ? `gen.reason.${reason}` : "gen.reason.other"
+    REASON_CODES.has(code) ? `gen.reason.${code}` : "gen.reason.other"
   ) as MessageKey;
+}
+
+/** "item_count:lun.cena" -> "lun.cena": the technical part, if any. */
+function reasonDetail(reason: string): string {
+  return reason.includes(":") ? reason.slice(reason.indexOf(":") + 1) : "";
 }
 
 /**
@@ -326,7 +333,10 @@ export function PlanTroublePanel({
       </section>
 
       {attempts.length > 0 && (
-        <details className="rounded-card border border-ink-100 bg-ink-50/60 p-4 text-[13px]">
+        <details
+          open
+          className="rounded-card border border-ink-100 bg-ink-50/60 p-4 text-[13px]"
+        >
           <summary className="cursor-pointer font-semibold text-ink-600">
             {t("gen.trouble.attempts")}
           </summary>
@@ -337,6 +347,9 @@ export function PlanTroublePanel({
                   {t("gen.trouble.attempt", { n: index + 1 })}:
                 </span>{" "}
                 {t(reasonKey(reason))}
+                {reasonDetail(reason) && (
+                  <span className="text-ink-400"> ({reasonDetail(reason)})</span>
+                )}
               </li>
             ))}
           </ol>

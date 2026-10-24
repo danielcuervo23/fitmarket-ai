@@ -12,7 +12,7 @@ import { TextField } from "@/app/ui";
 
 const SUGGESTIONS = [
   "granos",
-  "legumbres",
+  "arroz",
   "verduras",
   "frutas",
   "huevos",

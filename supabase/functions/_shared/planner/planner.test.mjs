@@ -70,13 +70,15 @@ const STORES = ["Exito", "D1"];
   assert.ok(!free.excludedIds.has("lomo_cerdo"), "'pollo' must not exclude pork");
   assert.deepEqual(free.unmatchedText, ["soya"]);
 
-  // "Granos" means the whole grains shelf, and "legumbres" the pulses.
+  // In Colombia "granos" are the pulses (frijol, lentejas, garbanzo, arveja),
+  // not rice, pasta, oats, bread or arepas.
   const grains = buildRestrictionRules(["granos"]);
-  assert.ok(["arroz_blanco", "lentejas", "avena", "pasta", "pan_tajado"].every((id) => grains.excludedIds.has(id)));
+  assert.deepEqual([...grains.excludedIds].sort(), ["arveja_seca", "frijol", "garbanzo", "lentejas"]);
   assert.deepEqual(grains.unmatchedText, []);
-  assert.ok(!grains.excludedIds.has("papa"), "tubers are not grains");
   const legumes = buildRestrictionRules(["Legumbres"]);
-  assert.ok(legumes.excludedIds.has("frijol") && !legumes.excludedIds.has("arroz_blanco"));
+  assert.deepEqual([...legumes.excludedIds].sort(), [...grains.excludedIds].sort());
+  const cereals = buildRestrictionRules(["cereales"]);
+  assert.ok(cereals.excludedIds.has("avena") && !cereals.excludedIds.has("lentejas"));
 
   // Colombian and regional names, plurals and typos are understood.
   const ids = (text) => explainRestriction(text).ingredients.map((i) => i.id);

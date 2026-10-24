@@ -65,6 +65,27 @@ const MIN_ALLOWED_INGREDIENTS = 20;
  */
 export const MIN_WEEKLY_BUDGET_PER_PERSON_COP = 40_000;
 
+/** A short, technical description of what was wrong with an answer. */
+function describeIssue(issue: ComposeIssue | null, raw: unknown): string {
+  if (!issue) {
+    return "invalid_format";
+  }
+
+  switch (issue.code) {
+    case "item_count":
+      return `item_count:${issue.day}.${issue.slot}`;
+    case "unknown_ingredient":
+      return `unknown_ingredient:${issue.id}`;
+    case "wrong_days": {
+      const days = (raw as { days?: unknown } | null)?.days;
+
+      return Array.isArray(days) ? `wrong_days:${days.length}` : "wrong_days";
+    }
+    default:
+      return issue.code;
+  }
+}
+
 function issueFeedback(issue: ComposeIssue): string {
   switch (issue.code) {
     case "invalid_format":
@@ -173,7 +194,11 @@ export async function generatePlan(
       };
 
       transportFailures += 1;
-      reasons.push(response.errorCode ?? "ai_unavailable");
+      reasons.push(
+        [response.errorCode ?? "ai_unavailable", response.detail]
+          .filter(Boolean)
+          .join(":"),
+      );
 
       // Configuration problems will not fix themselves on a retry, and a
       // service that failed twice would only run into the function time limit.
@@ -191,7 +216,7 @@ export async function generatePlan(
     } catch {
       feedback =
         "The answer was cut off or not valid JSON. Use short dish names and at most 5 ingredients per meal.";
-      reasons.push("not_json");
+      reasons.push(response.detail ? `not_json:${response.detail}` : "not_json");
       logEvent("plan_attempt_rejected", { attempt, code: "not_json" });
       continue;
     }
@@ -200,7 +225,7 @@ export async function generatePlan(
 
     if (!week || issue) {
       feedback = issue ? issueFeedback(issue) : undefined;
-      reasons.push(issue?.code ?? "invalid_format");
+      reasons.push(describeIssue(issue, raw));
       logEvent("plan_attempt_rejected", {
         attempt,
         code: issue?.code ?? "unknown",
@@ -222,7 +247,7 @@ export async function generatePlan(
     // below the protein target is not.
     if (quality && !(isLastAttempt && quality.code === "low_variety")) {
       feedback = feedbackFor(quality);
-      reasons.push(quality.code);
+      reasons.push(`${quality.code}:${Math.round(quality.actual)}`);
       logEvent("plan_attempt_rejected", { attempt, code: quality.code });
       lastError = {
         error: {

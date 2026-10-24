@@ -104,8 +104,9 @@ const LEGUME_IDS = ["lentejas", "frijol", "garbanzo", "arveja_seca"];
 
 const GROUPS: [string[], FoodGroup][] = [
   // Whole shelves of the catalog.
-  [["granos", "grano", "cereales", "grains", "grain"], { category: "granos" }],
-  [["legumbres", "legumbre", "leguminosas", "menestras", "legumes", "pulses"], { ids: LEGUME_IDS }],
+  [["granos", "grano", "legumbres", "legumbre", "leguminosas", "menestras", "grains", "grain", "legumes", "pulses"], { ids: LEGUME_IDS }],
+  [["cereales", "cereal"], { ids: ["arroz_blanco", "arroz_integral", "avena", "quinua", "harina_maiz", "pasta", "pan_tajado"] }],
+  [["arroz", "arroces", "rice"], { ids: ["arroz_blanco", "arroz_integral"] }],
   [["verduras", "verdura", "vegetales", "hortalizas", "veggies", "vegetables"], { ids: VEGETABLE_IDS }],
   [["frutas", "fruta", "fruits", "fruit"], { ids: FRUIT_IDS }],
   [["tuberculos", "tuberculo"], { ids: ["papa", "papa_criolla", "yuca"] }],
