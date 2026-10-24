@@ -8,6 +8,18 @@ English**.
 Live demo: https://fitmarket-ai.vercel.app  
 Original design: [Figma](https://www.figma.com/design/x4unrU1CJpA4L5KXWmyQUo/FitMarket-AI-Mobile-App-Design)
 
+## Screenshots
+
+Sample data, in Spanish.
+
+| Home | Weekly menu | Shopping list |
+| --- | --- | --- |
+| <img src="docs/screenshots/dashboard.png" width="240" alt="Home with weekly budget and plan summary"> | <img src="docs/screenshots/menu.png" width="240" alt="Weekly menu with dish names and ingredients"> | <img src="docs/screenshots/market.png" width="240" alt="Shopping list grouped by supermarket"> |
+
+| Dietary restrictions | Budget too low |
+| --- | --- |
+| <img src="docs/screenshots/dietary.png" width="240" alt="Dietary restrictions step"> | <img src="docs/screenshots/shortfall.png" width="240" alt="Raise the budget and regenerate on the same screen"> |
+
 ## Features
 
 - Email sign-up / sign-in (Supabase Auth) with a privacy-policy consent step
