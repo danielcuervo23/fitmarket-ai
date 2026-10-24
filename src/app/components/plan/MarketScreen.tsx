@@ -15,7 +15,7 @@ import {
   Screen,
   ScreenBody,
 } from "@/app/ui";
-import { BottomNav, type NavTab } from "./BottomNav";
+import { BottomNav, type NavTab } from "../shared/BottomNav";
 import { BudgetRecommendationsSection } from "./market/BudgetRecommendationsSection";
 import { ShoppingProgressBar } from "./market/ShoppingProgressBar";
 import { StoreShoppingPlanSection } from "./market/StoreShoppingPlanSection";

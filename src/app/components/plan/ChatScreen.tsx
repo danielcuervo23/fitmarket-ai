@@ -2,7 +2,7 @@ import { Check, MessageCircle } from "lucide-react";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { MessageKey } from "@/i18n/messages";
 import { EmptyState, Screen, ScreenBody, TextField } from "@/app/ui";
-import { BottomNav, type NavTab } from "./BottomNav";
+import { BottomNav, type NavTab } from "../shared/BottomNav";
 
 interface Props {
   onTabChange: (tab: NavTab) => void;

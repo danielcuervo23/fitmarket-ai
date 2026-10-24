@@ -1,19 +1,19 @@
 import { useEffect, type ReactNode } from "react";
 import { useParams } from "wouter";
 import { usePlan } from "@/contexts/PlanContext";
-import { AIGenerationScreen } from "./components/AIGenerationScreen";
-import { BudgetScreen } from "./components/BudgetScreen";
-import { BudgetShortfallPanel } from "./components/BudgetShortfallPanel";
-import { ChatScreen } from "./components/ChatScreen";
-import { GenerationProblemPanel } from "./components/GenerationProblemPanel";
-import { DashboardView } from "./components/DashboardScreen";
-import { DietaryRestrictionsScreen } from "./components/DietaryRestrictionsScreen";
-import { GoalsScreen } from "./components/GoalsScreen";
-import { MarketView } from "./components/MarketScreen";
-import { ProfileScreen } from "./components/ProfileScreen";
-import { ProfileSettingsScreen } from "./components/ProfileSettingsScreen";
-import { SupermarketsScreen } from "./components/SupermarketsScreen";
-import { WeeklyMenuScreen } from "./components/WeeklyMenuScreen";
+import { AIGenerationScreen } from "./components/generation/AIGenerationScreen";
+import { BudgetScreen } from "./components/setup/BudgetScreen";
+import { BudgetShortfallPanel } from "./components/generation/BudgetShortfallPanel";
+import { ChatScreen } from "./components/plan/ChatScreen";
+import { GenerationProblemPanel } from "./components/generation/GenerationProblemPanel";
+import { DashboardView } from "./components/plan/DashboardScreen";
+import { DietaryRestrictionsScreen } from "./components/setup/DietaryRestrictionsScreen";
+import { GoalsScreen } from "./components/setup/GoalsScreen";
+import { MarketView } from "./components/plan/MarketScreen";
+import { ProfileScreen } from "./components/setup/ProfileScreen";
+import { ProfileSettingsScreen } from "./components/account/ProfileSettingsScreen";
+import { SupermarketsScreen } from "./components/setup/SupermarketsScreen";
+import { WeeklyMenuScreen } from "./components/plan/WeeklyMenuScreen";
 import { MOCK_DASHBOARD, MOCK_PLAN } from "./devMockData";
 
 /**

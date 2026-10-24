@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { saveUserSupermarkets, type SupermarketId } from "@/lib/supermarkets";
+import { saveUserGoals, type GoalType } from "@/lib/goals";
 import type { ErrorKey } from "@/lib/errors";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -11,16 +11,16 @@ import {
   ScreenFooter,
   ScreenHeader,
 } from "@/app/ui";
-import { StorePicker } from "./pickers/StorePicker";
+import { GoalPicker } from "../shared/pickers/GoalPicker";
 
 interface Props {
-  onNext: (stores: string[]) => void;
+  onNext: (goals: string[]) => void;
   onBack: () => void;
 }
 
-export function SupermarketsScreen({ onNext, onBack }: Props) {
+export function GoalsScreen({ onNext, onBack }: Props) {
   const { t } = useI18n();
-  const [selected, setSelected] = useState<SupermarketId[]>(["D1", "Ara"]);
+  const [selected, setSelected] = useState<GoalType[]>(["healthy"]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 
@@ -29,7 +29,7 @@ export function SupermarketsScreen({ onNext, onBack }: Props) {
     setIsLoading(true);
 
     try {
-      const { error } = await saveUserSupermarkets(selected);
+      const { error } = await saveUserGoals(selected);
 
       if (error) {
         setErrorKey(error);
@@ -47,16 +47,16 @@ export function SupermarketsScreen({ onNext, onBack }: Props) {
   return (
     <Screen>
       <ScreenHeader
-        step={{ current: 4, total: 5 }}
-        title={t("stores.title")}
-        subtitle={t("stores.subtitle")}
+        step={{ current: 2, total: 5 }}
+        title={t("goals.title")}
+        subtitle={t("goals.subtitle")}
         onBack={onBack}
         disabled={isLoading}
       />
 
       <ScreenBody className="pb-6">
-        <StorePicker
-          label={t("stores.title")}
+        <GoalPicker
+          label={t("goals.title")}
           value={selected}
           onChange={(value) => {
             setSelected(value);
@@ -68,6 +68,9 @@ export function SupermarketsScreen({ onNext, onBack }: Props) {
 
       <ScreenFooter>
         {errorKey && <Alert tone="error">{t(errorKey)}</Alert>}
+        <p className="text-center text-xs font-medium text-ink-500">
+          {t("goals.selectedCount", { count: selected.length })}
+        </p>
         <Button
           size="lg"
           full

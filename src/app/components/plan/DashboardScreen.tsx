@@ -22,7 +22,7 @@ import {
   Screen,
   ScreenBody,
 } from "@/app/ui";
-import { BottomNav, type NavTab } from "./BottomNav";
+import { BottomNav, type NavTab } from "../shared/BottomNav";
 
 interface Props {
   onTabChange: (tab: NavTab) => void;

@@ -21,8 +21,8 @@ import type { MessageKey } from "@/i18n/messages";
 import { Alert, Button, ProblemScreen } from "@/app/ui";
 import { BudgetEditor } from "./BudgetEditor";
 import type { FixAction } from "./GenerationProblemPanel";
-import { DietaryPicker } from "./pickers/DietaryPicker";
-import { StorePicker } from "./pickers/StorePicker";
+import { DietaryPicker } from "../shared/pickers/DietaryPicker";
+import { StorePicker } from "../shared/pickers/StorePicker";
 
 /** Below this many usable foods a varied 7-day week is hard to build. */
 const FEW_FOODS = 40;

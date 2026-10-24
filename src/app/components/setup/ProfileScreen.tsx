@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { saveUserGoals, type GoalType } from "@/lib/goals";
+import { ChevronRight, Lock } from "lucide-react";
+import { upsertProfile, type ProfileInput } from "@/lib/profile";
 import type { ErrorKey } from "@/lib/errors";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -11,16 +11,26 @@ import {
   ScreenFooter,
   ScreenHeader,
 } from "@/app/ui";
-import { GoalPicker } from "./pickers/GoalPicker";
+import { BodyDataFields } from "../shared/BodyDataFields";
 
 interface Props {
-  onNext: (goals: string[]) => void;
+  name: string;
+  onNext: () => void;
   onBack: () => void;
 }
 
-export function GoalsScreen({ onNext, onBack }: Props) {
+const DEFAULTS: ProfileInput = {
+  age: 28,
+  weight: 65,
+  height: 165,
+  activity_level: "moderate",
+  sex: null,
+  household_size: 1,
+};
+
+export function ProfileScreen({ name, onNext, onBack }: Props) {
   const { t } = useI18n();
-  const [selected, setSelected] = useState<GoalType[]>(["healthy"]);
+  const [body, setBody] = useState<ProfileInput>(DEFAULTS);
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 
@@ -29,14 +39,14 @@ export function GoalsScreen({ onNext, onBack }: Props) {
     setIsLoading(true);
 
     try {
-      const { error } = await saveUserGoals(selected);
+      const { error } = await upsertProfile(body);
 
       if (error) {
         setErrorKey(error);
         return;
       }
 
-      onNext(selected);
+      onNext();
     } catch {
       setErrorKey("errors.network");
     } finally {
@@ -47,37 +57,29 @@ export function GoalsScreen({ onNext, onBack }: Props) {
   return (
     <Screen>
       <ScreenHeader
-        step={{ current: 2, total: 5 }}
-        title={t("goals.title")}
-        subtitle={t("goals.subtitle")}
+        step={{ current: 1, total: 5 }}
+        title={t("profile.title", { name: name.split(" ")[0] })}
+        subtitle={t("profile.subtitle")}
         onBack={onBack}
         disabled={isLoading}
       />
 
-      <ScreenBody className="pb-6">
-        <GoalPicker
-          label={t("goals.title")}
-          value={selected}
-          onChange={(value) => {
-            setSelected(value);
-            setErrorKey(null);
-          }}
+      <ScreenBody className="flex flex-col gap-6 pb-6">
+        <BodyDataFields
+          value={body}
+          onChange={(patch) => setBody((current) => ({ ...current, ...patch }))}
           disabled={isLoading}
         />
+
+        <p className="flex items-center gap-2 text-xs text-ink-500">
+          <Lock size={13} aria-hidden />
+          {t("profile.privacy")}
+        </p>
       </ScreenBody>
 
       <ScreenFooter>
         {errorKey && <Alert tone="error">{t(errorKey)}</Alert>}
-        <p className="text-center text-xs font-medium text-ink-500">
-          {t("goals.selectedCount", { count: selected.length })}
-        </p>
-        <Button
-          size="lg"
-          full
-          loading={isLoading}
-          disabled={selected.length === 0}
-          onClick={handleContinue}
-        >
+        <Button size="lg" full loading={isLoading} onClick={handleContinue}>
           {t("common.continue")}
           <ChevronRight size={20} strokeWidth={2.5} aria-hidden />
         </Button>
