@@ -21,9 +21,9 @@ import type { MessageKey } from "@/i18n/messages";
 import { Alert, Button, ProblemScreen } from "@/app/ui";
 import { BudgetEditor } from "./BudgetEditor";
 import { PlanTroublePanel } from "./PlanTroublePanel";
-import { DietaryPicker } from "./pickers/DietaryPicker";
-import { GoalPicker } from "./pickers/GoalPicker";
-import { StorePicker } from "./pickers/StorePicker";
+import { DietaryPicker } from "../shared/pickers/DietaryPicker";
+import { GoalPicker } from "../shared/pickers/GoalPicker";
+import { StorePicker } from "../shared/pickers/StorePicker";
 
 /** Saves a change, and the parent then generates again. */
 export type FixAction = () => Promise<{ error: ErrorKey | null }>;

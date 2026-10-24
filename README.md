@@ -7,6 +7,19 @@ English**.
 
 Live demo: https://fitmarket-ai.vercel.app  
 Original design: [Figma](https://www.figma.com/design/x4unrU1CJpA4L5KXWmyQUo/FitMarket-AI-Mobile-App-Design)
+How it works inside: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+## Screenshots
+
+Sample data, in Spanish.
+
+| Home | Weekly menu | Shopping list |
+| --- | --- | --- |
+| <img src="docs/screenshots/dashboard.png" width="240" alt="Home with weekly budget and plan summary"> | <img src="docs/screenshots/menu.png" width="240" alt="Weekly menu with dish names and ingredients"> | <img src="docs/screenshots/market.png" width="240" alt="Shopping list grouped by supermarket"> |
+
+| Dietary restrictions | Budget too low |
+| --- | --- |
+| <img src="docs/screenshots/dietary.png" width="240" alt="Dietary restrictions step"> | <img src="docs/screenshots/shortfall.png" width="240" alt="Raise the budget and regenerate on the same screen"> |
 
 ## Features
 
@@ -136,8 +149,8 @@ Library code returns message **keys** (`ErrorKey`), not text.
   user, limits CORS to known origins, and logs events without personal data.
 - Restriction text is length-limited in the database and the UI.
 - The plan is a guide, not medical advice; the UI says so. Dietary validation
-  uses Spanish food terms, so the generated menu stays in Spanish even when the
-  interface is in English.
+  understands Spanish and English food names, but only for the foods in the
+  catalog.
 
 ## Status
 
@@ -148,6 +161,6 @@ draft and should be reviewed before real users rely on the app.
 
 Released under the [MIT License](LICENSE). You are free to use, copy, modify
 and share this project, but you must keep the copyright notice, so please give
-credit: **Juan Daniel Cuervo Villa**. Third-party components and photos keep
-their own licenses, listed in [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
+credit: **Juan Daniel Cuervo Villa**. Third-party libraries keep their own
+licenses.
 

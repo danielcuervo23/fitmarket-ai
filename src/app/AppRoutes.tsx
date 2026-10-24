@@ -5,73 +5,73 @@ import { resolvePostAuthRoute } from "@/lib/auth";
 import { displayNameFromUser } from "@/lib/displayName";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES, tabToPath } from "./routes";
-import type { NavTab } from "./components/BottomNav";
-import { SplashScreen } from "./components/SplashScreen";
-import { OnboardingScreen } from "./components/OnboardingScreen";
-import { RegisterScreen } from "./components/RegisterScreen";
-import { LoginScreen } from "./components/LoginScreen";
-import { AuthLoadingScreen } from "./components/AuthLoadingScreen";
-import { PrivacyScreen } from "./components/PrivacyScreen";
+import type { NavTab } from "./components/shared/BottomNav";
+import { SplashScreen } from "./components/auth/SplashScreen";
+import { OnboardingScreen } from "./components/auth/OnboardingScreen";
+import { RegisterScreen } from "./components/auth/RegisterScreen";
+import { LoginScreen } from "./components/auth/LoginScreen";
+import { AuthLoadingScreen } from "./components/auth/AuthLoadingScreen";
+import { PrivacyScreen } from "./components/account/PrivacyScreen";
 
 // Post-login screens are loaded on demand so the first paint only downloads
 // the code needed for the splash, onboarding and sign-in screens.
 const ProfileScreen = lazy(() =>
-  import("./components/ProfileScreen").then((module) => ({
+  import("./components/setup/ProfileScreen").then((module) => ({
     default: module.ProfileScreen,
   })),
 );
 const GoalsScreen = lazy(() =>
-  import("./components/GoalsScreen").then((module) => ({
+  import("./components/setup/GoalsScreen").then((module) => ({
     default: module.GoalsScreen,
   })),
 );
 const BudgetScreen = lazy(() =>
-  import("./components/BudgetScreen").then((module) => ({
+  import("./components/setup/BudgetScreen").then((module) => ({
     default: module.BudgetScreen,
   })),
 );
 const SupermarketsScreen = lazy(() =>
-  import("./components/SupermarketsScreen").then((module) => ({
+  import("./components/setup/SupermarketsScreen").then((module) => ({
     default: module.SupermarketsScreen,
   })),
 );
 const DietaryRestrictionsScreen = lazy(() =>
-  import("./components/DietaryRestrictionsScreen").then((module) => ({
+  import("./components/setup/DietaryRestrictionsScreen").then((module) => ({
     default: module.DietaryRestrictionsScreen,
   })),
 );
 const AIGenerationScreen = lazy(() =>
-  import("./components/AIGenerationScreen").then((module) => ({
+  import("./components/generation/AIGenerationScreen").then((module) => ({
     default: module.AIGenerationScreen,
   })),
 );
 const DashboardScreen = lazy(() =>
-  import("./components/DashboardScreen").then((module) => ({
+  import("./components/plan/DashboardScreen").then((module) => ({
     default: module.DashboardScreen,
   })),
 );
 const WeeklyMenuScreen = lazy(() =>
-  import("./components/WeeklyMenuScreen").then((module) => ({
+  import("./components/plan/WeeklyMenuScreen").then((module) => ({
     default: module.WeeklyMenuScreen,
   })),
 );
 const MarketScreen = lazy(() =>
-  import("./components/MarketScreen").then((module) => ({
+  import("./components/plan/MarketScreen").then((module) => ({
     default: module.MarketScreen,
   })),
 );
 const ChatScreen = lazy(() =>
-  import("./components/ChatScreen").then((module) => ({
+  import("./components/plan/ChatScreen").then((module) => ({
     default: module.ChatScreen,
   })),
 );
 const ProfileSettingsScreen = lazy(() =>
-  import("./components/ProfileSettingsScreen").then((module) => ({
+  import("./components/account/ProfileSettingsScreen").then((module) => ({
     default: module.ProfileSettingsScreen,
   })),
 );
 const PlanHistoryScreen = lazy(() =>
-  import("./components/PlanHistoryScreen").then((module) => ({
+  import("./components/plan/PlanHistoryScreen").then((module) => ({
     default: module.PlanHistoryScreen,
   })),
 );

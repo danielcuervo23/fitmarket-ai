@@ -45,11 +45,11 @@ import {
   ScreenBody,
   TextField,
 } from "@/app/ui";
-import { BodyDataFields } from "./BodyDataFields";
-import { BottomNav, type NavTab } from "./BottomNav";
-import { DietaryPicker } from "./pickers/DietaryPicker";
-import { GoalPicker } from "./pickers/GoalPicker";
-import { StorePicker } from "./pickers/StorePicker";
+import { BodyDataFields } from "../shared/BodyDataFields";
+import { BottomNav, type NavTab } from "../shared/BottomNav";
+import { DietaryPicker } from "../shared/pickers/DietaryPicker";
+import { GoalPicker } from "../shared/pickers/GoalPicker";
+import { StorePicker } from "../shared/pickers/StorePicker";
 
 interface Props {
   onTabChange: (tab: NavTab) => void;

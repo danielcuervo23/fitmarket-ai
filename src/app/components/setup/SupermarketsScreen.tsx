@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ChevronRight, Lock } from "lucide-react";
-import { upsertProfile, type ProfileInput } from "@/lib/profile";
+import { ChevronRight } from "lucide-react";
+import { saveUserSupermarkets, type SupermarketId } from "@/lib/supermarkets";
 import type { ErrorKey } from "@/lib/errors";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -11,26 +11,16 @@ import {
   ScreenFooter,
   ScreenHeader,
 } from "@/app/ui";
-import { BodyDataFields } from "./BodyDataFields";
+import { StorePicker } from "../shared/pickers/StorePicker";
 
 interface Props {
-  name: string;
-  onNext: () => void;
+  onNext: (stores: string[]) => void;
   onBack: () => void;
 }
 
-const DEFAULTS: ProfileInput = {
-  age: 28,
-  weight: 65,
-  height: 165,
-  activity_level: "moderate",
-  sex: null,
-  household_size: 1,
-};
-
-export function ProfileScreen({ name, onNext, onBack }: Props) {
+export function SupermarketsScreen({ onNext, onBack }: Props) {
   const { t } = useI18n();
-  const [body, setBody] = useState<ProfileInput>(DEFAULTS);
+  const [selected, setSelected] = useState<SupermarketId[]>(["D1", "Ara"]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 
@@ -39,14 +29,14 @@ export function ProfileScreen({ name, onNext, onBack }: Props) {
     setIsLoading(true);
 
     try {
-      const { error } = await upsertProfile(body);
+      const { error } = await saveUserSupermarkets(selected);
 
       if (error) {
         setErrorKey(error);
         return;
       }
 
-      onNext();
+      onNext(selected);
     } catch {
       setErrorKey("errors.network");
     } finally {
@@ -57,29 +47,34 @@ export function ProfileScreen({ name, onNext, onBack }: Props) {
   return (
     <Screen>
       <ScreenHeader
-        step={{ current: 1, total: 5 }}
-        title={t("profile.title", { name: name.split(" ")[0] })}
-        subtitle={t("profile.subtitle")}
+        step={{ current: 4, total: 5 }}
+        title={t("stores.title")}
+        subtitle={t("stores.subtitle")}
         onBack={onBack}
         disabled={isLoading}
       />
 
-      <ScreenBody className="flex flex-col gap-6 pb-6">
-        <BodyDataFields
-          value={body}
-          onChange={(patch) => setBody((current) => ({ ...current, ...patch }))}
+      <ScreenBody className="pb-6">
+        <StorePicker
+          label={t("stores.title")}
+          value={selected}
+          onChange={(value) => {
+            setSelected(value);
+            setErrorKey(null);
+          }}
           disabled={isLoading}
         />
-
-        <p className="flex items-center gap-2 text-xs text-ink-500">
-          <Lock size={13} aria-hidden />
-          {t("profile.privacy")}
-        </p>
       </ScreenBody>
 
       <ScreenFooter>
         {errorKey && <Alert tone="error">{t(errorKey)}</Alert>}
-        <Button size="lg" full loading={isLoading} onClick={handleContinue}>
+        <Button
+          size="lg"
+          full
+          loading={isLoading}
+          disabled={selected.length === 0}
+          onClick={handleContinue}
+        >
           {t("common.continue")}
           <ChevronRight size={20} strokeWidth={2.5} aria-hidden />
         </Button>

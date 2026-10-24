@@ -15,7 +15,7 @@ import {
   ScreenFooter,
   ScreenHeader,
 } from "@/app/ui";
-import { DietaryPicker } from "./pickers/DietaryPicker";
+import { DietaryPicker } from "../shared/pickers/DietaryPicker";
 
 interface Props {
   onNext: () => void;

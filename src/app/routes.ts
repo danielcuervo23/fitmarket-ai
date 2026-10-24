@@ -1,4 +1,4 @@
-import type { NavTab } from "./components/BottomNav";
+import type { NavTab } from "./components/shared/BottomNav";
 
 /** Single place that defines every URL in the app. */
 export const ROUTES = {
