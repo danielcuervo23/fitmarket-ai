@@ -541,7 +541,7 @@ export function checkQuality(
 /** Plain-language feedback for the AI when a quality check fails. */
 export function feedbackFor(issue: QualityIssue): string {
   if (issue.code === "low_protein") {
-    return `The plan averages ${issue.actual} g of protein per day but the target is ${issue.target} g. Add more protein sources (eggs, legumes, chicken, fish, dairy).`;
+    return `The plan averages ${issue.actual} g of protein per day but the target is ${issue.target} g. Add more protein sources from the allowed list (eggs, chicken, beef, fish, dairy, and legumes if they are allowed), for example a larger portion at lunch and dinner.`;
   }
 
   return `The plan uses only ${issue.actual} different ingredients. Use at least 18 different ones across the week.`;

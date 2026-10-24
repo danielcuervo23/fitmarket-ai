@@ -84,22 +84,27 @@ const respond = (content) => ({ content: JSON.stringify(content), error: null, e
   assert.equal(result.error.code, "invalid_format");
 }
 
-// 2b. An answer with only some of the days is completed, not thrown away.
+// 2b. An answer with only some of the days is completed, not thrown away:
+// each missing day is requested on its own.
 {
   const full = goodComposition();
-  const answers = [
-    respond({ days: full.days.slice(0, 1) }),
-    respond({ days: full.days.slice(1) }),
-  ];
   const prompts = [];
 
   const result = await generatePlan(baseInput, async (request) => {
     prompts.push(request.user);
-    return answers.shift() ?? respond(goodComposition());
+
+    // First call: one day only. Day calls: that day, as asked.
+    if (prompts.length === 1) {
+      return respond({ days: full.days.slice(0, 1) });
+    }
+
+    const asked = request.user.match(/Compose ONLY these days now: (\w+)\./)?.[1];
+    return respond({ days: full.days.filter((entry) => entry.day === asked) });
   });
 
   assert.ok(result.plan, JSON.stringify(result.error));
-  assert.match(prompts[1], /Compose ONLY these days now: mar, mie, jue, vie, sab, dom/);
+  assert.equal(prompts.length, 7, "one call plus six single-day calls");
+  assert.ok(prompts.slice(1).every((p) => /lun:/.test(p)), "already planned days are shown");
   assert.ok(result.plan.weekly_menu.dom.almuerzo.length >= 1);
 }
 

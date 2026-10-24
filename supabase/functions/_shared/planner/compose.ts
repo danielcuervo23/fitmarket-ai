@@ -356,7 +356,7 @@ export function buildComposerUserPrompt(input: ComposerInput): string {
       "",
       `Part of the week is already done:`,
       ...(input.planned ?? []),
-      `Compose ONLY these days now: ${input.onlyDays.join(", ")}. Return one entry per day listed, and vary the meals from the ones above.`,
+      `Compose ONLY these days now: ${input.onlyDays.join(", ")}. Return exactly one entry per day listed, and vary the main protein and the dishes from the ones above.`,
     );
   }
 

@@ -67,9 +67,9 @@ const MIN_ALLOWED_INGREDIENTS = 20;
 export const MIN_WEEKLY_BUDGET_PER_PERSON_COP = 40_000;
 
 /**
- * The AI sometimes stops after a few days (strict mode cannot force the list
- * length). Instead of throwing the answer away, ask only for the missing days
- * and merge them in.
+ * The AI often stops after one or two days (strict mode cannot force the list
+ * length). Instead of throwing the answer away, ask for each missing day on
+ * its own, in parallel, and merge them in. Two rounds at most.
  */
 async function fillMissingDays(
   raw: unknown,
@@ -98,53 +98,67 @@ async function fillMissingDays(
     }
   }
 
-  const missing = DAYS.filter((day) => !present.has(day));
-
-  if (missing.length === 0 || present.size === 0) {
+  if (present.size === 0) {
     return raw;
   }
 
-  const planned = [...present].map(([day, entry]) => {
-    const names = SLOTS.map(
-      (slot) => (entry[slot] as { name_es?: string } | undefined)?.name_es,
-    ).filter(Boolean);
+  const describe = () =>
+    [...present].map(([day, entry]) => {
+      const names = SLOTS.map(
+        (slot) => (entry[slot] as { name_es?: string } | undefined)?.name_es,
+      ).filter(Boolean);
 
-    return `${day}: ${names.join("; ")}`;
-  });
+      return `${day}: ${names.join("; ")}`;
+    });
 
-  const response = await context.callModel({
-    system: COMPOSER_SYSTEM_PROMPT,
-    user: context.userPrompt({ onlyDays: missing, planned }),
-    responseFormat: composerResponseFormat([...context.allowedIds]),
-  });
+  for (let round = 0; round < 2; round += 1) {
+    const missing = DAYS.filter((day) => !present.has(day));
 
-  if (!response.content) {
-    return raw;
-  }
-
-  try {
-    const extra = (JSON.parse(response.content) as { days?: unknown }).days;
-
-    if (Array.isArray(extra)) {
-      for (const entry of extra) {
-        const name = (entry as { day?: unknown } | null)?.day;
-
-        if (
-          typeof name === "string" &&
-          missing.includes(name as (typeof missing)[number]) &&
-          !present.has(name)
-        ) {
-          present.set(name, entry as Record<string, unknown>);
-        }
-      }
+    if (missing.length === 0) {
+      break;
     }
-  } catch {
-    return raw;
+
+    const planned = describe();
+    const answers = await Promise.all(
+      missing.map((day) =>
+        context.callModel({
+          system: COMPOSER_SYSTEM_PROMPT,
+          user: context.userPrompt({ onlyDays: [day], planned }),
+          responseFormat: composerResponseFormat([...context.allowedIds]),
+        }),
+      ),
+    );
+
+    answers.forEach((response, index) => {
+      const day = missing[index];
+
+      try {
+        const entries = (JSON.parse(response.content ?? "") as { days?: unknown })
+          .days;
+
+        if (!Array.isArray(entries)) {
+          return;
+        }
+
+        // The model may label the day wrongly when it was asked for just one.
+        const entry =
+          entries.find((item) => (item as { day?: unknown })?.day === day) ??
+          (entries.length === 1 ? entries[0] : null);
+
+        if (entry && typeof entry === "object") {
+          present.set(day, { ...(entry as Record<string, unknown>), day });
+        }
+      } catch {
+        // This day stays missing; the next round (or the retry) handles it.
+      }
+    });
   }
 
-  logEvent("plan_days_completed", { missing: missing.length });
+  logEvent("plan_days_completed", { days: present.size });
 
-  return { days: DAYS.filter((day) => present.has(day)).map((day) => present.get(day)) };
+  return {
+    days: DAYS.filter((day) => present.has(day)).map((day) => present.get(day)),
+  };
 }
 
 /** A short, technical description of what was wrong with an answer. */
@@ -346,7 +360,15 @@ export async function generatePlan(
 
     // A low-variety week is still a usable plan on the last try; a plan far
     // below the protein target is not.
-    if (quality && !(isLastAttempt && quality.code === "low_variety")) {
+    if (
+      quality &&
+      !(isLastAttempt && quality.code === "low_variety") &&
+      !(
+        isLastAttempt &&
+        quality.code === "low_protein" &&
+        quality.actual >= quality.target * 0.75
+      )
+    ) {
       feedback = feedbackFor(quality);
       reasons.push(`${quality.code}:${Math.round(quality.actual)}`);
       logEvent("plan_attempt_rejected", { attempt, code: quality.code });
