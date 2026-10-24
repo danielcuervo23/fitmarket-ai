@@ -148,6 +148,6 @@ draft and should be reviewed before real users rely on the app.
 
 Released under the [MIT License](LICENSE). You are free to use, copy, modify
 and share this project, but you must keep the copyright notice, so please give
-credit: **Juan Daniel Cuervo Villa**. Third-party components and photos keep
-their own licenses, listed in [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
+credit: **Juan Daniel Cuervo Villa**. Third-party libraries keep their own
+licenses.
 
