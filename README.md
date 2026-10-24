@@ -7,6 +7,7 @@ English**.
 
 Live demo: https://fitmarket-ai.vercel.app  
 Original design: [Figma](https://www.figma.com/design/x4unrU1CJpA4L5KXWmyQUo/FitMarket-AI-Mobile-App-Design)
+How it works inside: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Screenshots
 
@@ -148,8 +149,8 @@ Library code returns message **keys** (`ErrorKey`), not text.
   user, limits CORS to known origins, and logs events without personal data.
 - Restriction text is length-limited in the database and the UI.
 - The plan is a guide, not medical advice; the UI says so. Dietary validation
-  uses Spanish food terms, so the generated menu stays in Spanish even when the
-  interface is in English.
+  understands Spanish and English food names, but only for the foods in the
+  catalog.
 
 ## Status
 
