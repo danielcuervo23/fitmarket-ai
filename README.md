@@ -143,3 +143,11 @@ Library code returns message **keys** (`ErrorKey`), not text.
 
 Course project in active development. The privacy policy is an informational
 draft and should be reviewed before real users rely on the app.
+
+## License
+
+Released under the [MIT License](LICENSE). You are free to use, copy, modify
+and share this project, but you must keep the copyright notice, so please give
+credit: **Juan Daniel Cuervo Villa**. Third-party components and photos keep
+their own licenses, listed in [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
+
