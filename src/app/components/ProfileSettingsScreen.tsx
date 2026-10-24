@@ -5,6 +5,7 @@ import {
   Languages,
   LogOut,
   Mail,
+  Sparkles,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import {
   thousandsSuggestion,
 } from "@/lib/budgetSuggestion";
 import { fetchDashboardData } from "@/lib/dashboard";
+import { fetchProfile, upsertProfile, type ProfileInput } from "@/lib/profile";
 import {
   buildStoredDietaryRestrictions,
   parseStoredDietaryRestrictions,
@@ -43,6 +45,7 @@ import {
   ScreenBody,
   TextField,
 } from "@/app/ui";
+import { BodyDataFields } from "./BodyDataFields";
 import { BottomNav, type NavTab } from "./BottomNav";
 import { DietaryPicker } from "./pickers/DietaryPicker";
 import { GoalPicker } from "./pickers/GoalPicker";
@@ -53,6 +56,27 @@ interface Props {
   onSignedOut: () => void;
   onOpenPlanHistory?: () => void;
   onOpenPrivacy?: () => void;
+  onGeneratePlan?: () => void;
+}
+
+const DEFAULT_PROFILE: ProfileInput = {
+  age: 28,
+  weight: 65,
+  height: 165,
+  activity_level: "moderate",
+  sex: null,
+  household_size: 1,
+};
+
+function sameProfile(a: ProfileInput, b: ProfileInput): boolean {
+  return (
+    a.age === b.age &&
+    a.weight === b.weight &&
+    a.height === b.height &&
+    a.activity_level === b.activity_level &&
+    a.sex === b.sex &&
+    a.household_size === b.household_size
+  );
 }
 
 interface SavedPreferences {
@@ -75,6 +99,7 @@ export function ProfileSettingsScreen({
   onSignedOut,
   onOpenPlanHistory,
   onOpenPrivacy,
+  onGeneratePlan,
 }: Props) {
   const { t, formatNumber, formatCurrency } = useI18n();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -92,6 +117,10 @@ export function ProfileSettingsScreen({
   const [stores, setStores] = useState<SupermarketId[]>([]);
   const [dietary, setDietary] = useState<DietaryRestrictionId[]>([]);
   const [otherFoods, setOtherFoods] = useState("");
+  const [profile, setProfile] = useState<ProfileInput>(DEFAULT_PROFILE);
+  const [savedProfile, setSavedProfile] =
+    useState<ProfileInput>(DEFAULT_PROFILE);
+  const [profileSaved, setProfileSaved] = useState(false);
 
   const email = user?.email ?? t("settings.noEmail");
   const name = user ? displayNameFromUser(user) : "";
@@ -102,12 +131,25 @@ export function ProfileSettingsScreen({
     setErrorKey(null);
 
     try {
-      const { data, error } = await fetchDashboardData();
+      const [dashboard, profileResult] = await Promise.all([
+        fetchDashboardData(),
+        fetchProfile(),
+      ]);
+      const { data, error } = dashboard;
 
       if (error || !data) {
         setErrorKey(error ?? "errors.load");
         return;
       }
+
+      if (profileResult.error) {
+        setErrorKey(profileResult.error);
+        return;
+      }
+
+      const loadedProfile = profileResult.data ?? DEFAULT_PROFILE;
+      setProfile(loadedProfile);
+      setSavedProfile(loadedProfile);
 
       const budget = data.weeklyBudgetCop ?? 0;
       const loadedGoals = data.goals.map((goal) => goal.id);
@@ -151,12 +193,22 @@ export function ProfileSettingsScreen({
     const currentDietary = buildStoredDietaryRestrictions(dietary, otherFoods);
 
     return (
+      !sameProfile(profile, savedProfile) ||
       budgetCop !== savedPrefs.budgetCop ||
       sortedKey(goals) !== sortedKey(savedPrefs.goals) ||
       sortedKey(stores) !== sortedKey(savedPrefs.supermarkets) ||
       sortedKey(currentDietary) !== sortedKey(savedPrefs.dietaryRestrictions)
     );
-  }, [savedPrefs, budgetCop, goals, stores, dietary, otherFoods]);
+  }, [
+    savedPrefs,
+    savedProfile,
+    profile,
+    budgetCop,
+    goals,
+    stores,
+    dietary,
+    otherFoods,
+  ]);
 
   const budgetProblem = budgetIssue(budgetCop);
   const budgetSuggestion = thousandsSuggestion(budgetCop);
@@ -179,6 +231,7 @@ export function ProfileSettingsScreen({
   const markEdited = () => {
     setErrorKey(null);
     setSaved(false);
+    setProfileSaved(false);
   };
 
   const handleSave = async () => {
@@ -189,10 +242,13 @@ export function ProfileSettingsScreen({
     setIsSaving(true);
     setErrorKey(null);
     setSaved(false);
+    setProfileSaved(false);
 
     try {
       const dietaryStored = buildStoredDietaryRestrictions(dietary, otherFoods);
+      const profileChanged = !sameProfile(profile, savedProfile);
       const steps = [
+        ...(profileChanged ? [() => upsertProfile(profile)] : []),
         () => saveWeeklyBudget(budgetCop),
         () => saveUserGoals(goals),
         () => saveUserSupermarkets(stores),
@@ -214,6 +270,8 @@ export function ProfileSettingsScreen({
         supermarkets: [...stores],
         dietaryRestrictions: dietaryStored,
       });
+      setSavedProfile({ ...profile });
+      setProfileSaved(profileChanged);
       setSaved(true);
     } catch {
       setErrorKey("errors.network");
@@ -359,6 +417,23 @@ export function ProfileSettingsScreen({
           />
         ) : (
           <>
+            <section className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-sm font-bold">{t("settings.personal")}</h3>
+                <p className="text-[13px] text-ink-500">
+                  {t("settings.personalHint")}
+                </p>
+              </div>
+              <BodyDataFields
+                value={profile}
+                onChange={(patch) => {
+                  setProfile((current) => ({ ...current, ...patch }));
+                  markEdited();
+                }}
+                disabled={busy}
+              />
+            </section>
+
             <TextField
               label={t("settings.budget")}
               inputMode="numeric"
@@ -441,6 +516,17 @@ export function ProfileSettingsScreen({
         )}
 
         {saved && <Alert tone="success">{t("settings.saved")}</Alert>}
+        {profileSaved && onGeneratePlan && (
+          <Card className="flex flex-col gap-3">
+            <p className="text-[13px] leading-snug text-ink-600">
+              {t("settings.regenerateHint")}
+            </p>
+            <Button variant="secondary" full onClick={onGeneratePlan}>
+              <Sparkles size={16} aria-hidden />
+              {t("settings.regenerate")}
+            </Button>
+          </Card>
+        )}
         {errorKey && savedPrefs && <Alert tone="error">{t(errorKey)}</Alert>}
 
         <Button

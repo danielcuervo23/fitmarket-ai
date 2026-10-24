@@ -1,32 +1,17 @@
 import { useState } from "react";
-import {
-  Armchair,
-  Bike,
-  ChevronRight,
-  Dumbbell,
-  Footprints,
-  Lock,
-  Trophy,
-} from "lucide-react";
-import {
-  isActivityLevel,
-  upsertProfile,
-  type ActivityLevel,
-  type Sex,
-} from "@/lib/profile";
-import { cn } from "@/lib/cn";
+import { ChevronRight, Lock } from "lucide-react";
+import { upsertProfile, type ProfileInput } from "@/lib/profile";
 import type { ErrorKey } from "@/lib/errors";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   Alert,
   Button,
-  ChoiceCard,
-  NumberStepper,
   Screen,
   ScreenBody,
   ScreenFooter,
   ScreenHeader,
 } from "@/app/ui";
+import { BodyDataFields } from "./BodyDataFields";
 
 interface Props {
   name: string;
@@ -34,46 +19,27 @@ interface Props {
   onBack: () => void;
 }
 
-const ACTIVITY_LEVELS: { id: ActivityLevel; icon: typeof Armchair }[] = [
-  { id: "sedentary", icon: Armchair },
-  { id: "light", icon: Footprints },
-  { id: "moderate", icon: Bike },
-  { id: "active", icon: Dumbbell },
-  { id: "very_active", icon: Trophy },
-];
-
-const AGE_MIN = 14;
-const AGE_MAX = 80;
+const DEFAULTS: ProfileInput = {
+  age: 28,
+  weight: 65,
+  height: 165,
+  activity_level: "moderate",
+  sex: null,
+  household_size: 1,
+};
 
 export function ProfileScreen({ name, onNext, onBack }: Props) {
   const { t } = useI18n();
-  const [age, setAge] = useState(28);
-  const [weight, setWeight] = useState(65);
-  const [height, setHeight] = useState(165);
-  const [activity, setActivity] = useState<ActivityLevel>("moderate");
-  const [sex, setSex] = useState<Sex | null>(null);
-  const [household, setHousehold] = useState(1);
+  const [body, setBody] = useState<ProfileInput>(DEFAULTS);
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 
   const handleContinue = async () => {
-    if (!isActivityLevel(activity)) {
-      setErrorKey("errors.invalidValues");
-      return;
-    }
-
     setErrorKey(null);
     setIsLoading(true);
 
     try {
-      const { error } = await upsertProfile({
-        age,
-        weight,
-        height,
-        activity_level: activity,
-        sex,
-        household_size: household,
-      });
+      const { error } = await upsertProfile(body);
 
       if (error) {
         setErrorKey(error);
@@ -88,151 +54,22 @@ export function ProfileScreen({ name, onNext, onBack }: Props) {
     }
   };
 
-  const agePercent = ((age - AGE_MIN) / (AGE_MAX - AGE_MIN)) * 100;
-  const firstName = name.split(" ")[0];
-
   return (
     <Screen>
       <ScreenHeader
         step={{ current: 1, total: 5 }}
-        title={t("profile.title", { name: firstName })}
+        title={t("profile.title", { name: name.split(" ")[0] })}
         subtitle={t("profile.subtitle")}
         onBack={onBack}
         disabled={isLoading}
       />
 
       <ScreenBody className="flex flex-col gap-6 pb-6">
-        <section className="flex flex-col gap-3 rounded-card border border-ink-200 bg-white p-4">
-          <div className="flex items-baseline justify-between">
-            <label
-              htmlFor="profile-age"
-              className="text-[13px] font-semibold text-ink-500"
-            >
-              {t("profile.age")}
-            </label>
-            <span className="text-2xl font-extrabold tabular-nums tracking-tight text-ink-900">
-              {t("profile.ageValue", { age })}
-            </span>
-          </div>
-          <input
-            id="profile-age"
-            type="range"
-            min={AGE_MIN}
-            max={AGE_MAX}
-            value={age}
-            disabled={isLoading}
-            onChange={(event) => setAge(Number(event.target.value))}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full accent-brand-600"
-            style={{
-              background: `linear-gradient(to right, var(--color-brand-600) ${agePercent}%, var(--color-ink-200) ${agePercent}%)`,
-            }}
-          />
-          <div className="flex justify-between text-xs text-ink-400">
-            <span>{AGE_MIN}</span>
-            <span>{AGE_MAX}</span>
-          </div>
-        </section>
-
-        <div className="grid grid-cols-2 gap-3">
-          <NumberStepper
-            label={t("profile.weight")}
-            unit="kg"
-            value={weight}
-            min={40}
-            max={150}
-            onChange={setWeight}
-            decreaseLabel={t("profile.decrease", { field: t("profile.weight") })}
-            increaseLabel={t("profile.increase", { field: t("profile.weight") })}
-            disabled={isLoading}
-          />
-          <NumberStepper
-            label={t("profile.height")}
-            unit="cm"
-            value={height}
-            min={140}
-            max={220}
-            onChange={setHeight}
-            decreaseLabel={t("profile.decrease", { field: t("profile.height") })}
-            increaseLabel={t("profile.increase", { field: t("profile.height") })}
-            disabled={isLoading}
-          />
-        </div>
-
-        <section
-          role="radiogroup"
-          aria-label={t("profile.sex")}
-          className="flex flex-col gap-2.5"
-        >
-          <div>
-            <h2 className="text-[13px] font-semibold text-ink-500">
-              {t("profile.sex")}
-            </h2>
-            <p className="text-xs text-ink-400">{t("profile.sexHint")}</p>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                ["female", "sex.female"],
-                ["male", "sex.male"],
-                [null, "sex.none"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={label}
-                type="button"
-                role="radio"
-                aria-checked={sex === value}
-                disabled={isLoading}
-                onClick={() => setSex(value)}
-                className={cn(
-                  "rounded-control border px-2 py-3 text-[13px] font-semibold leading-tight transition-colors focus-visible:outline-2 focus-visible:outline-brand-600",
-                  sex === value
-                    ? "border-brand-600 bg-brand-50 text-brand-800"
-                    : "border-ink-200 bg-white text-ink-600 hover:border-ink-300",
-                )}
-              >
-                {t(label)}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-2.5">
-          <NumberStepper
-            label={t("profile.household")}
-            unit={t("profile.householdUnit")}
-            value={household}
-            min={1}
-            max={8}
-            onChange={setHousehold}
-            decreaseLabel={t("profile.decrease", { field: t("profile.household") })}
-            increaseLabel={t("profile.increase", { field: t("profile.household") })}
-            disabled={isLoading}
-          />
-          <p className="text-xs text-ink-400">{t("profile.householdHint")}</p>
-        </section>
-
-        <section
-          role="radiogroup"
-          aria-label={t("profile.activity")}
-          className="flex flex-col gap-2.5"
-        >
-          <h2 className="text-[13px] font-semibold text-ink-500">
-            {t("profile.activity")}
-          </h2>
-          {ACTIVITY_LEVELS.map(({ id, icon: Icon }) => (
-            <ChoiceCard
-              key={id}
-              role="radio"
-              selected={activity === id}
-              onSelect={() => setActivity(id)}
-              icon={<Icon size={20} />}
-              title={t(`activity.${id}.label`)}
-              description={t(`activity.${id}.desc`)}
-              disabled={isLoading}
-            />
-          ))}
-        </section>
+        <BodyDataFields
+          value={body}
+          onChange={(patch) => setBody((current) => ({ ...current, ...patch }))}
+          disabled={isLoading}
+        />
 
         <p className="flex items-center gap-2 text-xs text-ink-500">
           <Lock size={13} aria-hidden />

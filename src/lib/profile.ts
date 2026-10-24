@@ -113,3 +113,51 @@ export async function upsertProfile(
 
   return { error: null };
 }
+
+/** The saved body data and household of the signed-in user (null if not set yet). */
+export async function fetchProfile(): Promise<{
+  data: ProfileInput | null;
+  error: ErrorKey | null;
+}> {
+  const {
+    data: { user },
+    error: authError,
+  } = await getSessionUser();
+
+  if (authError || !user) {
+    return { data: null, error: "errors.notSignedIn" };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("age, weight_kg, height_cm, activity_level, sex, household_size")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    return { data: null, error: dbErrorKey(error, "errors.load") };
+  }
+
+  if (
+    !data ||
+    data.age == null ||
+    data.weight_kg == null ||
+    data.height_cm == null
+  ) {
+    return { data: null, error: null };
+  }
+
+  return {
+    data: {
+      age: Number(data.age),
+      weight: Number(data.weight_kg),
+      height: Number(data.height_cm),
+      activity_level: isActivityLevel(String(data.activity_level))
+        ? (data.activity_level as ActivityLevel)
+        : "moderate",
+      sex: data.sex === "female" || data.sex === "male" ? data.sex : null,
+      household_size: Number(data.household_size) || 1,
+    },
+    error: null,
+  };
+}

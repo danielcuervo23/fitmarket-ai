@@ -114,6 +114,12 @@ export const app = defineMessages({
     "settings.history": "Historial de planes",
     "settings.historyDesc": "Ver planes anteriores en modo lectura",
     "settings.preferences": "Preferencias de la app",
+    "settings.personal": "Datos personales",
+    "settings.personalHint":
+      "Edad, peso, estatura y personas en tu hogar. La IA los usa para calcular tus calorías y las cantidades de compra.",
+    "settings.regenerateHint":
+      "Actualizamos tus datos. Tu plan actual se calculó con los anteriores: genera uno nuevo para aplicar los cambios.",
+    "settings.regenerate": "Generar plan nuevo",
     "settings.nutrition": "Configuración nutricional",
     "settings.budget": "Presupuesto semanal (COP)",
     "settings.goals": "Objetivos",
@@ -253,6 +259,12 @@ export const app = defineMessages({
     "settings.history": "Plan history",
     "settings.historyDesc": "View previous plans in read-only mode",
     "settings.preferences": "App preferences",
+    "settings.personal": "Personal data",
+    "settings.personalHint":
+      "Age, weight, height and people in your household. The AI uses them to calculate your calories and shopping quantities.",
+    "settings.regenerateHint":
+      "Your details are updated. Your current plan was built with the old ones: generate a new plan to apply the changes.",
+    "settings.regenerate": "Generate new plan",
     "settings.nutrition": "Nutrition settings",
     "settings.budget": "Weekly budget (COP)",
     "settings.goals": "Goals",

@@ -312,6 +312,7 @@ export function AppRoutes() {
                 onSignedOut={() => navigate(ROUTES.login, { replace: true })}
                 onOpenPlanHistory={() => navigate(ROUTES.app.history)}
                 onOpenPrivacy={() => navigate(ROUTES.privacy)}
+                onGeneratePlan={() => navigate(ROUTES.setup.generating)}
               />
             </Protected>
           </Route>
