@@ -11,7 +11,7 @@ import {
   weekCost,
   weekStats,
 } from "./build.ts";
-import { cleanItems, parseComposition } from "./compose.ts";
+import { cleanItems, composerResponseFormat, parseComposition } from "./compose.ts";
 import { explainRestriction } from "./restrictions.ts";
 import { changedMeals, fallbackName, parseNaming, renameMeals, unnamedMeals } from "./naming.ts";
 import { cheapestStore, carriedByAny } from "./stores.ts";
@@ -114,6 +114,15 @@ const STORES = ["Exito", "D1"];
   const unknown = structuredClone(raw);
   unknown.days[0].cena.items[0].id = "pizza";
   assert.deepEqual(parseComposition(unknown, ALL_IDS).issue, { code: "unknown_ingredient", id: "pizza" });
+
+  // The shape asked from the model: one required key per day, so it cannot
+  // stop after a single day.
+  const asWeek = { week: Object.fromEntries(raw.days.map(({ day, ...meals }) => [day, meals])) };
+  assert.equal(parseComposition(asWeek, ALL_IDS).issue, null);
+  const oneDay = { week: { lun: asWeek.week.lun } };
+  assert.equal(parseComposition(oneDay, ALL_IDS).issue.code, "wrong_days");
+  const schema = composerResponseFormat(["avena"]).json_schema.schema;
+  assert.deepEqual(schema.properties.week.required, ["lun", "mar", "mie", "jue", "vie", "sab", "dom"]);
 
   const shortWeek = { days: raw.days.slice(0, 6) };
   assert.equal(parseComposition(shortWeek, ALL_IDS).issue.code, "wrong_days");

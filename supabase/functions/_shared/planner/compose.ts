@@ -43,14 +43,23 @@ export function composerResponseFormat(allowedIds: string[]) {
   const day = {
     type: "object",
     additionalProperties: false,
-    required: ["day", ...SLOTS],
+    required: [...SLOTS],
     properties: {
-      day: { type: "string", enum: [...DAYS] },
       desayuno: meal,
       almuerzo: meal,
       cena: meal,
       snacks: meal,
     },
+  };
+
+  // The week is an object with one required key per day. An array would let
+  // the model stop after a single day (strict mode cannot force its length),
+  // which is exactly what used to make plans fail with "only 1 day".
+  const week = {
+    type: "object",
+    additionalProperties: false,
+    required: [...DAYS],
+    properties: Object.fromEntries(DAYS.map((name) => [name, day])),
   };
 
   return {
@@ -61,8 +70,8 @@ export function composerResponseFormat(allowedIds: string[]) {
       schema: {
         type: "object",
         additionalProperties: false,
-        required: ["days"],
-        properties: { days: { type: "array", items: day } },
+        required: ["week"],
+        properties: { week },
       },
     },
   };
@@ -155,21 +164,32 @@ export function parseComposition(
   raw: unknown,
   allowedIds: ReadonlySet<string>,
 ): { week: ComposedWeek | null; issue: ComposeIssue | null } {
-  if (!isRecord(raw) || !Array.isArray(raw.days)) {
+  if (!isRecord(raw)) {
     return { week: null, issue: { code: "invalid_format" } };
   }
 
   const byDay = new Map<string, Record<string, unknown>>();
 
-  for (const entry of raw.days) {
-    if (!isRecord(entry) || typeof entry.day !== "string") {
-      return { week: null, issue: { code: "invalid_format" } };
+  if (isRecord(raw.week)) {
+    for (const [name, entry] of Object.entries(raw.week)) {
+      if (isRecord(entry)) {
+        byDay.set(name, entry);
+      }
     }
+  } else if (Array.isArray(raw.days)) {
+    // Older shape: a list of days, each naming itself.
+    for (const entry of raw.days) {
+      if (!isRecord(entry) || typeof entry.day !== "string") {
+        return { week: null, issue: { code: "invalid_format" } };
+      }
 
-    byDay.set(entry.day, entry);
+      byDay.set(entry.day, entry);
+    }
+  } else {
+    return { week: null, issue: { code: "invalid_format" } };
   }
 
-  if (raw.days.length !== 7 || byDay.size !== 7) {
+  if (DAYS.some((day) => !byDay.has(day))) {
     return { week: null, issue: { code: "wrong_days" } };
   }
 
@@ -279,7 +299,7 @@ export const COMPOSER_SYSTEM_PROMPT = `You are a nutritionist and meal planner f
 You compose a 7-day meal plan for ONE person using ONLY the ingredient ids you are given. Never invent ids.
 
 Rules:
-- Return 7 days (lun, mar, mie, jue, vie, sab, dom). Each day has four meals: desayuno (breakfast), almuerzo (lunch), cena (dinner), snacks.
+- Fill ALL 7 days of the week object (lun, mar, mie, jue, vie, sab, dom); never stop early. Each day has four meals: desayuno (breakfast), almuerzo (lunch), cena (dinner), snacks.
 - Each meal lists its ingredients with a quantity: the main components plus any small seasonings, at most 8 lines (snacks 1-3). Quantities are DRY / RAW weights as bought: grams for "g" foods, millilitres for "ml" foods, and a whole count for "unit" foods (eggs, fruit).
 - The dish name (name_es / name_en) must describe exactly the ingredients you list for that meal: never name an ingredient that is not in the list.
 - Aim for the daily calorie and protein targets. Quantities will be fine-tuned automatically, so focus on a good, realistic combination of foods.

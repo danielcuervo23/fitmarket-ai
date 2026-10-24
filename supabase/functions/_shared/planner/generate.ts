@@ -77,9 +77,14 @@ function describeIssue(issue: ComposeIssue | null, raw: unknown): string {
     case "unknown_ingredient":
       return `unknown_ingredient:${issue.id}`;
     case "wrong_days": {
-      const days = (raw as { days?: unknown } | null)?.days;
+      const record = raw as { week?: unknown; days?: unknown } | null;
+      const count = Array.isArray(record?.days)
+        ? record.days.length
+        : typeof record?.week === "object" && record.week
+          ? Object.keys(record.week).length
+          : null;
 
-      return Array.isArray(days) ? `wrong_days:${days.length}` : "wrong_days";
+      return count === null ? "wrong_days" : `wrong_days:${count}`;
     }
     default:
       return issue.code;
@@ -91,7 +96,7 @@ function issueFeedback(issue: ComposeIssue): string {
     case "invalid_format":
       return "The answer did not follow the JSON schema.";
     case "wrong_days":
-      return "Return exactly 7 days: lun, mar, mie, jue, vie, sab, dom, each once.";
+      return "Fill all 7 days of the week object: lun, mar, mie, jue, vie, sab, dom.";
     case "item_count":
       return `Day ${issue.day}, meal ${issue.slot} has no valid ingredients. Every meal needs at least one ingredient with a positive quantity.`;
     case "unknown_ingredient":
