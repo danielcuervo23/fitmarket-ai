@@ -7,6 +7,18 @@ import { generatePlan } from "../_shared/planner/generate.ts";
 
 const DEFAULT_DAILY_GENERATION_LIMIT = 10;
 
+/** Failures that are ours (not the user's), so they must not use up a daily try. */
+const REFUNDED_CODES = new Set([
+  "invalid_format",
+  "goal_incoherent",
+  "generation_failed",
+  "ai_unavailable",
+  "ai_timeout",
+  "ai_empty",
+  "rate_limited",
+  "server_config",
+]);
+
 function getDailyGenerationLimit(): number {
   const configured = Number(Deno.env.get("GENERATION_DAILY_LIMIT"));
 
@@ -92,9 +104,11 @@ Deno.serve(async (req: Request) => {
 
     // Per-user daily quota: protects the OpenAI bill from abuse. The request is
     // recorded first, then counted, so concurrent calls cannot skip the limit.
-    const { error: recordError } = await supabase
+    const { data: recorded, error: recordError } = await supabase
       .from("plan_generation_requests")
-      .insert({ user_id: user.id });
+      .insert({ user_id: user.id })
+      .select("id")
+      .single();
 
     if (recordError) {
       logEvent("generation_quota_record_failed", {
@@ -143,11 +157,35 @@ Deno.serve(async (req: Request) => {
 
     const outcome = await generatePlan(input, callOpenAI);
 
+    // A try that failed because of us gives the user their try back. Users
+    // cannot delete their own rows (so they cannot reset the counter), which
+    // is why this uses the service role.
+    const refund = async () => {
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+      if (!serviceKey || !recorded?.id) {
+        return;
+      }
+
+      const { error } = await createClient(supabaseUrl, serviceKey)
+        .from("plan_generation_requests")
+        .delete()
+        .eq("id", recorded.id);
+
+      if (error) {
+        logEvent("generation_quota_refund_failed", { code: error.code ?? "" });
+      }
+    };
+
     if ("plan" in outcome) {
       return json({ plan: outcome.plan }, 200);
     }
 
     const { code, message, budget } = outcome.error;
+
+    if (REFUNDED_CODES.has(code)) {
+      await refund();
+    }
 
     if (code === "budget_too_low" && budget) {
       // 200 so supabase.functions.invoke delivers the body in `data`.

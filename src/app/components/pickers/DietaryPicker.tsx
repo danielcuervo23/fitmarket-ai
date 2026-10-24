@@ -9,12 +9,10 @@ import {
   Sprout,
   Wheat,
 } from "lucide-react";
-import {
-  MAX_OTHER_FOODS_LENGTH,
-  type DietaryRestrictionId,
-} from "@/lib/dietaryRestrictions";
+import type { DietaryRestrictionId } from "@/lib/dietaryRestrictions";
 import { useI18n } from "@/i18n/I18nProvider";
-import { ChoiceCard, TextField } from "@/app/ui";
+import { ChoiceCard } from "@/app/ui";
+import { OtherFoodsField } from "./OtherFoodsField";
 
 const OPTIONS: { id: DietaryRestrictionId; icon: typeof Milk }[] = [
   { id: "lactose", icon: Milk },
@@ -71,14 +69,10 @@ export function DietaryPicker({
         ))}
       </div>
 
-      <TextField
-        label={t("dietary.other")}
-        placeholder={t("dietary.otherPlaceholder")}
-        hint={t("dietary.otherHint")}
-        maxLength={MAX_OTHER_FOODS_LENGTH}
+      <OtherFoodsField
         value={otherFoods}
+        onChange={onOtherFoodsChange}
         disabled={disabled}
-        onChange={(event) => onOtherFoodsChange(event.target.value)}
       />
     </div>
   );
