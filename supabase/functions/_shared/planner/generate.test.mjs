@@ -84,6 +84,25 @@ const respond = (content) => ({ content: JSON.stringify(content), error: null, e
   assert.equal(result.error.code, "invalid_format");
 }
 
+// 2b. An answer with only some of the days is completed, not thrown away.
+{
+  const full = goodComposition();
+  const answers = [
+    respond({ days: full.days.slice(0, 1) }),
+    respond({ days: full.days.slice(1) }),
+  ];
+  const prompts = [];
+
+  const result = await generatePlan(baseInput, async (request) => {
+    prompts.push(request.user);
+    return answers.shift() ?? respond(goodComposition());
+  });
+
+  assert.ok(result.plan, JSON.stringify(result.error));
+  assert.match(prompts[1], /Compose ONLY these days now: mar, mie, jue, vie, sab, dom/);
+  assert.ok(result.plan.weekly_menu.dom.almuerzo.length >= 1);
+}
+
 // 3. A bad first answer gets feedback and a second chance.
 {
   const prompts = [];

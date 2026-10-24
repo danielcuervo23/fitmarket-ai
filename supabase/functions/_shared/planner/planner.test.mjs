@@ -115,14 +115,21 @@ const STORES = ["Exito", "D1"];
   unknown.days[0].cena.items[0].id = "pizza";
   assert.deepEqual(parseComposition(unknown, ALL_IDS).issue, { code: "unknown_ingredient", id: "pizza" });
 
-  // The shape asked from the model: one required key per day, so it cannot
-  // stop after a single day.
+  // A week object (one key per day) is also understood.
   const asWeek = { week: Object.fromEntries(raw.days.map(({ day, ...meals }) => [day, meals])) };
   assert.equal(parseComposition(asWeek, ALL_IDS).issue, null);
   const oneDay = { week: { lun: asWeek.week.lun } };
   assert.equal(parseComposition(oneDay, ALL_IDS).issue.code, "wrong_days");
-  const schema = composerResponseFormat(["avena"]).json_schema.schema;
-  assert.deepEqual(schema.properties.week.required, ["lun", "mar", "mie", "jue", "vie", "sab", "dom"]);
+  // OpenAI strict mode allows at most 100 object properties in a schema.
+  const countProps = (node) =>
+    node && typeof node === "object"
+      ? Object.entries(node).reduce(
+          (sum, [key, value]) =>
+            sum + (key === "properties" ? Object.keys(value).length : 0) + countProps(value),
+          0,
+        )
+      : 0;
+  assert.ok(countProps(composerResponseFormat(["avena"]).json_schema.schema) <= 100);
 
   const shortWeek = { days: raw.days.slice(0, 6) };
   assert.equal(parseComposition(shortWeek, ALL_IDS).issue.code, "wrong_days");

@@ -40,26 +40,20 @@ export function composerResponseFormat(allowedIds: string[]) {
     },
   };
 
+  // A list of days. OpenAI strict mode limits a schema to 100 object
+  // properties, so the week cannot be an object with one key per day, and it
+  // cannot force the list length: generate.ts asks again for missing days.
   const day = {
     type: "object",
     additionalProperties: false,
-    required: [...SLOTS],
+    required: ["day", ...SLOTS],
     properties: {
+      day: { type: "string", enum: [...DAYS] },
       desayuno: meal,
       almuerzo: meal,
       cena: meal,
       snacks: meal,
     },
-  };
-
-  // The week is an object with one required key per day. An array would let
-  // the model stop after a single day (strict mode cannot force its length),
-  // which is exactly what used to make plans fail with "only 1 day".
-  const week = {
-    type: "object",
-    additionalProperties: false,
-    required: [...DAYS],
-    properties: Object.fromEntries(DAYS.map((name) => [name, day])),
   };
 
   return {
@@ -70,8 +64,8 @@ export function composerResponseFormat(allowedIds: string[]) {
       schema: {
         type: "object",
         additionalProperties: false,
-        required: ["week"],
-        properties: { week },
+        required: ["days"],
+        properties: { days: { type: "array", items: day } },
       },
     },
   };
@@ -293,13 +287,17 @@ export interface ComposerInput {
   unmatchedText: string[];
   /** What went wrong last time, so the retry can fix it. */
   feedback?: string;
+  /** Only compose these days (the answer came back incomplete). */
+  onlyDays?: readonly string[];
+  /** Short description of the days that are already done, to keep variety. */
+  planned?: string[];
 }
 
 export const COMPOSER_SYSTEM_PROMPT = `You are a nutritionist and meal planner for people in Colombia.
 You compose a 7-day meal plan for ONE person using ONLY the ingredient ids you are given. Never invent ids.
 
 Rules:
-- Fill ALL 7 days of the week object (lun, mar, mie, jue, vie, sab, dom); never stop early. Each day has four meals: desayuno (breakfast), almuerzo (lunch), cena (dinner), snacks.
+- Return 7 days (lun, mar, mie, jue, vie, sab, dom), one entry per day, never stop early. Each day has four meals: desayuno (breakfast), almuerzo (lunch), cena (dinner), snacks.
 - Each meal lists its ingredients with a quantity: the main components plus any small seasonings, at most 8 lines (snacks 1-3). Quantities are DRY / RAW weights as bought: grams for "g" foods, millilitres for "ml" foods, and a whole count for "unit" foods (eggs, fruit).
 - The dish name (name_es / name_en) must describe exactly the ingredients you list for that meal: never name an ingredient that is not in the list.
 - Aim for the daily calorie and protein targets. Quantities will be fine-tuned automatically, so focus on a good, realistic combination of foods.
@@ -351,6 +349,15 @@ export function buildComposerUserPrompt(input: ComposerInput): string {
 
   if (input.feedback) {
     lines.push("", `Fix this problem from your previous answer: ${input.feedback}`);
+  }
+
+  if (input.onlyDays && input.onlyDays.length > 0) {
+    lines.push(
+      "",
+      `Part of the week is already done:`,
+      ...(input.planned ?? []),
+      `Compose ONLY these days now: ${input.onlyDays.join(", ")}. Return one entry per day listed, and vary the meals from the ones above.`,
+    );
   }
 
   return lines.join("\n");

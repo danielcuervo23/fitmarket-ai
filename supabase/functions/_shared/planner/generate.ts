@@ -21,6 +21,7 @@ import { changedMeals, renameMeals, unnamedMeals } from "./naming.ts";
 import { CATALOG } from "../catalog.ts";
 import { allowedCatalog, buildRestrictionRules } from "./restrictions.ts";
 import { carriedByAny } from "./stores.ts";
+import { DAYS, SLOTS } from "./types.ts";
 
 export interface GenerateInput {
   weeklyBudgetCop: number;
@@ -64,6 +65,87 @@ const MIN_ALLOWED_INGREDIENTS = 20;
  * tell the user what the floor is.
  */
 export const MIN_WEEKLY_BUDGET_PER_PERSON_COP = 40_000;
+
+/**
+ * The AI sometimes stops after a few days (strict mode cannot force the list
+ * length). Instead of throwing the answer away, ask only for the missing days
+ * and merge them in.
+ */
+async function fillMissingDays(
+  raw: unknown,
+  context: {
+    callModel: ModelCall;
+    allowedIds: ReadonlySet<string>;
+    userPrompt: (extra: {
+      onlyDays: string[];
+      planned: string[];
+    }) => string;
+  },
+): Promise<unknown> {
+  const list = (raw as { days?: unknown } | null)?.days;
+
+  if (!Array.isArray(list)) {
+    return raw;
+  }
+
+  const present = new Map<string, Record<string, unknown>>();
+
+  for (const entry of list) {
+    const name = (entry as { day?: unknown } | null)?.day;
+
+    if (typeof name === "string" && (DAYS as readonly string[]).includes(name)) {
+      present.set(name, entry as Record<string, unknown>);
+    }
+  }
+
+  const missing = DAYS.filter((day) => !present.has(day));
+
+  if (missing.length === 0 || present.size === 0) {
+    return raw;
+  }
+
+  const planned = [...present].map(([day, entry]) => {
+    const names = SLOTS.map(
+      (slot) => (entry[slot] as { name_es?: string } | undefined)?.name_es,
+    ).filter(Boolean);
+
+    return `${day}: ${names.join("; ")}`;
+  });
+
+  const response = await context.callModel({
+    system: COMPOSER_SYSTEM_PROMPT,
+    user: context.userPrompt({ onlyDays: missing, planned }),
+    responseFormat: composerResponseFormat([...context.allowedIds]),
+  });
+
+  if (!response.content) {
+    return raw;
+  }
+
+  try {
+    const extra = (JSON.parse(response.content) as { days?: unknown }).days;
+
+    if (Array.isArray(extra)) {
+      for (const entry of extra) {
+        const name = (entry as { day?: unknown } | null)?.day;
+
+        if (
+          typeof name === "string" &&
+          missing.includes(name as (typeof missing)[number]) &&
+          !present.has(name)
+        ) {
+          present.set(name, entry as Record<string, unknown>);
+        }
+      }
+    }
+  } catch {
+    return raw;
+  }
+
+  logEvent("plan_days_completed", { missing: missing.length });
+
+  return { days: DAYS.filter((day) => present.has(day)).map((day) => present.get(day)) };
+}
 
 /** A short, technical description of what was wrong with an answer. */
 function describeIssue(issue: ComposeIssue | null, raw: unknown): string {
@@ -225,6 +307,20 @@ export async function generatePlan(
       logEvent("plan_attempt_rejected", { attempt, code: "not_json" });
       continue;
     }
+
+    raw = await fillMissingDays(raw, {
+      callModel,
+      allowedIds,
+      userPrompt: (extra) =>
+        buildComposerUserPrompt({
+          targets,
+          budgetPerPersonCop: budgetPerPerson,
+          goals: input.goals,
+          allowed,
+          unmatchedText: rules.unmatchedText,
+          ...extra,
+        }),
+    });
 
     const { week, issue } = parseComposition(raw, allowedIds);
 
