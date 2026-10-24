@@ -44,7 +44,7 @@ export interface GenerateFailure {
 
 export type GenerateOutcome = { plan: BuiltPlan } | GenerateFailure;
 
-const MAX_ATTEMPTS = 2;
+const MAX_ATTEMPTS = 3;
 /** A catalog this small cannot make a varied week. */
 const MIN_ALLOWED_INGREDIENTS = 20;
 /**
@@ -114,6 +114,7 @@ export async function generatePlan(
   );
 
   let feedback: string | undefined;
+  let transportFailures = 0;
   let lastError: GenerateFailure = {
     error: {
       code: "generation_failed",
@@ -144,8 +145,11 @@ export async function generatePlan(
         },
       };
 
-      // Configuration problems will not fix themselves on a retry.
-      if (response.errorCode === "server_config") {
+      transportFailures += 1;
+
+      // Configuration problems will not fix themselves on a retry, and a
+      // service that failed twice would only run into the function time limit.
+      if (response.errorCode === "server_config" || transportFailures >= 2) {
         return lastError;
       }
 
@@ -157,7 +161,8 @@ export async function generatePlan(
     try {
       raw = JSON.parse(response.content);
     } catch {
-      feedback = "The answer was not valid JSON.";
+      feedback =
+        "The answer was cut off or not valid JSON. Use short dish names and at most 5 ingredients per meal.";
       logEvent("plan_attempt_rejected", { attempt, code: "not_json" });
       continue;
     }

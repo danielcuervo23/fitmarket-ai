@@ -69,6 +69,14 @@ const STORES = ["Exito", "D1"];
   assert.ok(!free.excludedIds.has("lomo_cerdo"), "'pollo' must not exclude pork");
   assert.deepEqual(free.unmatchedText, ["soya"]);
 
+  // "Granos" means the whole grains shelf, and "legumbres" the pulses.
+  const grains = buildRestrictionRules(["granos"]);
+  assert.ok(["arroz_blanco", "lentejas", "avena", "pasta", "pan_tajado"].every((id) => grains.excludedIds.has(id)));
+  assert.deepEqual(grains.unmatchedText, []);
+  assert.ok(!grains.excludedIds.has("papa"), "tubers are not grains");
+  const legumes = buildRestrictionRules(["Legumbres"]);
+  assert.ok(legumes.excludedIds.has("frijol") && !legumes.excludedIds.has("arroz_blanco"));
+
   assert.ok(buildRestrictionRules(["peanuts"]).excludedIds.has("mani"));
   assert.ok(buildRestrictionRules(["nueces"]).excludedTags.has("tree_nut"));
 }
@@ -98,10 +106,18 @@ const STORES = ["Exito", "D1"];
   oneItem.days[2].desayuno.items = [{ id: "avena", qty: 60 }];
   assert.equal(parseComposition(oneItem, ALL_IDS).issue, null);
 
-  // A meal whose only amount is invalid ends up empty and is rejected.
+  // A meal whose only amount is invalid ends up empty and is filled with the
+  // same meal of a neighbouring day, instead of failing the whole week.
   const negative = structuredClone(raw);
   negative.days[1].snacks.items[0].qty = -3;
-  assert.equal(parseComposition(negative, ALL_IDS).issue.code, "item_count");
+  const repaired = parseComposition(negative, ALL_IDS);
+  assert.equal(repaired.issue, null);
+  assert.deepEqual(repaired.week.mar.snacks.items, [{ id: "manzana", qty: 1 }]);
+
+  // ...but a slot that is empty on every day cannot be repaired.
+  const noSnacks = structuredClone(raw);
+  noSnacks.days.forEach((day) => { day.snacks.items = []; });
+  assert.equal(parseComposition(noSnacks, ALL_IDS).issue.code, "item_count");
 
   // A forbidden ingredient is "unknown" because it was never offered.
   const noEggs = new Set([...ALL_IDS].filter((id) => id !== "huevo"));

@@ -58,7 +58,7 @@ export function createOpenAICaller(config: {
           body: JSON.stringify({
             model: config.model || DEFAULT_MODEL,
             temperature: 0.6,
-            max_completion_tokens: 6000,
+            max_completion_tokens: 9000,
             messages: [
               { role: "system", content: request.system },
               { role: "user", content: request.user },

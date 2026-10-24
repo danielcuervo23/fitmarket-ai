@@ -188,7 +188,8 @@ export function parseComposition(
       const meal = readMeal(entry[slot]);
 
       if (!meal) {
-        return { week: null, issue: { code: "invalid_format" } };
+        // Unreadable meal: repaired below like an empty one.
+        continue;
       }
 
       // An ingredient that was never offered (forbidden by the user's
@@ -205,7 +206,7 @@ export function parseComposition(
       const items = cleanItems(meal.items);
 
       if (items.length < ITEMS_PER_MEAL.min) {
-        return { week: null, issue: { code: "item_count", day, slot } };
+        continue;
       }
 
       meals[slot] = {
@@ -217,7 +218,47 @@ export function parseComposition(
     week[day] = meals;
   }
 
+  const gap = repairMissingMeals(week);
+
+  if (gap) {
+    return { week: null, issue: { code: "item_count", ...gap } };
+  }
+
   return { week, issue: null };
+}
+
+/**
+ * A meal the AI left empty (or with only invalid amounts) is filled with the
+ * same meal of the nearest day that has one, so a single slip never costs the
+ * user the whole plan. Quality checks still judge the repaired week. Returns
+ * the first slot that cannot be repaired because no day has it.
+ */
+function repairMissingMeals(week: ComposedWeek): { day: Day; slot: Slot } | null {
+  for (const slot of SLOTS) {
+    for (let index = 0; index < DAYS.length; index += 1) {
+      const day = DAYS[index];
+
+      if (week[day][slot]) {
+        continue;
+      }
+
+      let donor: ComposedMeal | undefined;
+
+      for (let offset = 1; offset < DAYS.length && !donor; offset += 1) {
+        donor =
+          week[DAYS[(index + offset) % DAYS.length]][slot] ??
+          week[DAYS[(index - offset + DAYS.length) % DAYS.length]][slot];
+      }
+
+      if (!donor) {
+        return { day, slot };
+      }
+
+      week[day][slot] = { name: { ...donor.name }, items: donor.items.map((item) => ({ ...item })) };
+    }
+  }
+
+  return null;
 }
 
 // -------------------------------------------------------------------- prompt
@@ -284,7 +325,7 @@ export function buildComposerUserPrompt(input: ComposerInput): string {
   if (input.unmatchedText.length > 0) {
     lines.push(
       "",
-      `The user also wants to avoid: ${input.unmatchedText.join(", ")}. None of the allowed ingredients are these.`,
+      `The user also dislikes: ${input.unmatchedText.join(", ")}. Do not build any meal around these.`,
     );
   }
 

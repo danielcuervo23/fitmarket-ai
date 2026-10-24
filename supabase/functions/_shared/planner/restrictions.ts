@@ -44,6 +44,30 @@ const GROUP_SYNONYMS: Record<string, DietTag[]> = {
   honey: ["honey"],
 };
 
+/**
+ * Words that mean a whole shelf of the catalog ("granos" covers rice, pasta,
+ * oats, bread, lentils and beans). Matched against the catalog category.
+ */
+const CATEGORY_SYNONYMS: Record<string, Ingredient["category"]> = {
+  granos: "granos",
+  grano: "granos",
+  cereales: "granos",
+  cereal: "granos",
+  grains: "granos",
+  grain: "granos",
+};
+
+const LEGUME_IDS = ["lentejas", "frijol", "garbanzo", "arveja_seca"];
+
+const LEGUME_WORDS = new Set([
+  "legumbres",
+  "legumbre",
+  "leguminosas",
+  "legumes",
+  "legume",
+  "menestras",
+]);
+
 export function normalizeText(text: string): string {
   return text
     .normalize("NFD")
@@ -101,6 +125,20 @@ export function buildRestrictionRules(restrictions: string[]): RestrictionRules 
 
     if (group) {
       group.forEach((tag) => excludedTags.add(tag));
+      matched = true;
+    }
+
+    const category = CATEGORY_SYNONYMS[text];
+
+    if (category) {
+      CATALOG.filter((ingredient) => ingredient.category === category).forEach(
+        (ingredient) => excludedIds.add(ingredient.id),
+      );
+      matched = true;
+    }
+
+    if (LEGUME_WORDS.has(text)) {
+      LEGUME_IDS.forEach((id) => excludedIds.add(id));
       matched = true;
     }
 
