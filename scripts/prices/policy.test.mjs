@@ -91,3 +91,13 @@ test("owner authorization and precautions are recorded", () => {
   assert.ok(policy.precautions.neverRequest.includes("/busca*"));
   assert.match(policy.precautions.onStoreRequestToStop, /allowed: false/);
 });
+
+test("D1 is read on www.d1.com.co (domicilios.tiendasd1.com redirects there) with its own robots.txt", () => {
+  const d1 = policy.stores.D1;
+  assert.equal(d1.robotsUrl, "https://www.d1.com.co/robots.txt");
+  assert.equal(d1.productPathPattern, "/<slug>/p");
+  assert.match(d1.reason, /domicilios\.tiendasd1\.com/);
+  for (const rule of ["/account/*", "/login/*", "/checkout/*", "/busca/*", "/quick-view/*", "/espiar/*", "/buscapagina/*"]) {
+    assert.ok(d1.disallowedPaths.includes(rule), rule);
+  }
+});

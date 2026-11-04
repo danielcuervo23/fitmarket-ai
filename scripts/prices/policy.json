@@ -35,8 +35,8 @@
   "stores": {
     "D1": {
       "allowed": true,
-      "reason": "Autorizado por el dueno el 2026-11-04 (leyo los terminos de D1 y los autorizo bajo las precauciones). Solo paginas de producto que robots.txt no bloquea.",
-      "robotsUrl": "https://domicilios.tiendasd1.com/robots.txt",
+      "reason": "Autorizado por el dueno el 2026-11-04 (leyo los terminos de D1 y los autorizo bajo las precauciones). Solo paginas de producto que robots.txt no bloquea. Host cambiado el 2026-11-04: domicilios.tiendasd1.com redirige a www.d1.com.co, donde estan las paginas /<slug>/p y su robots.txt.",
+      "robotsUrl": "https://www.d1.com.co/robots.txt",
       "disallowedPaths": [
         "/account/*",
         "/login/*",

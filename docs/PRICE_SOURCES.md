@@ -30,7 +30,8 @@ Nota: la forma de elegir Bucaramanga en cada tienda aun no esta comprobada; cada
 
 Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decision del dueno; los veredictos de abajo quedan superados por la decision de arriba (salvo Ara).
 
-## D1 (domicilios.tiendasd1.com / d1.com.co)
+## D1 (www.d1.com.co; domicilios.tiendasd1.com redirige ahi)
+- Actualizacion 2026-11-04: `domicilios.tiendasd1.com` redirige a `www.d1.com.co`. Se leyo `https://www.d1.com.co/robots.txt` (una peticion): permite todo salvo `/account/*`, `/login/*`, `/checkout/*`, `/busca/*`, `/quick-view/*`, `/espiar/*`, `/buscapagina/*` y los parametros `initialMap=`, `initialQuery=`, `map=`, `searchState=`, `sc=`, `riode=`, `workspace=`, `OrderBy=`, `srlid=`, `utm_*`. Las paginas de producto `/<slug>/p` NO estan bloqueadas. `policy.json` ahora usa ese robots.txt (host cambiado).
 - robots.txt (revisado hoy): bloquea `/account/*`, `/login/*`, `/checkout/*`, `/busca/*`, `/quick-view/*`, `/espiar/*`, `/buscapagina/*` y varios parametros de busqueda.
 - Terminos: las URLs probadas (`/terminos-y-condiciones`) dan 404 y el pie de pagina se carga con JavaScript; no se pudo leer ningun texto legal.
 - Decision: **No**. No se pudieron leer los terminos.
