@@ -54,7 +54,11 @@ export function AIGenerationScreen({
     setIsLoading(true);
     setStep(0);
 
-    const { data, error: generationError } = await generateWeeklyPlan();
+    const {
+      data,
+      planId,
+      error: generationError,
+    } = await generateWeeklyPlan();
 
     if (!mountedRef.current) {
       return;
@@ -68,15 +72,22 @@ export function AIGenerationScreen({
       return;
     }
 
-    // The plan is shown even if saving fails; the menu screen then warns the
-    // user and offers to retry so they never lose it silently.
-    const { error: saveError } = await saveWeeklyPlan(data);
+    // With a planId the server already saved the plan. Without one (older
+    // server, or its save failed) the browser saves it. The plan is shown even
+    // if that fails; the menu screen then warns the user and offers to retry
+    // so they never lose it silently.
+    if (planId) {
+      setHasUnsavedPlan(false);
+    } else {
+      const { error: saveError } = await saveWeeklyPlan(data);
 
-    if (!mountedRef.current) {
-      return;
+      if (!mountedRef.current) {
+        return;
+      }
+
+      setHasUnsavedPlan(saveError !== null);
     }
 
-    setHasUnsavedPlan(saveError !== null);
     setPlan(data);
     setIsLoading(false);
     onDoneRef.current();

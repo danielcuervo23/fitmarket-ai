@@ -30,7 +30,8 @@ Sample data, in Spanish.
 - Per-store shopping checklist with progress, plan history, settings
 - Language setting (ES / EN) that follows the user across devices
 - Delete-account option (removes all personal data)
-- Not built yet: the AI chat (the screen says so)
+- Not built yet: the AI chat. Its placeholder screen is hidden unless
+  `VITE_FEATURE_CHAT=true`
 
 ## Tech stack
 
@@ -108,6 +109,8 @@ npm run dev              # http://localhost:5173
    supabase secrets set OPENAI_API_KEY=sk-...        # required
    supabase secrets set OPENAI_MODEL=gpt-4o          # optional (default gpt-4o)
    supabase secrets set GENERATION_DAILY_LIMIT=10    # optional (default 10)
+   supabase secrets set GENERATION_MAX_MODEL_CALLS=12      # optional: AI calls per plan (default 12)
+   supabase secrets set GENERATION_TIME_BUDGET_MS=120000   # optional: max time per plan (default 120 s)
    supabase secrets set ALLOWED_ORIGINS=https://your-domain.app,http://localhost:5173
    supabase functions deploy generate-weekly-plan
    supabase functions deploy delete-account

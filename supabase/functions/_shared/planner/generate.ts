@@ -3,6 +3,15 @@ import { logEvent } from "../log.ts";
 import { calcTargets, type BodyProfile } from "../nutrition.ts";
 import type { ModelCall } from "../openai.ts";
 import {
+  DEFAULT_MAX_MODEL_CALLS,
+  DEFAULT_TIME_BUDGET_MS,
+  MIN_COMPOSE_TIME_MS,
+  withCallBudget,
+  type CallBudget,
+  type GenerationLimits,
+  type GenerationUsage,
+} from "./callBudget.ts";
+import {
   assemblePlan,
   checkQuality,
   feedbackFor,
@@ -54,7 +63,13 @@ export interface GenerateFailure {
   };
 }
 
-export type GenerateOutcome = { plan: BuiltPlan } | GenerateFailure;
+export type GenerateOutcome = (
+  | { plan: BuiltPlan }
+  | GenerateFailure
+) & {
+  /** Model calls made; absent when no call was needed (early checks). */
+  usage?: GenerationUsage;
+};
 
 const MAX_ATTEMPTS = 3;
 /** A catalog this small cannot make a varied week. */
@@ -75,6 +90,7 @@ async function fillMissingDays(
   raw: unknown,
   context: {
     callModel: ModelCall;
+    canStart: CallBudget["canStart"];
     allowedIds: ReadonlySet<string>;
     userPrompt: (extra: {
       onlyDays: string[];
@@ -114,7 +130,10 @@ async function fillMissingDays(
   for (let round = 0; round < 2; round += 1) {
     const missing = DAYS.filter((day) => !present.has(day));
 
-    if (missing.length === 0) {
+    // A partial round cannot complete the week, so it would only waste paid
+    // calls: skip it when not every missing day fits in the budget. Parsing
+    // then reports the gap and the next attempt (with feedback) takes over.
+    if (missing.length === 0 || !context.canStart(missing.length)) {
       break;
     }
 
@@ -202,11 +221,13 @@ function issueFeedback(issue: ComposeIssue): string {
 
 /**
  * Generates a weekly plan. The model is injected so the whole pipeline can be
- * tested without calling OpenAI.
+ * tested without calling OpenAI. `limits` caps the number of model calls and
+ * the total time (defaults: 12 calls, 120 s from now).
  */
 export async function generatePlan(
   input: GenerateInput,
-  callModel: ModelCall,
+  rawCallModel: ModelCall,
+  limits?: Partial<GenerationLimits>,
 ): Promise<GenerateOutcome> {
   const floor = MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
 
@@ -245,6 +266,40 @@ export async function generatePlan(
     };
   }
 
+  const now = limits?.now ?? Date.now;
+  const budget = withCallBudget(rawCallModel, {
+    maxModelCalls: limits?.maxModelCalls ?? DEFAULT_MAX_MODEL_CALLS,
+    deadline: limits?.deadline ?? now() + DEFAULT_TIME_BUDGET_MS,
+    now,
+  });
+
+  return withUsage(
+    await composeWithinBudget(input, rules, allowed, budget),
+    budget.usage,
+  );
+}
+
+function withUsage(
+  outcome: GenerateOutcome,
+  usage: GenerationUsage,
+): GenerateOutcome {
+  logEvent("generation_usage", {
+    calls: usage.modelCalls,
+    billable: usage.billableCalls,
+    refused: usage.refusedCalls,
+  });
+
+  return { ...outcome, usage: { ...usage } };
+}
+
+/** The retry loop, with every model call going through the budget. */
+async function composeWithinBudget(
+  input: GenerateInput,
+  rules: ReturnType<typeof buildRestrictionRules>,
+  allowed: ReturnType<typeof allowedCatalog>,
+  budget: CallBudget,
+): Promise<GenerateOutcome> {
+  const { callModel, canStart } = budget;
   const allowedIds = new Set(allowed.map((ingredient) => ingredient.id));
   const targets = calcTargets(input.profile, input.goals);
   const budgetPerPerson = Math.round(
@@ -273,6 +328,12 @@ export async function generatePlan(
   };
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+    // Do not start a new attempt that cannot finish within the limits.
+    if (attempt > 0 && !canStart(1, MIN_COMPOSE_TIME_MS)) {
+      logEvent("generation_budget_exhausted", { attempt });
+      break;
+    }
+
     const response = await callModel({
       system: COMPOSER_SYSTEM_PROMPT,
       user: buildComposerUserPrompt({
@@ -324,6 +385,7 @@ export async function generatePlan(
 
     raw = await fillMissingDays(raw, {
       callModel,
+      canStart,
       allowedIds,
       userPrompt: (extra) =>
         buildComposerUserPrompt({

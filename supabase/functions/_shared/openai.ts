@@ -13,6 +13,8 @@ export interface ModelRequest {
   user: string;
   /** OpenAI `response_format` object (json_schema, strict). */
   responseFormat: unknown;
+  /** Shorter timeout for this call (never longer than the default). */
+  timeoutMs?: number;
 }
 
 export interface ModelResponse {
@@ -47,7 +49,11 @@ export function createOpenAICaller(config: {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+    const timeoutMs = Math.min(
+      OPENAI_TIMEOUT_MS,
+      request.timeoutMs ?? OPENAI_TIMEOUT_MS,
+    );
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(

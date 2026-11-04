@@ -276,4 +276,120 @@ const respond = (content) => ({ content: JSON.stringify(content), error: null, e
   assert.equal(result.error.code, "restrictions_too_strict");
 }
 
+// A model that answers one day per attempt and garbage for every day fill:
+// the worst case for the number of calls.
+function oneDayThenGarbage(onCall = () => {}) {
+  const full = goodComposition();
+  return async (request) => {
+    onCall(request);
+    if (/Compose ONLY these days now/.test(request.user)) {
+      return { content: "not json", error: null, errorCode: null };
+    }
+    return respond({ days: full.days.slice(0, 1) });
+  };
+}
+
+// 9. The call cap bounds the cost of one request (it used to reach ~40 calls).
+{
+  let uncapped = 0;
+  const before = await generatePlan(
+    baseInput,
+    oneDayThenGarbage(() => (uncapped += 1)),
+    { maxModelCalls: 1000 },
+  );
+  assert.ok(before.error);
+  assert.equal(uncapped, 39, "3 attempts x (1 + 2 rounds x 6 days)");
+
+  let calls = 0;
+  let composeCalls = 0;
+  const capped = await generatePlan(
+    baseInput,
+    oneDayThenGarbage((request) => {
+      calls += 1;
+      if (!/Compose ONLY these days now/.test(request.user)) composeCalls += 1;
+    }),
+  );
+  assert.ok(capped.error);
+  assert.ok(calls <= 12, `default cap is 12, made ${calls}`);
+  // A day-fill round that cannot cover every missing day is skipped (it could
+  // not complete the week), so the calls go to the retries with feedback.
+  assert.equal(calls, 9, "1 + 6 fills, then 2 retries; no partial round");
+  assert.equal(composeCalls, 3, "all 3 attempts still run");
+  assert.equal(capped.usage.modelCalls, calls);
+  assert.equal(capped.usage.billableCalls, calls, "every answer had content: all billed");
+
+  let small = 0;
+  await generatePlan(baseInput, oneDayThenGarbage(() => (small += 1)), { maxModelCalls: 3 });
+  assert.equal(small, 3, "the cap is configurable");
+}
+
+// 10. The time budget: a slow model (50 s per call) never runs past the deadline,
+// and each call is given at most the time left.
+{
+  let clock = 0;
+  const deadline = 120_000;
+  const full = goodComposition();
+  const timeouts = [];
+
+  const slowModel = async (request) => {
+    const startedAt = clock;
+    const limit = request.timeoutMs ?? Infinity;
+    timeouts.push({ limit, left: deadline - startedAt });
+    await null;
+    clock = Math.max(clock, startedAt + Math.min(50_000, limit));
+    if (limit < 50_000) {
+      return { content: null, error: "x", errorCode: "ai_timeout" };
+    }
+    if (/Compose ONLY these days now/.test(request.user)) {
+      return { content: "not json", error: null, errorCode: null };
+    }
+    return respond({ days: full.days.slice(0, 1) });
+  };
+
+  const result = await generatePlan(baseInput, slowModel, {
+    deadline,
+    now: () => clock,
+  });
+
+  assert.ok(result.error);
+  assert.ok(clock <= deadline, `finished at ${clock} ms, deadline ${deadline} ms`);
+  assert.ok(timeouts.every((t) => t.limit <= t.left), "no call may outlive the deadline");
+  // t=0 compose (50 s), t=50 s six day fills (50 s). At t=100 s only 20 s are
+  // left: less than a full composition needs (30 s), so attempt 2 never starts.
+  assert.equal(clock, 100_000);
+  assert.equal(result.usage.modelCalls, 7);
+}
+
+// 11. Usage is reported: the happy path makes one billed call.
+{
+  const result = await generatePlan(baseInput, async () => respond(goodComposition()));
+  assert.ok(result.plan);
+  assert.deepEqual(result.usage, { modelCalls: 1, billableCalls: 1, refusedCalls: 0 });
+}
+
+// 12. Refunds only when OpenAI charged nothing. An empty answer (a refusal)
+// and an aborted call may be billed, so a request ending in ai_timeout after
+// them is NOT refunded; a pure outage (no answer at all) is.
+{
+  const { shouldRefund } = await import("../quota.ts");
+  const answers = [
+    { content: null, error: "x", errorCode: "ai_empty", detail: "refusal" },
+    { content: null, error: "x", errorCode: "ai_timeout" },
+  ];
+  const billed = await generatePlan(baseInput, async () => answers.shift());
+  assert.equal(billed.error.code, "ai_timeout");
+  assert.equal(billed.usage.billableCalls, 2);
+  assert.equal(shouldRefund(billed.error.code, billed.usage), false);
+
+  const outage = await generatePlan(baseInput, async () => ({
+    content: null,
+    error: "x",
+    errorCode: "ai_unavailable",
+    detail: "http_503",
+  }));
+  assert.equal(outage.error.code, "ai_unavailable");
+  assert.equal(outage.usage.billableCalls, 0);
+  assert.equal(shouldRefund(outage.error.code, outage.usage), true);
+}
+
 console.log("generate: all checks passed");

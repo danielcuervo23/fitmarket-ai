@@ -1,4 +1,5 @@
-import { dbErrorKey, type ErrorKey } from "@/lib/errors";
+import type { ErrorKey } from "@/lib/errors";
+import { profileUpdateError } from "@/lib/profileUpdate";
 import { supabase } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/session";
 
@@ -18,22 +19,12 @@ export async function saveWeeklyBudget(
     return { error: "errors.notSignedIn" };
   }
 
-  const { error } = await supabase
+  // `select` returns the updated rows, so "no profile yet" is detectable.
+  const { data, error } = await supabase
     .from("profiles")
     .update({ weekly_budget_cop: Math.round(amountCop) })
-    .eq("id", user.id);
+    .eq("id", user.id)
+    .select("id");
 
-  if (error) {
-    // No profile row yet (the budget step was reached before the profile step).
-    if (
-      error.code === "PGRST116" ||
-      error.message.toLowerCase().includes("0 rows")
-    ) {
-      return { error: "errors.profileFirst" };
-    }
-
-    return { error: dbErrorKey(error) };
-  }
-
-  return { error: null };
+  return { error: profileUpdateError({ data, error }) };
 }

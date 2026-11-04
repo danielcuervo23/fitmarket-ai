@@ -24,8 +24,9 @@ flowchart LR
   UI -- generate plan (user JWT) --> Gen
   Gen -- reads profile, budget, stores... --> DB
   Gen -- picks foods and quantities --> AI
-  Gen -- saves nothing; returns the plan --> UI
-  UI -- saves the plan --> DB
+  Gen -- saves the plan (service role) --> DB
+  Gen -- returns plan + planId --> UI
+  UI -. saves the plan only if no planId .-> DB
   UI --> Del
 ```
 
@@ -81,7 +82,17 @@ Users can delete their own rows but cannot edit the request counter. The
 1. **Authenticate** the caller's JWT and **read** their profile, budget, goals,
    supermarkets and restrictions from the database.
 2. **Daily limit:** insert a request row and count the last 24 hours (default
-   10, configurable with `GENERATION_DAILY_LIMIT`).
+   10, configurable with `GENERATION_DAILY_LIMIT`). A failed try is given back
+   only when nothing could have been charged at OpenAI (outage or missing
+   config; any answer, empty answer or aborted call counts as billable); see
+   `_shared/quota.ts`.
+   **Per-plan caps** (`planner/callBudget.ts`): at most
+   `GENERATION_MAX_MODEL_CALLS` model calls (default 12, ceiling 40) and
+   `GENERATION_TIME_BUDGET_MS` from the request's arrival (default 120 s,
+   ceiling 140 s, below the Edge Function limit). A new attempt needs 30 s
+   left; a day-fill round runs only if every missing day fits in the budget
+   (a partial round cannot complete the week); each call's timeout is cut to
+   the time left.
 3. **Budget floor:** below 40,000 COP per person per week no realistic plan
    exists, so it answers immediately without calling the AI.
 4. **Restrictions:** free text such as "auyama" or "granos" is turned into
@@ -104,12 +115,35 @@ Users can delete their own rows but cannot edit the request counter. The
    ones (`planner/swaps.ts`).
 10. **Name the dishes:** meals changed by swaps are renamed so the dish name
     always matches its ingredients.
-11. **Return** the plan, or an error code with diagnostics (how many foods were
-    available, why each try failed). Tries that fail because of the service,
-    not the user, are given back to the user's daily limit.
+11. **Validate and save:** the plan is checked with the shared schema
+    (`weeklyPlanSchema.ts`) and, only if it passes, saved in `weekly_plans`
+    with the service role (`_shared/planStorage.ts`), waiting at most 5 s
+    for the insert. `user_id` always comes from the verified JWT, never from
+    the request body. A plan the schema rejects is not saved (it would hide
+    the user's previous valid plan) and answers `invalid_format` (422), not
+    refunded. When the save succeeds, a plan already paid for at OpenAI is
+    kept even if the connection drops before the browser gets it.
+12. **Return** `{ plan, planId }`, or an error code with diagnostics (how many
+    foods were available, why each try failed). Tries that fail because of the
+    service, not the user, are given back to the user's daily limit.
+
+If the server save fails (no `SUPABASE_SERVICE_ROLE_KEY`, insert error or
+timeout), the request does not fail: the answer is `{ plan }` without `planId`, the event
+`plan_save_failed` is logged with a code only, and the browser saves the plan
+itself with `saveWeeklyPlan`, as it always did. In that case the plan is only
+kept if the browser receives it; a dropped connection still loses it.
 
 The browser validates the plan again with the shared schema
-(`weeklyPlanSchema.ts`) before showing or saving it.
+(`weeklyPlanSchema.ts`) before showing it. `planId` is accepted only if it is
+a UUID string (`src/lib/planId.ts`); with it the browser does not save again,
+without it the browser saves and warns the user if that fails.
+
+**Transition.** Saving from the browser (`saveWeeklyPlan` and the RLS
+insert/update policies on `weekly_plans`) is kept on purpose so any deploy
+order works: a new app against an old function gets no `planId` and saves as
+before; an old app against a new function saves a second copy, so a plan
+generated during that window may appear twice in the history. Removing the
+browser save and those policies is a later, separate step.
 
 ### Why a catalog
 

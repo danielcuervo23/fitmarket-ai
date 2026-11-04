@@ -1,33 +1,31 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
 import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
-import { logEvent } from "../_shared/log.ts";
+import { logEvent, logUnexpected } from "../_shared/log.ts";
 import { callOpenAI } from "../_shared/openai.ts";
+import {
+  DEFAULT_MAX_MODEL_CALLS,
+  DEFAULT_TIME_BUDGET_MS,
+  MAX_MODEL_CALLS_CEILING,
+  MAX_TIME_BUDGET_MS,
+} from "../_shared/planner/callBudget.ts";
 import { generatePlan } from "../_shared/planner/generate.ts";
+import { respondWithGeneratedPlan } from "../_shared/planStorage.ts";
+import { positiveIntOr, shouldRefund } from "../_shared/quota.ts";
+import { parseWeeklyPlanJson } from "../_shared/weeklyPlanSchema.ts";
 
 const DEFAULT_DAILY_GENERATION_LIMIT = 10;
 
-/** Failures that are ours (not the user's), so they must not use up a daily try. */
-const REFUNDED_CODES = new Set([
-  "invalid_format",
-  "goal_incoherent",
-  "generation_failed",
-  "ai_unavailable",
-  "ai_timeout",
-  "ai_empty",
-  "rate_limited",
-  "server_config",
-]);
-
 function getDailyGenerationLimit(): number {
-  const configured = Number(Deno.env.get("GENERATION_DAILY_LIMIT"));
-
-  return Number.isInteger(configured) && configured > 0
-    ? configured
-    : DEFAULT_DAILY_GENERATION_LIMIT;
+  return positiveIntOr(
+    Deno.env.get("GENERATION_DAILY_LIMIT"),
+    DEFAULT_DAILY_GENERATION_LIMIT,
+  );
 }
 
 Deno.serve(async (req: Request) => {
+  // The time budget counts from arrival, so auth and database reads are included.
+  const startedAt = Date.now();
   const json = (body: Record<string, unknown>, status = 200) =>
     jsonResponse(req, body, status);
 
@@ -155,19 +153,44 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const outcome = await generatePlan(input, callOpenAI);
+    const outcome = await generatePlan(input, callOpenAI, {
+      maxModelCalls: positiveIntOr(
+        Deno.env.get("GENERATION_MAX_MODEL_CALLS"),
+        DEFAULT_MAX_MODEL_CALLS,
+        MAX_MODEL_CALLS_CEILING,
+      ),
+      deadline:
+        startedAt +
+        positiveIntOr(
+          Deno.env.get("GENERATION_TIME_BUDGET_MS"),
+          DEFAULT_TIME_BUDGET_MS,
+          MAX_TIME_BUDGET_MS,
+        ),
+    });
+
+    // Service role client, or null when the key is not configured. Used for
+    // writes the user must not control: the refund below and saving the plan.
+    const createServiceClient = () => {
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      return serviceKey
+        ? createClient(supabaseUrl, serviceKey, {
+            // A per-request server client: no session to keep or refresh.
+            auth: { persistSession: false, autoRefreshToken: false },
+          })
+        : null;
+    };
 
     // A try that failed because of us gives the user their try back. Users
     // cannot delete their own rows (so they cannot reset the counter), which
     // is why this uses the service role.
     const refund = async () => {
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      const serviceClient = createServiceClient();
 
-      if (!serviceKey || !recorded?.id) {
+      if (!serviceClient || !recorded?.id) {
         return;
       }
 
-      const { error } = await createClient(supabaseUrl, serviceKey)
+      const { error } = await serviceClient
         .from("plan_generation_requests")
         .delete()
         .eq("id", recorded.id);
@@ -178,12 +201,24 @@ Deno.serve(async (req: Request) => {
     };
 
     if ("plan" in outcome) {
-      return json({ plan: outcome.plan }, 200);
+      // Checked with the shared schema, then saved here so a network drop
+      // after generation does not lose a plan already paid for. user_id comes
+      // from the verified JWT only. An invalid plan is not saved and answers
+      // invalid_format (422), never refunded: its calls were billed. If the
+      // save fails the response still carries the plan, without planId, and
+      // the browser saves it as before.
+      const { status, body } = await respondWithGeneratedPlan(outcome.plan, {
+        parse: parseWeeklyPlanJson,
+        client: createServiceClient(),
+        userId: user.id,
+      });
+
+      return json(body, status);
     }
 
     const { code, message, budget, diagnostics } = outcome.error;
 
-    if (REFUNDED_CODES.has(code)) {
+    if (shouldRefund(code, outcome.usage)) {
       await refund();
     }
 
@@ -196,7 +231,8 @@ Deno.serve(async (req: Request) => {
       code === "server_config" ? 503 : code === "rate_limited" ? 429 : 422;
 
     return json({ error: message, code, diagnostics }, status);
-  } catch {
+  } catch (error) {
+    logUnexpected("generate-weekly-plan", error);
     return json(
       { error: "Error inesperado al generar tu plan.", code: "unexpected" },
       500,
