@@ -97,6 +97,20 @@ export function validateNewPassword(
   return null;
 }
 
+/**
+ * The field a `validateNewPassword` error belongs to, so the screen can mark
+ * it invalid and move focus there. Other errors (from the server) are not
+ * tied to a field and return null.
+ */
+export function newPasswordErrorField(
+  key: ErrorKey | null,
+): "password" | "confirmation" | null {
+  if (key === "auth.error.passwordRequired") return "password";
+  if (key === "auth.error.passwordTooShort") return "password";
+  if (key === "auth.error.passwordMismatch") return "confirmation";
+  return null;
+}
+
 const EXPIRED_SESSION_CODES = new Set([
   "session_not_found",
   "session_expired",

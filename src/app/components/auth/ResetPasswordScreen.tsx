@@ -4,6 +4,7 @@ import type { ErrorKey } from "@/lib/errors";
 import {
   hasAuthLinkError,
   leaveRecoverySession,
+  newPasswordErrorField,
   validateNewPassword,
 } from "@/lib/passwordReset";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,6 +59,8 @@ export function ResetPasswordScreen({
   );
   const signOutOthersHintId = useId();
   const savedRef = useRef<HTMLDivElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmationRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (saved) savedRef.current?.focus();
@@ -122,6 +125,9 @@ export function ResetPasswordScreen({
 
     if (validationError) {
       setErrorKey(validationError);
+      // Take the user (and screen readers) straight to the field to fix.
+      const field = newPasswordErrorField(validationError);
+      (field === "confirmation" ? confirmationRef : passwordRef).current?.focus();
       return;
     }
 
@@ -174,7 +180,11 @@ export function ResetPasswordScreen({
     setErrorKey(null);
     setLeaveErrorKey(null);
   };
-  const formError = leaveErrorKey ?? errorKey;
+  // Validation errors are shown under their field (aria-invalid +
+  // aria-describedby come from TextField); the rest go in the alert.
+  const errorField = newPasswordErrorField(errorKey);
+  const fieldError = errorField && errorKey ? t(errorKey) : null;
+  const formError = leaveErrorKey ?? (errorField ? null : errorKey);
 
   return (
     <Screen className="bg-white">
@@ -192,6 +202,8 @@ export function ResetPasswordScreen({
       >
         <ScreenBody className="flex flex-col gap-4 pb-4">
           <PasswordField
+            ref={passwordRef}
+            error={errorField === "password" ? fieldError : null}
             label={t("resetPassword.newPassword")}
             autoComplete="new-password"
             placeholder={t("register.passwordPlaceholder")}
@@ -203,6 +215,8 @@ export function ResetPasswordScreen({
             }}
           />
           <PasswordField
+            ref={confirmationRef}
+            error={errorField === "confirmation" ? fieldError : null}
             label={t("resetPassword.confirmPassword")}
             autoComplete="new-password"
             placeholder={t("resetPassword.confirmPlaceholder")}

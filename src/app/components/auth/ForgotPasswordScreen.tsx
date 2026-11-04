@@ -27,6 +27,9 @@ export function ForgotPasswordScreen({ resetPath, onBack }: Props) {
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
   const [sent, setSent] = useState(false);
   const sentRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  // Only validation errors belong to the field; server errors use the alert.
+  const [isFieldError, setIsFieldError] = useState(false);
 
   // Move focus to the confirmation so screen readers announce it.
   useEffect(() => {
@@ -41,10 +44,13 @@ export function ForgotPasswordScreen({ resetPath, onBack }: Props) {
 
     if (validationError) {
       setErrorKey(validationError);
+      setIsFieldError(true);
+      emailRef.current?.focus();
       return;
     }
 
     setErrorKey(null);
+    setIsFieldError(false);
     setIsLoading(true);
 
     try {
@@ -104,6 +110,8 @@ export function ForgotPasswordScreen({ resetPath, onBack }: Props) {
         >
           <ScreenBody className="flex flex-col gap-4 pb-4">
             <TextField
+              ref={emailRef}
+              error={isFieldError && errorKey ? t(errorKey) : null}
               label={t("auth.email")}
               type="email"
               autoComplete="email"
@@ -120,7 +128,9 @@ export function ForgotPasswordScreen({ resetPath, onBack }: Props) {
           </ScreenBody>
 
           <ScreenFooter>
-            {errorKey && <Alert tone="error">{t(errorKey)}</Alert>}
+            {errorKey && !isFieldError && (
+              <Alert tone="error">{t(errorKey)}</Alert>
+            )}
 
             <Button type="submit" size="lg" full loading={isLoading}>
               {t("forgotPassword.submit")}

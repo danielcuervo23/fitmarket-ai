@@ -7,6 +7,7 @@ import {
   initialRecoveryFlag,
   isRecoveryCallback,
   leaveRecoverySession,
+  newPasswordErrorField,
   nextRecoveryFlag,
   readRecoveryFlag,
   recoveryRedirect,
@@ -105,6 +106,13 @@ assert.equal(validateNewPassword("12345678", "12345679"), "auth.error.passwordMi
 assert.equal(validateNewPassword("12345678", ""), "auth.error.passwordMismatch");
 assert.equal(validateNewPassword("12345678", "12345678"), null);
 assert.equal(validateNewPassword("        ", "        "), null, "spaces are valid password characters");
+
+// Which field a validation error belongs to (it gets aria-invalid and focus).
+assert.equal(newPasswordErrorField("auth.error.passwordRequired"), "password");
+assert.equal(newPasswordErrorField("auth.error.passwordTooShort"), "password");
+assert.equal(newPasswordErrorField("auth.error.passwordMismatch"), "confirmation");
+assert.equal(newPasswordErrorField("auth.error.samePassword"), null, "server errors stay in the alert");
+assert.equal(newPasswordErrorField(null), null);
 
 // --- What to say when saving the new password fails -----------------------
 assert.equal(

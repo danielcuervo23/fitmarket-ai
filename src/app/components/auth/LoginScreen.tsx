@@ -102,7 +102,7 @@ export function LoginScreen({
             type="button"
             onClick={onForgotPassword}
             disabled={isLoading}
-            className="-mt-1 self-end text-[13px] font-bold text-brand-700 hover:underline disabled:opacity-50"
+            className="-my-2 -mr-2 inline-flex min-h-11 items-center self-end rounded-control px-2 text-[13px] font-bold text-brand-700 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-brand-600 disabled:opacity-50"
           >
             {t("login.forgotPassword")}
           </button>
