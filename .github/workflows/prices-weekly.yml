@@ -49,3 +49,18 @@ jobs:
           else
             node scripts/prices/main.ts
           fi
+
+      # Official DANE SIPSA wholesale prices (Bucaramanga): base of "Aproximado"
+      # estimates. Runs even if a store failed above; same dry-run switch.
+      - name: Read DANE SIPSA reference prices
+        if: ${{ !cancelled() }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            node scripts/prices/dane/main.ts --dry-run
+          else
+            node scripts/prices/dane/main.ts
+          fi

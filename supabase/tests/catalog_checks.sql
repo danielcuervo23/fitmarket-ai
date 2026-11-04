@@ -81,3 +81,16 @@ rollback;
 
 -- 7. Advisors (run from the CLI against the staging project):
 --   supabase db advisors        -- expected: no security errors
+
+begin;
+-- 8. city_reference_prices (migration 013): only the service writes; users read.
+--   As a signed-in user (role authenticated):
+--     select count(*) from public.city_reference_prices;        -- expected: works
+--     insert into public.city_reference_prices (city, food_id, price_cop_per_unit, observed_on, source)
+--       values ('bucaramanga', 'papa', 5, current_date, 'dane_sipsa');
+--       -- expected: ERROR: permission denied for table city_reference_prices
+--   With the service role, these must fail on the checks:
+insert into public.city_reference_prices (city, food_id, price_cop_per_unit, observed_on, source)
+values ('bucaramanga', 'papa', 0, current_date, 'dane_sipsa');
+-- expected: ERROR: violates check constraint (price_cop_per_unit > 0)
+rollback;

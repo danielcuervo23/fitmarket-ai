@@ -62,3 +62,37 @@ node scripts/foods/build-seed.ts
 
 Tests never use the network: they run against the fixtures in
 `scripts/foods/fixtures/`.
+
+## Wholesale reference prices: DANE SIPSA
+
+Fuente: DANE – SIPSA (Sistema de Información de Precios y Abastecimiento del
+Sector Agropecuario). Public, official data from the Colombian statistics
+office, read through its public SOAP web service
+(`https://appweb.dane.gov.co/sipsaWS/SrvSipsaUpraBeanService`, SOAP 1.2,
+operation `promediosSipsaSemanaMadr`; guide:
+<https://www.dane.gov.co/index.php/estadisticas-por-tema/agropecuario/sistema-de-informacion-de-precios-sipsa/servicio-web-para-consulta-de-la-base-de-datos-de-sipsa>).
+
+- Market used: **Bucaramanga, Centroabastos**, weekly average wholesale price
+  (COP per kg; eggs per unit).
+- One request per week (`.github/workflows/prices-weekly.yml`, same protected
+  `prices` environment). The service answers with the whole history (about
+  66 MB); only the rows of that one market are kept.
+- `scripts/prices/dane/mapping.json` links SIPSA product codes to our foods
+  (49 of 70 foods; meat, dairy, bread and other foods SIPSA does not publish
+  for this market keep the static reference price).
+- Wholesale is converted to our base unit, multiplied by a documented retail
+  markup (`scripts/prices/dane/markup.ts`, approximations) and stored in
+  `city_reference_prices` only if it lies within x0.33 to x3 of the food's static
+  reference price; otherwise it is reported as an anomaly and skipped.
+- The planner uses it only as the base of **estimated** prices (shown as
+  "Aproximado") when it is at most 45 days old; real store prices win over it.
+- Attribution is shown in the privacy policy ("Fuentes de datos", es/en).
+
+Re-running (reads the network; `--dry-run` writes nothing and needs no secrets):
+
+```sh
+node scripts/prices/dane/main.ts --dry-run
+```
+
+Tests never use the network: they run against `scripts/prices/dane/fixtures/`
+(a trimmed copy of a real answer captured 2026-11-04).

@@ -1,0 +1,410 @@
+{
+  "market": "Bucaramanga, Centroabastos",
+  "source": "DANE - SIPSA, promediosSipsaSemanaMadr (precio promedio mayorista por kg; huevo por unidad)",
+  "products": [
+    {
+      "foodId": "huevo",
+      "group": "proteina",
+      "priceBasis": "per_unit",
+      "artiIds": [
+        246,
+        245
+      ]
+    },
+    {
+      "foodId": "atun_lata",
+      "group": "proteina",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        336
+      ]
+    },
+    {
+      "foodId": "sardina_lata",
+      "group": "proteina",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        337
+      ]
+    },
+    {
+      "foodId": "tilapia",
+      "group": "proteina",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        332
+      ]
+    },
+    {
+      "foodId": "lentejas",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        224
+      ]
+    },
+    {
+      "foodId": "frijol",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        219
+      ]
+    },
+    {
+      "foodId": "garbanzo",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        222
+      ]
+    },
+    {
+      "foodId": "arveja_seca",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        207
+      ]
+    },
+    {
+      "foodId": "arroz_blanco",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        203,
+        204
+      ]
+    },
+    {
+      "foodId": "pasta",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        369
+      ]
+    },
+    {
+      "foodId": "avena",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        349
+      ]
+    },
+    {
+      "foodId": "harina_maiz",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        363
+      ]
+    },
+    {
+      "foodId": "sal",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        370
+      ]
+    },
+    {
+      "foodId": "azucar",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        347,
+        348
+      ]
+    },
+    {
+      "foodId": "panela",
+      "group": "abarrotes",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        343,
+        344
+      ]
+    },
+    {
+      "foodId": "papa",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        167,
+        179
+      ]
+    },
+    {
+      "foodId": "papa_criolla",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        159
+      ]
+    },
+    {
+      "foodId": "yuca",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        192
+      ]
+    },
+    {
+      "foodId": "platano",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        187
+      ]
+    },
+    {
+      "foodId": "tomate_chonto",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        49,
+        51
+      ]
+    },
+    {
+      "foodId": "cebolla_cabezona",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        18,
+        28
+      ]
+    },
+    {
+      "foodId": "cebolla_junca",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        29
+      ]
+    },
+    {
+      "foodId": "zanahoria",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        54
+      ]
+    },
+    {
+      "foodId": "habichuela",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        43
+      ]
+    },
+    {
+      "foodId": "brocoli",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        3
+      ]
+    },
+    {
+      "foodId": "espinaca",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        7
+      ]
+    },
+    {
+      "foodId": "lechuga",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        8,
+        10
+      ]
+    },
+    {
+      "foodId": "pepino",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        67
+      ]
+    },
+    {
+      "foodId": "pimenton",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        69
+      ]
+    },
+    {
+      "foodId": "ajo",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        61
+      ]
+    },
+    {
+      "foodId": "cilantro",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        4
+      ]
+    },
+    {
+      "foodId": "repollo",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        12
+      ]
+    },
+    {
+      "foodId": "remolacha",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        71
+      ]
+    },
+    {
+      "foodId": "ahuyama",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        57
+      ]
+    },
+    {
+      "foodId": "calabacin",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        63
+      ]
+    },
+    {
+      "foodId": "banano",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        94,
+        93
+      ]
+    },
+    {
+      "foodId": "manzana",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        127,
+        128
+      ]
+    },
+    {
+      "foodId": "naranja",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        86
+      ]
+    },
+    {
+      "foodId": "mandarina",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        83
+      ]
+    },
+    {
+      "foodId": "pera",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        142
+      ]
+    },
+    {
+      "foodId": "aguacate",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        89,
+        6221
+      ]
+    },
+    {
+      "foodId": "papaya",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        6100
+      ]
+    },
+    {
+      "foodId": "pina",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        144,
+        146
+      ]
+    },
+    {
+      "foodId": "mango",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        124
+      ]
+    },
+    {
+      "foodId": "guayaba",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        112
+      ]
+    },
+    {
+      "foodId": "fresa",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        105
+      ]
+    },
+    {
+      "foodId": "mora",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        135
+      ]
+    },
+    {
+      "foodId": "tomate_arbol",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        148
+      ]
+    },
+    {
+      "foodId": "maracuya",
+      "group": "fresco",
+      "priceBasis": "per_kg",
+      "artiIds": [
+        133
+      ]
+    }
+  ]
+}
