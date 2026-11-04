@@ -60,7 +60,7 @@ Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decisio
 
 ## Que cambio despues
 - Ara (tarea 12 original) no se lee. En su lugar, los precios de referencia de Bucaramanga vienen del DANE (SIPSA, mayoristas) y se muestran como "Aproximado"; los precios de Ara llegaran con los reportes de usuarios (plan 5).
-- El metodo de D1 en `policy.json` es `vtex_io_state` (lee el `__STATE__` de VTEX IO de la pagina de producto), no `jsonld_html`.
+- El campo `method` de `policy.json` dice lo que cada lector realmente lee de la pagina de producto: Exito y Carulla usan `next_data` (el JSON `__NEXT_DATA__`, via `extractFastStoreProduct`); Jumbo y D1 usan `vtex_io_state` (el `__STATE__` de VTEX IO, via `extractVtexIoProduct`). Ninguna usa ya `jsonld_html`.
 
 ## Pendiente
 - Revision legal antes del lanzamiento publico (recomendada al dueno, pendiente).

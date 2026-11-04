@@ -39,7 +39,7 @@ export const storePolicySchema = z
     disallowedPaths: z.array(z.string()),
     termsUrl: z.string().url().startsWith("https://"),
     termsSummary: z.string().min(1),
-    method: z.enum(["vtex_api", "jsonld_html", "vtex_io_state", "json_api", "none"]),
+    method: z.enum(["vtex_api", "jsonld_html", "vtex_io_state", "next_data", "json_api", "none"]),
     bucaramanga: z.object({ available: z.boolean(), how: z.string() }).strict(),
     minDelayMs: z.number().int().min(0),
     readOnly: z.literal("product_pages").optional(),

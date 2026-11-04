@@ -93,7 +93,7 @@
       ],
       "termsUrl": "https://www.exito.com/terminos-condiciones",
       "termsSummary": "Terminos del Vendedor: la plataforma permite al Vendedor cancelar cuentas o prohibir acceso por conductas violatorias; imagenes, marcas y demas elementos son propiedad intelectual protegida. No hay clausula explicita sobre scraping.",
-      "method": "jsonld_html",
+      "method": "next_data",
       "bucaramanga": {
         "available": true,
         "how": "Por confirmar en el modulo de cada tienda (documentacion solamente; el codigo no lo interpreta)."
@@ -118,7 +118,7 @@
       ],
       "termsUrl": "https://www.carulla.com/terminos-condiciones",
       "termsSummary": "Terminos del Vendedor (Grupo Exito): no hay clausula explicita sobre scraping; se reserva el derecho de prohibir el acceso a quien incumpla los terminos y se abstiene de conductas que afecten el funcionamiento de la plataforma.",
-      "method": "jsonld_html",
+      "method": "next_data",
       "bucaramanga": {
         "available": true,
         "how": "Por confirmar en el modulo de cada tienda (documentacion solamente; el codigo no lo interpreta)."
@@ -144,7 +144,7 @@
       ],
       "termsUrl": "https://www.jumbocolombia.com/terminos-y-condiciones",
       "termsSummary": "Terminos leidos por el dueno, no verificados por el equipo; autorizo la lectura bajo las precauciones de este archivo.",
-      "method": "jsonld_html",
+      "method": "vtex_io_state",
       "bucaramanga": {
         "available": true,
         "how": "Por confirmar en el modulo de cada tienda (documentacion solamente; el codigo no lo interpreta)."
