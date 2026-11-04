@@ -1,12 +1,17 @@
 import type { AuthError } from "@supabase/supabase-js";
 import type { ErrorKey } from "@/lib/errors";
+import { isValidEmail, MIN_PASSWORD_LENGTH } from "@/lib/authRules";
+import {
+  buildPasswordResetRedirect,
+  resetRequestErrorKey,
+  savePassword,
+  type SignOutScope,
+} from "@/lib/passwordReset";
 import { supabase } from "@/lib/supabase";
 
 export type PostAuthRoute = "dashboard" | "profile";
 
-export const MIN_PASSWORD_LENGTH = 8;
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export { MIN_PASSWORD_LENGTH };
 
 function signInErrorKey(error: AuthError): ErrorKey {
   const message = error.message.toLowerCase();
@@ -66,7 +71,7 @@ export function validateAuthForm(
     return "auth.error.emailRequired";
   }
 
-  if (!EMAIL_PATTERN.test(trimmedEmail)) {
+  if (!isValidEmail(trimmedEmail)) {
     return "auth.error.emailInvalid";
   }
 
@@ -97,8 +102,48 @@ export async function signInWithEmail(
   return { error: null };
 }
 
-export async function signOut(): Promise<{ error: ErrorKey | null }> {
-  const { error } = await supabase.auth.signOut();
+/**
+ * Sends the reset e-mail. Returns an error only for problems the user can act
+ * on (network, rate limit); otherwise the screen shows the same neutral
+ * message whether or not the address has an account. `resetPath` is the
+ * app route the e-mail link opens.
+ */
+export async function requestPasswordReset(
+  email: string,
+  resetPath: string,
+): Promise<{ error: ErrorKey | null }> {
+  const redirectTo = buildPasswordResetRedirect(
+    resetPath,
+    import.meta.env.VITE_AUTH_REDIRECT_URL,
+    window.location.origin,
+  );
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo,
+  });
+
+  return { error: resetRequestErrorKey(error) };
+}
+
+/**
+ * Saves a new password for the signed-in (or recovering) user. With
+ * `signOutOthers`, every other session is closed afterwards (this one stays);
+ * if that part fails the password is still saved and `warning` says so.
+ */
+export function updatePassword(
+  password: string,
+  options: { signOutOthers?: boolean } = {},
+): Promise<{ error: ErrorKey | null; warning: ErrorKey | null }> {
+  return savePassword(supabase.auth, password, options);
+}
+
+/**
+ * Signs out. The default ("global", as in supabase-js) ends every session of
+ * the user; "local" ends only this device's session.
+ */
+export async function signOut(
+  options: { scope?: SignOutScope } = {},
+): Promise<{ error: ErrorKey | null }> {
+  const { error } = await supabase.auth.signOut(options);
 
   if (error) {
     return { error: "errors.signOut" };

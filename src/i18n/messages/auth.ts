@@ -38,6 +38,33 @@ export const auth = defineMessages({
     "login.submit": "Iniciar sesión",
     "login.noAccount": "¿No tienes cuenta?",
     "login.createAccount": "Crear cuenta",
+    "login.forgotPassword": "¿Olvidaste tu contraseña?",
+
+    "forgotPassword.title": "Recupera tu contraseña",
+    "forgotPassword.subtitle":
+      "Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva.",
+    "forgotPassword.submit": "Enviar enlace",
+    "forgotPassword.sent":
+      "Si hay una cuenta con ese correo, te enviamos un enlace. Revisa tu bandeja de entrada y la carpeta de spam.",
+    "forgotPassword.useOtherEmail": "Usar otro correo",
+    "forgotPassword.backToLogin": "Volver a iniciar sesión",
+
+    "resetPassword.title": "Crea una nueva contraseña",
+    "resetPassword.subtitle": "Elige una contraseña que no hayas usado antes.",
+    "resetPassword.newPassword": "Nueva contraseña",
+    "resetPassword.confirmPassword": "Repite la contraseña",
+    "resetPassword.confirmPlaceholder": "Escríbela otra vez",
+    "resetPassword.submit": "Guardar contraseña",
+    "resetPassword.successTitle": "Contraseña actualizada",
+    "resetPassword.success": "Listo. Tu contraseña se cambió.",
+    "resetPassword.continue": "Continuar a FitMarket AI",
+    "resetPassword.invalidTitle": "El enlace ya no sirve",
+    "resetPassword.requestNew": "Pedir un enlace nuevo",
+    "resetPassword.signOutOthers": "Cerrar sesión en mis otros dispositivos",
+    "resetPassword.signOutOthersHint":
+      "Recomendado si crees que alguien más entró a tu cuenta.",
+    "resetPassword.otherDevicesFailed":
+      "Tu contraseña se cambió, pero no pudimos cerrar las otras sesiones.",
 
     "register.title": "Crea tu cuenta",
     "register.subtitle": "Comienza gratis, sin tarjeta de crédito.",
@@ -87,6 +114,33 @@ export const auth = defineMessages({
     "login.submit": "Sign in",
     "login.noAccount": "Don't have an account?",
     "login.createAccount": "Create account",
+    "login.forgotPassword": "Forgot your password?",
+
+    "forgotPassword.title": "Reset your password",
+    "forgotPassword.subtitle":
+      "Enter your account email and we'll send you a link to create a new one.",
+    "forgotPassword.submit": "Send link",
+    "forgotPassword.sent":
+      "If there's an account with that email, we sent you a link. Check your inbox and spam folder.",
+    "forgotPassword.useOtherEmail": "Use a different email",
+    "forgotPassword.backToLogin": "Back to sign in",
+
+    "resetPassword.title": "Create a new password",
+    "resetPassword.subtitle": "Choose a password you haven't used before.",
+    "resetPassword.newPassword": "New password",
+    "resetPassword.confirmPassword": "Repeat the password",
+    "resetPassword.confirmPlaceholder": "Type it again",
+    "resetPassword.submit": "Save password",
+    "resetPassword.successTitle": "Password updated",
+    "resetPassword.success": "Done. Your password has been changed.",
+    "resetPassword.continue": "Continue to FitMarket AI",
+    "resetPassword.invalidTitle": "This link no longer works",
+    "resetPassword.requestNew": "Request a new link",
+    "resetPassword.signOutOthers": "Sign me out on my other devices",
+    "resetPassword.signOutOthersHint":
+      "Recommended if you think someone else got into your account.",
+    "resetPassword.otherDevicesFailed":
+      "Your password was changed, but we couldn't sign out your other sessions.",
 
     "register.title": "Create your account",
     "register.subtitle": "Start for free, no credit card needed.",

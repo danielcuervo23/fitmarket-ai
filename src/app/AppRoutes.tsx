@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { resolvePostAuthRoute } from "@/lib/auth";
 import { displayNameFromUser } from "@/lib/displayName";
+import { recoveryRedirect } from "@/lib/passwordReset";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES, tabToPath } from "./routes";
 import type { NavTab } from "./components/shared/BottomNav";
@@ -10,6 +11,8 @@ import { SplashScreen } from "./components/auth/SplashScreen";
 import { OnboardingScreen } from "./components/auth/OnboardingScreen";
 import { RegisterScreen } from "./components/auth/RegisterScreen";
 import { LoginScreen } from "./components/auth/LoginScreen";
+import { ForgotPasswordScreen } from "./components/auth/ForgotPasswordScreen";
+import { ResetPasswordScreen } from "./components/auth/ResetPasswordScreen";
 import { AuthLoadingScreen } from "./components/auth/AuthLoadingScreen";
 import { PrivacyScreen } from "./components/account/PrivacyScreen";
 
@@ -149,7 +152,7 @@ function SplashRoute() {
 }
 
 export function AppRoutes() {
-  const { isLoading, user } = useAuth();
+  const { isLoading, user, session, isPasswordRecovery } = useAuth();
   const [location, navigate] = useLocation();
 
   const displayName = user ? displayNameFromUser(user) : "Usuario";
@@ -165,6 +168,20 @@ export function AppRoutes() {
 
   if (isLoading) {
     return <AuthLoadingScreen />;
+  }
+
+  // A password-reset link signs the user in. Until the new password is saved,
+  // every route leads to the new-password screen, so the splash redirect (or
+  // a Site URL fallback landing on "/") cannot skip it.
+  const recoveryTarget = recoveryRedirect({
+    location,
+    resetPath: ROUTES.resetPassword,
+    isRecovering: isPasswordRecovery,
+    hasSession: session !== null,
+  });
+
+  if (recoveryTarget) {
+    return <Redirect to={recoveryTarget} replace />;
   }
 
   return (
@@ -217,7 +234,27 @@ export function AppRoutes() {
             <LoginScreen
               onSuccess={() => void afterAuth()}
               onGoToRegister={() => navigate(ROUTES.register)}
+              onForgotPassword={() => navigate(ROUTES.forgotPassword)}
               onBack={() => navigate(ROUTES.splash)}
+            />
+          </Route>
+
+          {/* Public on purpose: neither route redirects a signed-in user, so
+              the recovery session created by the e-mail link stays here. */}
+          <Route path={ROUTES.forgotPassword}>
+            <ForgotPasswordScreen
+              resetPath={ROUTES.resetPassword}
+              onBack={() => navigate(ROUTES.login)}
+            />
+          </Route>
+
+          <Route path={ROUTES.resetPassword}>
+            <ResetPasswordScreen
+              onDone={() => void afterAuth()}
+              onRequestNewLink={() =>
+                navigate(ROUTES.forgotPassword, { replace: true })
+              }
+              onGoToLogin={() => navigate(ROUTES.login, { replace: true })}
             />
           </Route>
 
