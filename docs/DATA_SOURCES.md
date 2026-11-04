@@ -116,4 +116,41 @@ node scripts/prices/dane/main.ts --dry-run
 ```
 
 Tests never use the network: they run against `scripts/prices/dane/fixtures/`
-(a trimmed copy of a real answer captured 2026-11-04).
+(a trimmed copy of a real answer captured 2026-11-04; the "Pera importada"
+rows, code 141, were added from the same answer when pera was remapped).
+
+### Static reference prices vs DANE (review of 2026-11-04)
+
+Every static `refPriceCop` of the 49 mapped foods was compared with DANE
+SIPSA (Bucaramanga, Centroabastos, week of 2026-10-24) x the retail markup.
+The owner approved these changes (`data/foods/foods.json`, the planner
+catalog `supabase/functions/_shared/catalog.ts`, the regenerated seed 012 and
+migration `014_fix_reference_prices.sql` for databases that already ran 012):
+
+| Food | Before | Now | Why |
+|---|---|---|---|
+| cebolla_junca | 10.9 (sample) | 2.7 (estimate) | SIPSA yearly median 1,975 COP/kg x 1.35 |
+| cilantro | 41.8 (sample) | 9.5 (estimate) | SIPSA yearly median 7,071 COP/kg x 1.35 |
+| lechuga | 8 | 4 | near DANE x markup (3.09) |
+| pepino | 8 | 3.5 | near DANE x markup (2.90) |
+| ajo | 20 | 11 | near DANE x markup (8.26), sold in small mesh bags |
+| repollo | 3 | 1.8 | near DANE x markup (1.40) |
+| remolacha | 4 | 2.5 | near DANE x markup (1.59) |
+| calabacin | 6 | 3 | near DANE x markup (2.70) |
+| espinaca | 12 | 8 | near DANE x markup (6.49) |
+| naranja | 800 / unit | 450 / unit | near DANE x markup (331) |
+| aguacate | 3500 / unit | 2500 / unit | near DANE x markup (2,081) |
+| guayaba | 6 | 4.5 | near DANE x markup (3.49) |
+| tilapia | 25 | 17 | near DANE x markup (13.9) |
+| sardina_lata | 36 | 25 | near DANE x markup (22.4) |
+
+COP per g unless marked. The old cebolla junca and cilantro values were a
+packaged-herb shelf price read outside Bucaramanga (the crossed-out price
+during a 40% promotion), 4-6x above DANE, so the weekly job rejected DANE for
+them every week. The yearly median (the 50 weekly prices of the last year in the service's answer) is used
+for both because their wholesale price swings a lot (cilantro 2,625-14,357
+COP/kg in the year). `pera` keeps 1800 per unit but is now mapped to SIPSA 141
+"Pera importada" (the catalog pear, 170 g), not 142 "Pera nacional".
+banano, papa and zanahoria stay as real shelf samples although they sit at
+x1.65-x1.73. `scripts/prices/dane/referencePrices.test.mjs` keeps every other
+mapped food within x0.6-x1.6 of DANE x markup on the fixture week.

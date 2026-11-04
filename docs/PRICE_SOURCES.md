@@ -75,6 +75,7 @@ Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decisio
 
 ## Que cambio despues
 - Ara (tarea 12 original) no se lee. En su lugar, los precios de referencia de Bucaramanga vienen del DANE (SIPSA, mayoristas) y se muestran como "Aproximado"; los precios de Ara llegaran con los reportes de usuarios (plan 5).
+- 2026-11-04: revision de los precios de referencia estaticos contra el DANE (aprobada por el dueno). Cebolla junca (2,7 COP/g) y cilantro (9,5 COP/g) pasan a la mediana anual del DANE x 1,35; doce precios estimados se acercan al DANE x recargo; la pera se compara con "Pera importada". Detalle en `docs/DATA_SOURCES.md` y en la migracion `014_fix_reference_prices.sql`.
 - El campo `method` de `policy.json` dice lo que cada lector realmente lee de la pagina de producto: Exito y Carulla usan `next_data` (el JSON `__NEXT_DATA__`, via `extractFastStoreProduct`); Jumbo y D1 usan `vtex_io_state` (el `__STATE__` de VTEX IO, via `extractVtexIoProduct`). Ninguna usa ya `jsonld_html`.
 
 ## Metodo `manual_browser` (anotacion a mano en el navegador)

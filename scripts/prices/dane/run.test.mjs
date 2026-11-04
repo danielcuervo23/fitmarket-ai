@@ -31,7 +31,7 @@ test("stores one validated row per food with source dane_sipsa", async () => {
     assert.ok(row.pricePerUnit > 0);
     assert.match(row.observedOn, /^\d{4}-\d{2}-\d{2}$/);
   }
-  assert.deepEqual(summary.anomalies.map((a) => a.foodId).sort(), ["cebolla_junca", "cilantro"]);
+  assert.deepEqual(summary.anomalies, [], "every mapped food passes the x0.33 to x3 check since the 2026-11-04 price review");
 });
 
 test("a dry run reads and checks but writes nothing", async () => {

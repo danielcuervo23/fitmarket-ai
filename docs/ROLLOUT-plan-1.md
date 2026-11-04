@@ -6,7 +6,7 @@ Quien: **Dueno** = tu. **Desarrollador** = el equipo/agentes.
 
 ## 1. Proyecto de prueba (staging) en Supabase
 - **Dueno:** crea un proyecto de Supabase GRATIS para pruebas (es una copia de ensayo, como un taller de practica antes de la casa real) y pasa la URL y los accesos al desarrollador de forma segura.
-- **Desarrollador:** aplica las migraciones 010, 011, 012 y 013 en ese proyecto; corre `supabase/tests/catalog_checks.sql`; corre los avisos de seguridad y rendimiento (advisors) de Supabase.
+- **Desarrollador:** aplica las migraciones 010, 011, 012, 013 y 014 en ese proyecto (si 012 ya estaba aplicada, basta con aplicar 014); corre `supabase/tests/catalog_checks.sql`; corre los avisos de seguridad y rendimiento (advisors) de Supabase.
 - **Comprobar:** `select count(*) from foods` da el mismo numero de alimentos que `foods.json`; las pruebas SQL pasan; los advisors no muestran nada grave.
 - **Deshacer:** borrar el proyecto de pruebas (no toca produccion).
 
@@ -46,13 +46,13 @@ Carulla y Exito bloquean al robot, y D1 cambia sus precios segun la ciudad (el r
 - **Deshacer:** borrar las filas de `prices` de ese dia y tienda; revertir el commit de los mapeos. Los precios de mas de 45 dias no se importan.
 
 ## 5. Revisiones del dueno
-- **Dueno:** revisar los precios de referencia estaticos de `cebolla_junca` y `cilantro` (parecen muy altos frente al DANE).
+- ~~**Dueno:** revisar los precios de referencia estaticos de `cebolla_junca` y `cilantro`.~~ Hecho el 2026-11-04: el dueno aprobo los nuevos valores (migracion 014, detalle en `docs/DATA_SOURCES.md`). Nota: el plan 2 tambien pensaba usar el numero 014; el que se una despues debe renumerar la suya.
 - **Dueno:** aprobar los recargos sobre los precios del DANE (fresco 1.35, proteina 1.20, abarrotes 1.15) y el texto de atribucion al DANE.
 - **Deshacer:** son valores del codigo; se corrigen y se vuelve a desplegar.
 
 ## 6. Produccion, en este orden
 Cada paso funciona con el anterior ya puesto. Antes de cada uno: "¿lo hago?" y OK del dueno.
-1. **Migraciones** 010 → 011 → 012 → 013 en produccion. Comprobar el conteo de `foods`. La funcion vieja sigue funcionando (ignora las tablas nuevas). Deshacer: las migraciones son aditivas; si hace falta, simplemente no se usan las tablas nuevas.
+1. **Migraciones** 010 → 011 → 012 → 013 → 014 en produccion. Comprobar el conteo de `foods`. La funcion vieja sigue funcionando (ignora las tablas nuevas). Deshacer: las migraciones son aditivas; si hace falta, simplemente no se usan las tablas nuevas.
 2. **Trabajo de precios:** cambiar los secretos del entorno `prices` a los de produccion, correr con `dry_run=true` y luego real. Deshacer: borrar las filas nuevas de `prices` y `city_reference_prices`.
 3. **Edge Function** `generate-weekly-plan` (opcional `CATALOG_CACHE_TTL_MS`). Comprobar: el log muestra `catalog_origin` = `db` y un usuario sin ciudad obtiene el mismo total que antes. Deshacer: volver a desplegar la funcion anterior; la base se queda igual.
 4. **Web.** Comprobar: la pantalla del mercado muestra "Actualizado el ..." para usuarios de Bucaramanga con precios leidos y "Aproximado" en los demas; los planes viejos del historial abren. Deshacer: volver al despliegue anterior de la web.
