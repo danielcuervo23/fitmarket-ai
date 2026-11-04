@@ -1,0 +1,35 @@
+{
+  "Product:manzana-royal-gala-x-6-und": {
+    "productName": "Manzana Royal gala x 6 un",
+    "items": [
+      {
+        "type": "id",
+        "id": "Product:manzana-royal-gala-x-6-und.items.0"
+      }
+    ]
+  },
+  "Product:manzana-royal-gala-x-6-und.items.0": {
+    "itemId": "24906",
+    "name": "Manzana Royal gala x 6 un",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "sellers": [
+      {
+        "type": "id",
+        "id": "Product:manzana-royal-gala-x-6-und.items.0.sellers.0"
+      }
+    ]
+  },
+  "Product:manzana-royal-gala-x-6-und.items.0.sellers.0": {
+    "sellerDefault": true,
+    "commertialOffer": {
+      "type": "id",
+      "id": "$Product:manzana-royal-gala-x-6-und.items.0.sellers.0.commertialOffer"
+    }
+  },
+  "$Product:manzana-royal-gala-x-6-und.items.0.sellers.0.commertialOffer": {
+    "Price": 16390,
+    "ListPrice": 16390,
+    "AvailableQuantity": 16
+  }
+}
