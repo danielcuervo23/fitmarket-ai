@@ -249,17 +249,23 @@ export function recoveryRedirect(state: {
   return resetPath;
 }
 
+/** Which sessions a sign-out ends (same values as supabase-js). */
+export type SignOutScope = "global" | "local" | "others";
+
 /**
- * Leaves an unfinished recovery: signs out first (which also turns the
- * recovery flag off) and only then runs `next`, so `recoveryRedirect` does
- * not send the user straight back. If signing out fails, `next` is skipped
- * and the error is returned for the screen to show.
+ * Leaves an unfinished recovery: signs out of THIS device only (which also
+ * turns the recovery flag off; the user's other devices stay signed in) and
+ * only then runs `next`, so `recoveryRedirect` does not send the user
+ * straight back. If signing out fails, `next` is skipped and the error is
+ * returned for the screen to show.
  */
 export async function leaveRecoverySession(
-  signOut: () => Promise<{ error: ErrorKey | null }>,
+  signOut: (options: { scope: SignOutScope }) => Promise<{
+    error: ErrorKey | null;
+  }>,
   next: () => void,
 ): Promise<ErrorKey | null> {
-  const { error } = await signOut();
+  const { error } = await signOut({ scope: "local" });
   if (error) return error;
   next();
   return null;
@@ -288,4 +294,29 @@ export async function signOutOtherDevicesIfAsked(
   } catch {
     return { warningKey: "resetPassword.otherDevicesFailed" };
   }
+}
+
+/** The part of `supabase.auth` used to save a new password. */
+export interface PasswordClient extends OtherSessionsClient {
+  updateUser(attributes: {
+    password: string;
+  }): Promise<{ error: AuthErrorLike | null }>;
+}
+
+/**
+ * Saves the new password and, only if that worked and the user asked for
+ * it, closes the other sessions. A failed update never touches them.
+ */
+export async function savePassword(
+  client: PasswordClient,
+  password: string,
+  { signOutOthers = false }: { signOutOthers?: boolean } = {},
+): Promise<{ error: ErrorKey | null; warning: ErrorKey | null }> {
+  const { error } = await client.updateUser({ password });
+
+  if (error) return { error: updatePasswordErrorKey(error), warning: null };
+
+  const { warningKey } = await signOutOtherDevicesIfAsked(signOutOthers, client);
+
+  return { error: null, warning: warningKey };
 }

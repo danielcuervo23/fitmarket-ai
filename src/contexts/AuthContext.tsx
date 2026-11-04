@@ -12,6 +12,7 @@ import { signOut as authSignOut } from "@/lib/auth";
 import type { ErrorKey } from "@/lib/errors";
 import {
   browserSessionStorage,
+  type SignOutScope,
   initialRecoveryFlag,
   nextRecoveryFlag,
   writeRecoveryFlag,
@@ -28,7 +29,10 @@ interface AuthContextValue {
    * new-password screen meanwhile.
    */
   isPasswordRecovery: boolean;
-  signOut: () => Promise<{ error: ErrorKey | null }>;
+  /** Default scope is global; pass `{ scope: "local" }` for this device only. */
+  signOut: (options?: {
+    scope?: SignOutScope;
+  }) => Promise<{ error: ErrorKey | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -79,8 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signOut = useCallback(async () => {
-    const result = await authSignOut();
+  const signOut = useCallback(async (options?: { scope?: SignOutScope }) => {
+    const result = await authSignOut(options);
     if (!result.error) {
       setSession(null);
       setUser(null);

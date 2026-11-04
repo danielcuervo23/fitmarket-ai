@@ -12,6 +12,7 @@ import {
   readRecoveryFlag,
   recoveryRedirect,
   resetRequestErrorKey,
+  savePassword,
   signOutOtherDevicesIfAsked,
   updatePasswordErrorKey,
   validateNewPassword,
@@ -273,14 +274,18 @@ assert.equal(
 {
   const calls = [];
   const error = await leaveRecoverySession(
-    async () => {
-      calls.push("signOut");
+    async (options) => {
+      calls.push(["signOut", options]);
       return { error: null };
     },
     () => calls.push("navigate"),
   );
   assert.equal(error, null);
-  assert.deepEqual(calls, ["signOut", "navigate"], "sign out first, then leave");
+  assert.deepEqual(
+    calls,
+    [["signOut", { scope: "local" }], "navigate"],
+    "sign out of THIS device only (never every device), then leave",
+  );
 }
 {
   const calls = [];
@@ -340,6 +345,36 @@ assert.equal(
   assert.deepEqual(await signOutOtherDevicesIfAsked(true, throwing), {
     warningKey: "resetPassword.otherDevicesFailed",
   }, "a thrown error is treated the same way, never as a failed password change");
+}
+
+// --- Saving the new password -----------------------------------------------
+{
+  // updateUser fails: the other sessions are never touched, even if asked.
+  const signOutCalls = [];
+  const client = {
+    updateUser: async () => ({ error: { message: "Session not found", status: 403, code: "session_not_found" } }),
+    signOut: async (options) => { signOutCalls.push(options); return { error: null }; },
+  };
+  assert.deepEqual(await savePassword(client, "nueva-clave-1", { signOutOthers: true }), {
+    error: "auth.error.resetLinkInvalid",
+    warning: null,
+  });
+  assert.deepEqual(signOutCalls, [], "no signOut({ scope: 'others' }) after a failed update");
+}
+{
+  const calls = [];
+  const client = {
+    updateUser: async (attrs) => { calls.push(["updateUser", attrs]); return { error: null }; },
+    signOut: async (options) => { calls.push(["signOut", options]); return { error: null }; },
+  };
+  assert.deepEqual(await savePassword(client, "nueva-clave-1", { signOutOthers: true }), {
+    error: null,
+    warning: null,
+  });
+  assert.deepEqual(calls, [
+    ["updateUser", { password: "nueva-clave-1" }],
+    ["signOut", { scope: "others" }],
+  ]);
 }
 
 console.log("passwordReset: all checks passed");

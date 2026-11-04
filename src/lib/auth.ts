@@ -4,8 +4,8 @@ import { isValidEmail, MIN_PASSWORD_LENGTH } from "@/lib/authRules";
 import {
   buildPasswordResetRedirect,
   resetRequestErrorKey,
-  signOutOtherDevicesIfAsked,
-  updatePasswordErrorKey,
+  savePassword,
+  type SignOutScope,
 } from "@/lib/passwordReset";
 import { supabase } from "@/lib/supabase";
 
@@ -129,24 +129,21 @@ export async function requestPasswordReset(
  * `signOutOthers`, every other session is closed afterwards (this one stays);
  * if that part fails the password is still saved and `warning` says so.
  */
-export async function updatePassword(
+export function updatePassword(
   password: string,
-  { signOutOthers = false }: { signOutOthers?: boolean } = {},
+  options: { signOutOthers?: boolean } = {},
 ): Promise<{ error: ErrorKey | null; warning: ErrorKey | null }> {
-  const { error } = await supabase.auth.updateUser({ password });
-
-  if (error) return { error: updatePasswordErrorKey(error), warning: null };
-
-  const { warningKey } = await signOutOtherDevicesIfAsked(
-    signOutOthers,
-    supabase.auth,
-  );
-
-  return { error: null, warning: warningKey };
+  return savePassword(supabase.auth, password, options);
 }
 
-export async function signOut(): Promise<{ error: ErrorKey | null }> {
-  const { error } = await supabase.auth.signOut();
+/**
+ * Signs out. The default ("global", as in supabase-js) ends every session of
+ * the user; "local" ends only this device's session.
+ */
+export async function signOut(
+  options: { scope?: SignOutScope } = {},
+): Promise<{ error: ErrorKey | null }> {
+  const { error } = await supabase.auth.signOut(options);
 
   if (error) {
     return { error: "errors.signOut" };
