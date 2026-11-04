@@ -10,9 +10,9 @@ import { extractVtexIoProduct, parseVtexProduct, type CitySelector } from "./vte
 
 // Same values as scripts/prices/policy.json (stores.D1). Kept here as defence in
 // depth: the reader refuses anything that is not a product page of that host.
-const HOST = "www.d1.com.co";
-const PRODUCT_PATH_PATTERN = "/<slug>/p";
-const BLOCKED_RULES = [
+export const HOST = "www.d1.com.co";
+export const PRODUCT_PATH_PATTERN = "/<slug>/p";
+export const BLOCKED_RULES = [
   "/busca*",
   "/api/",
   "/s?",
@@ -36,9 +36,13 @@ export const BUCARAMANGA_SELECTOR: CitySelector = {
   note: "D1 default region; Bucaramanga selection pending owner confirmation",
 };
 
-/** D1 names write sizes as "500 Grs" and "Unidad"; turn them into text the shared size parser knows. */
+/**
+ * D1 names write sizes as "500 Grs" and "Unidad"; turn them into text the shared size parser knows.
+ * Only a bare "Unidad" (no number or "x<number>" right before it) means one unit; "2 Unidades"
+ * is left as is so the parser reads 2 and the pack does not match a single unit.
+ */
 function normalizeName(name: string): string {
-  return name.replace(/\bgrs?\b/gi, "g").replace(/\bunidad(?:es)?\b/gi, "1 und");
+  return name.replace(/\bgrs?\b/gi, "g").replace(/(?<![\dxX]\s*)\bunidad(?:es)?\b/gi, "1 und");
 }
 
 /** Prices one D1 product page body for the mapped sku (`externalId`) and pack size (g, ml or unit). */

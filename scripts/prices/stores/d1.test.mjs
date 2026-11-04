@@ -152,3 +152,21 @@ test("loadReaders discovers D1 and the D1 mapping file is valid", async () => {
   const out = loadMappings(path.join(root, "data/store-products"), ids, hosts, patterns);
   assert.ok((out.D1 ?? []).length >= 1);
 });
+
+test("a counted 'Unidades' name is never priced as one unit", () => {
+  for (const name of ["Pimentón 2 Unidades", "Pimentón x6 Unidades", "Pimentón 3 Unidad", "Pimentón X 4 Unidades"]) {
+    const r = parse("d1-pimenton-unidad", 1, "157", (s) => (s[itemKey(s)].name = name));
+    assert.deepEqual(r, { ok: false, reason: "pack_mismatch" }, name);
+  }
+  assert.deepEqual(parse("d1-pimenton-unidad", 1, "157"), { ok: true, regularPriceCop: 1600, promoPriceCop: null });
+});
+
+test("d1.ts guards use the same host, path pattern and blocked rules as policy.json", () => {
+  const policy = policySchema.parse(JSON.parse(readFileSync(path.join(root, "scripts/prices/policy.json"), "utf8")));
+  const store = policy.stores.D1;
+  assert.equal(d1.HOST, new URL(store.robotsUrl).hostname);
+  assert.equal(d1.PRODUCT_PATH_PATTERN, store.productPathPattern);
+  const isRule = (r) => r.startsWith("/") && !/\s/.test(r);
+  const expected = [...policy.precautions.neverRequest, ...store.disallowedPaths].filter(isRule);
+  assert.deepEqual([...new Set(d1.BLOCKED_RULES)].sort(), [...new Set(expected)].sort());
+});
