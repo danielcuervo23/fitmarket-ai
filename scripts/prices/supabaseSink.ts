@@ -78,7 +78,7 @@ export function createSinkFromClient(client: SinkClient): PriceSink {
       const out = new Map<number, number>();
       for (const part of chunks(ids, CHUNK)) {
         const data = ok(
-          await client.from("current_prices").select("store_product_id,regular_price_cop").eq("city", city).in("store_product_id", part),
+          await client.from("current_prices").select("store_product_id,regular_price_cop").eq("city", city).eq("source", "official").in("store_product_id", part),
           "reading current_prices",
         );
         for (const row of z.array(lastRowSchema).parse(data)) out.set(row.store_product_id, row.regular_price_cop);

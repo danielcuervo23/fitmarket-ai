@@ -80,11 +80,11 @@ test("upsertPrices writes official prices and is idempotent per day", async () =
   assert.equal(log[0].upsert.options.onConflict, "store_product_id,city,source,observed_on");
 });
 
-test("lastPrices reads current_prices by city and ids", async () => {
+test("lastPrices reads only official prices by city and ids, so a user report cannot feed the jump guard", async () => {
   const { client, log } = fakeClient({ selectData: [{ store_product_id: 7, regular_price_cop: 4000 }] });
   const last = await createSinkFromClient(client).lastPrices([7], "bucaramanga");
   assert.equal(log[0].table, "current_prices");
-  assert.deepEqual(log[0].filters, [["eq", "city", "bucaramanga"], ["in", "store_product_id", [7]]]);
+  assert.deepEqual(log[0].filters, [["eq", "city", "bucaramanga"], ["eq", "source", "official"], ["in", "store_product_id", [7]]]);
   assert.equal(last.get(7), 4000);
 });
 
