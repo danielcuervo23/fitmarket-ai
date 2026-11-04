@@ -1,0 +1,23 @@
+[
+  {
+    "foodId": "arroz_blanco",
+    "externalId": "1379",
+    "name": "Arroz Estandar Albar 500 g",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/arroz-estandar-albar-500grs-12000051/p"
+  },
+  {
+    "foodId": "lentejas",
+    "externalId": "1381",
+    "name": "Lenteja El Estio 500 g",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/lenteja-el-estio-500g-12000042/p"
+  },
+  {
+    "foodId": "pimenton",
+    "externalId": "157",
+    "name": "Pimenton unidad",
+    "packSize": 1,
+    "url": "https://www.d1.com.co/pimenton-unidad-12005183/p"
+  }
+]

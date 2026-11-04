@@ -1,0 +1,16 @@
+{
+  "Product:arroz-estandar-albar-500grs-12000051": {
+    "productName": "Arroz Estándar Albar 500 Grs"
+  },
+  "Product:arroz-estandar-albar-500grs-12000051.items.0": {
+    "itemId": "1379",
+    "name": "Arroz Estándar Albar 500 Grs",
+    "measurementUnit": "un",
+    "unitMultiplier": 1
+  },
+  "$Product:arroz-estandar-albar-500grs-12000051.items.0.sellers.0.commertialOffer": {
+    "Price": 1650,
+    "ListPrice": 1650,
+    "AvailableQuantity": 99999
+  }
+}
