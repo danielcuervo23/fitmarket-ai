@@ -130,6 +130,8 @@ export async function fetchWeeklyPlansHistory(page = 0): Promise<{
   }
 
   // Asks for 21 rows: the 21st only tells us whether there is another page.
+  // id is the tie-breaker so two plans with the same created_at never move
+  // between pages (matches the index of migration 009).
   const { from, to } = historyPageRange(page);
 
   const { data: rows, error: selectError } = await supabase
@@ -142,6 +144,7 @@ export async function fetchWeeklyPlansHistory(page = 0): Promise<{
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .range(from, to);
 
   if (!selectError) {
@@ -160,6 +163,7 @@ export async function fetchWeeklyPlansHistory(page = 0): Promise<{
     .select("id, created_at, updated_at, plan_json")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .range(from, to);
 
   if (legacyError) {

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, ChevronRight, FileText, History } from "lucide-react";
 import type { WeeklyPlan } from "@/lib/ai/types";
 import type { ErrorKey } from "@/lib/errors";
+import { appendUnique } from "@/lib/weeklyPlansHistory";
 import {
   fetchWeeklyPlanById,
   fetchWeeklyPlansHistory,
@@ -39,6 +40,9 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState<ErrorKey | null>(null);
+  // Synchronous lock: React state updates late, so a fast double tap could
+  // start two requests for the same page and then skip the next one.
+  const loadingMoreRef = useRef(false);
 
   const loadHistory = useCallback(async () => {
     setIsLoading(true);
@@ -61,13 +65,16 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
   }, []);
 
   const loadMore = async () => {
-    if (isLoadingMore) return;
+    if (loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
 
+    const requestedPage = nextPage;
     setIsLoadingMore(true);
     setLoadMoreError(null);
 
-    const { data, error } = await fetchWeeklyPlansHistory(nextPage);
+    const { data, error } = await fetchWeeklyPlansHistory(requestedPage);
 
+    loadingMoreRef.current = false;
     setIsLoadingMore(false);
 
     if (error || !data) {
@@ -75,14 +82,10 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
       return;
     }
 
-    // Appends without reloading earlier pages. Skips ids already shown, in
-    // case a new plan was saved meanwhile and shifted the rows by one.
-    setItems((previous) => {
-      const seen = new Set(previous.map((item) => item.id));
-      return [...previous, ...data.items.filter((item) => !seen.has(item.id))];
-    });
+    // Appends without reloading earlier pages.
+    setItems((previous) => appendUnique(previous, data.items));
     setHasMore(data.hasMore);
-    setNextPage((page) => page + 1);
+    setNextPage(requestedPage + 1);
   };
 
   useEffect(() => {
@@ -154,7 +157,7 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
           <LoadingState message={t("history.loading")} />
         ) : errorKey ? (
           <ErrorState message={t(errorKey)} onRetry={() => void loadHistory()} />
-        ) : items.length === 0 ? (
+        ) : items.length === 0 && !hasMore ? (
           <EmptyState
             icon={<History size={26} />}
             title={t("history.empty")}
@@ -220,7 +223,9 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
           ))
         )}
 
-        {!isLoading && !errorKey && items.length > 0 && (
+        {/* Also shown with an empty list when hasMore: page 0 may contain
+            only invalid plans while older pages still have valid ones. */}
+        {!isLoading && !errorKey && (items.length > 0 || hasMore) && (
           <>
             {/* On error the button stays, so tapping it again retries. */}
             {loadMoreError && <Alert tone="error">{t(loadMoreError)}</Alert>}

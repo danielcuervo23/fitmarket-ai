@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  appendUnique,
   HISTORY_PAGE_SIZE,
   historyPageRange,
   isMissingColumnError,
@@ -77,6 +78,9 @@ assert.deepEqual(historyPageRange(2), { from: 40, to: 60 });
     row(2, { estimated_daily_kcal: 0 }),
     row(1, { shopping_item_count: 0 }),
     row(10, { shopping_item_count: 2.5 }),
+    // The plan schema requires whole numbers for both summary values.
+    row(13, { estimated_total_cop: 180000.5 }),
+    row(14, { estimated_daily_kcal: 2100.25 }),
     row(11, { id: null }),
     row(12, { created_at: undefined }),
     null,
@@ -117,3 +121,13 @@ assert.equal(isMissingColumnError({ message: "column shopping_item_count does no
 assert.equal(isMissingColumnError({ code: "42501", message: "permission denied" }), false);
 assert.equal(isMissingColumnError({ message: "Failed to fetch" }), false);
 assert.equal(isMissingColumnError(null), false);
+
+// --- Añadir la página siguiente sin repetir planes ya mostrados ---
+{
+  const a = { id: "a" }, b = { id: "b" }, c = { id: "c" }, d = { id: "d" };
+  const shown = [a, b];
+  assert.deepEqual(appendUnique(shown, [b, c, d]), [a, b, c, d], "b was already shown");
+  assert.deepEqual(shown, [a, b], "does not mutate the current list");
+  assert.deepEqual(appendUnique([], [c, c]), [c], "duplicates inside the new page too");
+  assert.deepEqual(appendUnique([a], []), [a]);
+}

@@ -20,6 +20,11 @@ export interface WeeklyPlanHistoryPage {
 }
 
 /**
+ * Offset pagination, ordered by created_at desc, id desc (id breaks ties).
+ * Future improvement: cursor pagination (created_at, id), so that deleting a
+ * plan while paging cannot skip a row. Not needed today: the app has no way
+ * to delete a single plan.
+ *
  * Inclusive row range for `.range(from, to)`. It asks for one row more than
  * a page (21): if that extra row arrives, there is another page.
  */
@@ -36,6 +41,11 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
+/** Whole number (rejects strings, NaN, null and decimals). */
+function isWholeNumber(value: unknown): value is number {
+  return Number.isInteger(value);
+}
+
 function toItem(
   raw: unknown,
   isCurrent: boolean,
@@ -47,18 +57,16 @@ function toItem(
   const kcal = raw.estimated_daily_kcal;
   const count = raw.shopping_item_count;
 
-  // Same rules as the plan schema: total >= 0, kcal > 0, at least 1 product.
+  // Same rules as weeklyPlanSchema.ts: whole numbers, total >= 0, kcal > 0,
+  // at least 1 product.
   if (
     !isNonEmptyString(id) ||
     !isNonEmptyString(created_at) ||
-    typeof total !== "number" ||
-    !Number.isFinite(total) ||
+    !isWholeNumber(total) ||
     total < 0 ||
-    typeof kcal !== "number" ||
-    !Number.isFinite(kcal) ||
+    !isWholeNumber(kcal) ||
     kcal <= 0 ||
-    typeof count !== "number" ||
-    !Number.isInteger(count) ||
+    !isWholeNumber(count) ||
     count < 1
   ) {
     return null;
@@ -110,4 +118,23 @@ export function isMissingColumnError(
   return (
     code === "42703" || code === "PGRST204" || message.includes("does not exist")
   );
+}
+
+/**
+ * Adds the next page after the plans already shown, skipping ids already in
+ * the list (if a new plan is saved meanwhile, rows shift by one between pages).
+ */
+export function appendUnique<T extends { id: string }>(
+  current: readonly T[],
+  next: readonly T[],
+): T[] {
+  const seen = new Set(current.map((item) => item.id));
+  const result = [...current];
+  for (const item of next) {
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
+      result.push(item);
+    }
+  }
+  return result;
 }
