@@ -1,33 +1,29 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
 import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
-import { logEvent } from "../_shared/log.ts";
+import { logEvent, logUnexpected } from "../_shared/log.ts";
 import { callOpenAI } from "../_shared/openai.ts";
+import {
+  DEFAULT_MAX_MODEL_CALLS,
+  DEFAULT_TIME_BUDGET_MS,
+  MAX_MODEL_CALLS_CEILING,
+  MAX_TIME_BUDGET_MS,
+} from "../_shared/planner/callBudget.ts";
 import { generatePlan } from "../_shared/planner/generate.ts";
+import { positiveIntOr, shouldRefund } from "../_shared/quota.ts";
 
 const DEFAULT_DAILY_GENERATION_LIMIT = 10;
 
-/** Failures that are ours (not the user's), so they must not use up a daily try. */
-const REFUNDED_CODES = new Set([
-  "invalid_format",
-  "goal_incoherent",
-  "generation_failed",
-  "ai_unavailable",
-  "ai_timeout",
-  "ai_empty",
-  "rate_limited",
-  "server_config",
-]);
-
 function getDailyGenerationLimit(): number {
-  const configured = Number(Deno.env.get("GENERATION_DAILY_LIMIT"));
-
-  return Number.isInteger(configured) && configured > 0
-    ? configured
-    : DEFAULT_DAILY_GENERATION_LIMIT;
+  return positiveIntOr(
+    Deno.env.get("GENERATION_DAILY_LIMIT"),
+    DEFAULT_DAILY_GENERATION_LIMIT,
+  );
 }
 
 Deno.serve(async (req: Request) => {
+  // The time budget counts from arrival, so auth and database reads are included.
+  const startedAt = Date.now();
   const json = (body: Record<string, unknown>, status = 200) =>
     jsonResponse(req, body, status);
 
@@ -155,7 +151,20 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const outcome = await generatePlan(input, callOpenAI);
+    const outcome = await generatePlan(input, callOpenAI, {
+      maxModelCalls: positiveIntOr(
+        Deno.env.get("GENERATION_MAX_MODEL_CALLS"),
+        DEFAULT_MAX_MODEL_CALLS,
+        MAX_MODEL_CALLS_CEILING,
+      ),
+      deadline:
+        startedAt +
+        positiveIntOr(
+          Deno.env.get("GENERATION_TIME_BUDGET_MS"),
+          DEFAULT_TIME_BUDGET_MS,
+          MAX_TIME_BUDGET_MS,
+        ),
+    });
 
     // A try that failed because of us gives the user their try back. Users
     // cannot delete their own rows (so they cannot reset the counter), which
@@ -183,7 +192,7 @@ Deno.serve(async (req: Request) => {
 
     const { code, message, budget, diagnostics } = outcome.error;
 
-    if (REFUNDED_CODES.has(code)) {
+    if (shouldRefund(code, outcome.usage)) {
       await refund();
     }
 
@@ -196,7 +205,8 @@ Deno.serve(async (req: Request) => {
       code === "server_config" ? 503 : code === "rate_limited" ? 429 : 422;
 
     return json({ error: message, code, diagnostics }, status);
-  } catch {
+  } catch (error) {
+    logUnexpected("generate-weekly-plan", error);
     return json(
       { error: "Error inesperado al generar tu plan.", code: "unexpected" },
       500,

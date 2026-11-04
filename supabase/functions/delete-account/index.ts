@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
-import { logEvent } from "../_shared/log.ts";
+import { logEvent, logUnexpected } from "../_shared/log.ts";
 
 /**
  * Permanently deletes the signed-in user's account. Profile, goals,
@@ -65,7 +65,8 @@ Deno.serve(async (req: Request) => {
 
     logEvent("account_deleted");
     return json({ ok: true });
-  } catch {
+  } catch (error) {
+    logUnexpected("delete-account", error);
     return json({ error: "Unexpected error", code: "unexpected" }, 500);
   }
 });

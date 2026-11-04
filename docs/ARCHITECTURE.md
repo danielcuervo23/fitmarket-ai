@@ -81,7 +81,17 @@ Users can delete their own rows but cannot edit the request counter. The
 1. **Authenticate** the caller's JWT and **read** their profile, budget, goals,
    supermarkets and restrictions from the database.
 2. **Daily limit:** insert a request row and count the last 24 hours (default
-   10, configurable with `GENERATION_DAILY_LIMIT`).
+   10, configurable with `GENERATION_DAILY_LIMIT`). A failed try is given back
+   only when nothing could have been charged at OpenAI (outage or missing
+   config; any answer, empty answer or aborted call counts as billable); see
+   `_shared/quota.ts`.
+   **Per-plan caps** (`planner/callBudget.ts`): at most
+   `GENERATION_MAX_MODEL_CALLS` model calls (default 12, ceiling 40) and
+   `GENERATION_TIME_BUDGET_MS` from the request's arrival (default 120 s,
+   ceiling 140 s, below the Edge Function limit). A new attempt needs 30 s
+   left; a day-fill round runs only if every missing day fits in the budget
+   (a partial round cannot complete the week); each call's timeout is cut to
+   the time left.
 3. **Budget floor:** below 40,000 COP per person per week no realistic plan
    exists, so it answers immediately without calling the AI.
 4. **Restrictions:** free text such as "auyama" or "granos" is turned into

@@ -66,7 +66,7 @@ export const errors = defineMessages({
     "gen.error.portionsInvalid":
       "El plan no detallaba bien las cantidades. Intenta de nuevo.",
     "gen.error.goalIncoherent":
-      "El plan no cumplía tus objetivos. Intenta de nuevo.",
+      "El plan no cumplía tus objetivos. Puedes intentarlo de nuevo; cada intento cuenta para tu límite diario.",
     "gen.error.budgetTooLow":
       "No fue posible generar un plan con tu presupuesto actual.",
     "gen.error.failed":
@@ -134,7 +134,7 @@ export const errors = defineMessages({
     "gen.error.portionsInvalid":
       "The plan didn't detail the quantities well. Please try again.",
     "gen.error.goalIncoherent":
-      "The plan didn't match your goals. Please try again.",
+      "The plan didn't match your goals. You can try again; each try counts toward your daily limit.",
     "gen.error.budgetTooLow":
       "A plan isn't possible with your current budget.",
     "gen.error.failed":
