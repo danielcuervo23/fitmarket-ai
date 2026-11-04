@@ -28,6 +28,9 @@ export const legal = defineMessages({
     "privacy.s6.title": "Aviso de salud",
     "privacy.s6.body":
       "Los planes son una guía generada por IA y no reemplazan el consejo de un profesional de la salud. Si tienes alergias graves o una condición médica, consulta a un especialista y revisa siempre los ingredientes.",
+    "privacy.s7.title": "Fuentes de datos",
+    "privacy.s7.body":
+      "Datos nutricionales: USDA FoodData Central (dominio público) y Open Food Facts (ODbL).",
 
     "account.privacy": "Política de privacidad",
     "account.dangerZone": "Zona de peligro",
@@ -67,6 +70,9 @@ export const legal = defineMessages({
     "privacy.s6.title": "Health notice",
     "privacy.s6.body":
       "Plans are an AI-generated guide and don't replace advice from a health professional. If you have severe allergies or a medical condition, consult a specialist and always check ingredients.",
+    "privacy.s7.title": "Data sources",
+    "privacy.s7.body":
+      "Nutrition data: USDA FoodData Central (public domain) and Open Food Facts (ODbL).",
 
     "account.privacy": "Privacy policy",
     "account.dangerZone": "Danger zone",
