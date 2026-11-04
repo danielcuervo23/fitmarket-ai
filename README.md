@@ -30,7 +30,8 @@ Sample data, in Spanish.
 - Per-store shopping checklist with progress, plan history, settings
 - Language setting (ES / EN) that follows the user across devices
 - Delete-account option (removes all personal data)
-- Not built yet: the AI chat (the screen says so)
+- Not built yet: the AI chat. Its placeholder screen is hidden unless
+  `VITE_FEATURE_CHAT=true`
 
 ## Tech stack
 
