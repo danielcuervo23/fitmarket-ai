@@ -1,4 +1,4 @@
-import { ruleMatches } from "./robots.ts";
+import { normalizePath, ruleMatches } from "./robots.ts";
 
 // Pure checks shared by the fetcher and the mapping validator: which URLs a
 // store module may ever request.
@@ -18,7 +18,8 @@ export function productPathRegExp(pattern: string): RegExp {
 export function matchesAnyRule(rules: readonly string[], pathAndQuery: string): boolean {
   // Only entries that look like paths are rules; free text such as
   // "any path or parameter blocked by robots.txt" is documentation.
-  return rules.some((rule) => rule.startsWith("/") && !/\s/.test(rule) && ruleMatches(rule, pathAndQuery));
+  const path = normalizePath(pathAndQuery);
+  return rules.some((rule) => rule.startsWith("/") && !/\s/.test(rule) && ruleMatches(rule, path));
 }
 
 export type UrlVerdict = { ok: true; url: URL } | { ok: false; why: string };
@@ -39,7 +40,7 @@ export function checkProductUrl(
   if (url.hostname !== host || url.port !== "") return { ok: false, why: "not on host " + host };
   if (url.username || url.password) return { ok: false, why: "credentials in URL" };
   if (url.hash) return { ok: false, why: "fragment in URL" };
-  if (!productPathRegExp(productPathPattern).test(url.pathname)) {
+  if (!productPathRegExp(productPathPattern).test(normalizePath(url.pathname))) {
     return { ok: false, why: "not a product page (" + productPathPattern + ")" };
   }
   if (matchesAnyRule(blockedRules, url.pathname + url.search)) {

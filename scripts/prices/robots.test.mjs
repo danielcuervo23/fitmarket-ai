@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isPathAllowed } from "./robots.ts";
+import { isPathAllowed, normalizePath } from "./robots.ts";
 
 const UA = "FitMarketPriceBot/1.0 (+https://fitmarket-ai.vercel.app)";
 
@@ -41,4 +41,17 @@ test("query strings are part of the matched path", () => {
   const txt = "User-agent: *\nDisallow: /?*page\n";
   assert.equal(isPathAllowed(txt, UA, "/?x=1&page=2"), false);
   assert.equal(isPathAllowed(txt, UA, "/arroz/p"), true);
+});
+
+test("a group name must equal the whole product token, not just be its prefix", () => {
+  const txt = "User-agent: fitmarket\nDisallow: /\n\nUser-agent: *\nDisallow: /checkout\n";
+  assert.equal(isPathAllowed(txt, UA, "/p/arroz"), true);
+  const exact = "User-agent: FITMARKETPRICEBOT\nDisallow: /p\n";
+  assert.equal(isPathAllowed(exact, UA, "/p/arroz"), false);
+});
+
+test("percent-encoded unreserved characters are decoded before matching", () => {
+  const txt = "User-agent: *\nDisallow: /busca\n";
+  assert.equal(isPathAllowed(txt, UA, "/%62usca/p"), false);
+  assert.equal(normalizePath("/%62usca/%2Fx%7e?q=%41"), "/busca/%2Fx~?q=A");
 });

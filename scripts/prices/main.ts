@@ -48,8 +48,16 @@ for (const id of STORE_IDS) {
   patterns[id] = store.productPathPattern;
 }
 
-const readers = await loadReaders(path.join(root, "scripts/prices/stores"));
-const mappings = loadMappings(path.join(root, "data/store-products"), foodIds, hosts, patterns);
+// Any problem loading readers or mapping files is a configuration error (exit 2).
+let readers: Awaited<ReturnType<typeof loadReaders>>;
+let mappings: ReturnType<typeof loadMappings>;
+try {
+  readers = await loadReaders(path.join(root, "scripts/prices/stores"));
+  const mappingsDir = process.env.PRICES_MAPPINGS_DIR ?? path.join(root, "data/store-products");
+  mappings = loadMappings(mappingsDir, foodIds, hosts, patterns);
+} catch (e) {
+  configError(`Invalid price configuration: ${(e as Error).message}`);
+}
 const today = new Date().toISOString().slice(0, 10);
 
 const summary = await runWeekly({

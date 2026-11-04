@@ -94,7 +94,7 @@ export function createStoreFetcher(opts: FetcherOptions): StoreFetcher {
     else robotsTxt = BLOCK_ALL_ROBOTS; // unreachable robots.txt: assume everything is blocked
   }
 
-  async function fetchText(raw: string, init?: FetchTextInit) {
+  async function fetchOne(raw: string, init?: FetchTextInit) {
     const headers = buildHeaders(init?.headers);
     let target = raw;
     for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
@@ -118,6 +118,14 @@ export function createStoreFetcher(opts: FetcherOptions): StoreFetcher {
       return { status: res.status, body: res.body };
     }
     return { ...REFUSED };
+  }
+
+  // Calls are queued, so two simultaneous fetchText calls still keep the delay.
+  let queue: Promise<unknown> = Promise.resolve();
+  function fetchText(raw: string, init?: FetchTextInit) {
+    const run = queue.then(() => fetchOne(raw, init));
+    queue = run.catch(() => undefined);
+    return run;
   }
 
   return { fetchText, stoppedBy: () => stoppedStatus };

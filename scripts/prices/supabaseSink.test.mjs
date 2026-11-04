@@ -118,3 +118,20 @@ test("main never prints the secret values", () => {
   assert.equal(res.status, 2);
   assert.ok(!(res.stdout + res.stderr).includes("SECRET"));
 });
+
+test("main exits with code 2 (not 1) when a mapping file is invalid, without printing secrets", async () => {
+  const { mkdtempSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const dir = mkdtempSync(path.join(tmpdir(), "maps-"));
+  writeFileSync(path.join(dir, "Exito.json"), "{not json");
+  const env = {
+    ...process.env,
+    SUPABASE_URL: "https://example.invalid",
+    SUPABASE_SERVICE_ROLE_KEY: "SECRETKEYVALUE",
+    PRICES_MAPPINGS_DIR: dir,
+  };
+  const res = spawnSync(process.execPath, [path.join(here, "main.ts"), "--dry-run"], { env, encoding: "utf8" });
+  assert.equal(res.status, 2);
+  assert.match(res.stderr, /Exito\.json/);
+  assert.ok(!(res.stdout + res.stderr).includes("SECRET"));
+});

@@ -182,3 +182,23 @@ test("a network error returns a 599 body-less answer instead of throwing", async
   });
   assert.deepEqual(await h.make().fetchText(PRODUCT), { status: 599, body: "" });
 });
+
+test("simultaneous calls are queued: every request keeps minDelayMs from the previous one", async () => {
+  const h = harness();
+  const f = h.make();
+  await Promise.all([
+    f.fetchText(PRODUCT),
+    f.fetchText("https://www.exito.com/otro/p"),
+    f.fetchText("https://www.exito.com/otro2/p"),
+  ]);
+  const times = h.calls.map((c) => c.at);
+  assert.equal(h.calls.filter((c) => isRobots(c.url)).length, 1);
+  assert.equal(times.length, 4);
+  for (let i = 1; i < times.length; i++) assert.ok(times[i] - times[i - 1] >= 5000, "gap " + i);
+});
+
+test("a percent-encoded path cannot dodge neverRequest", async () => {
+  const h = harness({ [ROBOTS]: { status: 200, body: "" } });
+  assert.deepEqual(await h.make().fetchText("https://www.exito.com/%62usca/p"), { status: 403, body: "" });
+  assert.equal(h.productCalls().length, 0);
+});

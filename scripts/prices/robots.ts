@@ -55,10 +55,20 @@ function parseGroups(robotsTxt: string): { agents: string[]; rules: Rule[] }[] {
   return groups;
 }
 
-export function isPathAllowed(robotsTxt: string, userAgent: string, path: string): boolean {
+// Decodes percent-encoded UNRESERVED characters (letters, digits, - . _ ~) so
+// "/%62usca" is matched as "/busca". Reserved characters such as %2F stay encoded.
+export function normalizePath(pathAndQuery: string): string {
+  return pathAndQuery.replace(/%([0-9A-Fa-f]{2})/g, (match, hex: string) => {
+    const ch = String.fromCharCode(parseInt(hex, 16));
+    return /[A-Za-z0-9\-._~]/.test(ch) ? ch : match.toUpperCase();
+  });
+}
+
+export function isPathAllowed(robotsTxt: string, userAgent: string, rawPath: string): boolean {
+  const path = normalizePath(rawPath);
   const token = productToken(userAgent);
   const groups = parseGroups(robotsTxt);
-  const specific = groups.filter((g) => g.agents.some((a) => a !== "*" && token.startsWith(a)));
+  const specific = groups.filter((g) => g.agents.some((a) => a !== "*" && productToken(a) === token));
   const chosen = specific.length > 0 ? specific : groups.filter((g) => g.agents.includes("*"));
   let best: Rule | null = null;
   for (const rule of chosen.flatMap((g) => g.rules)) {
