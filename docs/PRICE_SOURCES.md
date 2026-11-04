@@ -33,8 +33,8 @@ Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decisio
 ## D1 (www.d1.com.co; domicilios.tiendasd1.com redirige ahi)
 - Actualizacion 2026-11-04: `domicilios.tiendasd1.com` redirige a `www.d1.com.co`. Se leyo `https://www.d1.com.co/robots.txt` (una peticion): permite todo salvo `/account/*`, `/login/*`, `/checkout/*`, `/busca/*`, `/quick-view/*`, `/espiar/*`, `/buscapagina/*` y los parametros `initialMap=`, `initialQuery=`, `map=`, `searchState=`, `sc=`, `riode=`, `workspace=`, `OrderBy=`, `srlid=`, `utm_*`. Las paginas de producto `/<slug>/p` NO estan bloqueadas. `policy.json` ahora usa ese robots.txt (host cambiado).
 - robots.txt (revisado hoy): bloquea `/account/*`, `/login/*`, `/checkout/*`, `/busca/*`, `/quick-view/*`, `/espiar/*`, `/buscapagina/*` y varios parametros de busqueda.
-- Terminos: las URLs probadas (`/terminos-y-condiciones`) dan 404 y el pie de pagina se carga con JavaScript; no se pudo leer ningun texto legal.
-- Decision: **No**. No se pudieron leer los terminos.
+- Terminos (cambio de host): `policy.json` ahora apunta a `https://www.d1.com.co/` y ya no a `domicilios.tiendasd1.com`. Las URLs probadas en el host viejo (`/terminos-y-condiciones`) daban 404 y el pie de pagina se carga con JavaScript; no se pudo leer ningun texto legal.
+- Decision: **No**. No se pudieron leer los terminos. ~~(Superada por la decision del dueno del 2026-11-04: D1 se lee bajo las precauciones.)~~
 
 ## Ara (aratiendas.com)
 - robots.txt: bloquea `/wp-admin/` y varias rutas `/productos_*`.
@@ -46,17 +46,21 @@ Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decisio
 - robots.txt: bloquea `/account/`, `/login`, `/checkout/`, `/s?` (busqueda), `/api/` y `/coleccion/`. Las paginas de producto no estan bloqueadas.
 - Terminos (https://www.exito.com/terminos-condiciones): no hay clausula explicita sobre scraping. Dicen que el Vendedor puede prohibir el acceso a quien viole los terminos y que imagenes, marcas y demas elementos son propiedad intelectual.
 - Problemas: la via practica para leer precios (API de busqueda) esta bloqueada por robots; el sitio respondio "429 Too Many Requests" al agente del robot en dos intentos; no se pudo comprobar como se elige Bucaramanga leyendo solo paginas permitidas.
-- Decision: **No** (por ahora). Se puede revisar de nuevo si se confirma una via permitida con cobertura de Bucaramanga.
+- Decision: **No** (por ahora). ~~(Superada por la decision del dueno del 2026-11-04: Exito se lee bajo las precauciones.)~~ Se puede revisar de nuevo si se confirma una via permitida con cobertura de Bucaramanga.
 
 ## Carulla (carulla.com)
 - robots.txt y plataforma identicos a Exito (mismo grupo). Terminos en https://www.carulla.com/terminos-condiciones, sin clausula explicita de scraping.
 - Mismos problemas que Exito (API bloqueada, 429, Bucaramanga sin verificar).
-- Decision: **No** (por ahora).
+- Decision: **No** (por ahora). ~~(Superada por la decision del dueno del 2026-11-04: Carulla se lee bajo las precauciones.)~~
 
 ## Jumbo (tiendasjumbo.co, redirige a jumbocolombia.com)
 - robots.txt: bloquea `/Account*`, `/busca*`, `/checkout/`, `/login*`, `/cart` y parametros como `?ciudad`, `?map`, `?page`.
 - Terminos (https://www.jumbocolombia.com/terminos-y-condiciones): la pagina carga con JavaScript y no devolvio texto legible ni con curl ni con una lectura web.
-- Decision: **No**. No se pudieron leer los terminos.
+- Decision: **No**. No se pudieron leer los terminos. ~~(Superada por la decision del dueno del 2026-11-04: Jumbo se lee bajo las precauciones.)~~
+
+## Que cambio despues
+- Ara (tarea 12 original) no se lee. En su lugar, los precios de referencia de Bucaramanga vienen del DANE (SIPSA, mayoristas) y se muestran como "Aproximado"; los precios de Ara llegaran con los reportes de usuarios (plan 5).
+- El metodo de D1 en `policy.json` es `vtex_io_state` (lee el `__STATE__` de VTEX IO de la pagina de producto), no `jsonld_html`.
 
 ## Pendiente
 - Revision legal antes del lanzamiento publico (recomendada al dueno, pendiente).

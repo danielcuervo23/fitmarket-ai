@@ -38,7 +38,7 @@ test("every store has a boolean verdict and a reason", () => {
 test("allowed stores have a reading method, Bucaramanga coverage and polite delay", () => {
   for (const [name, s] of entries.filter(([, s]) => s.allowed === true)) {
     assert.notEqual(s.method, "none", name);
-    assert.ok(["vtex_api", "jsonld_html", "json_api"].includes(s.method), name);
+    assert.ok(["vtex_api", "jsonld_html", "vtex_io_state", "json_api"].includes(s.method), name);
     assert.equal(s.bucaramanga.available, true, name);
     assert.ok(s.minDelayMs >= 5000, name);
     assert.ok(s.termsUrl.startsWith("https://"), name);
@@ -62,8 +62,9 @@ test("user agent names a contact", () => {
 test("owner decision 2026-11-04: four stores allowed, Ara forbidden", () => {
   for (const name of ["Exito", "Carulla", "D1", "Jumbo"]) {
     assert.equal(policy.stores[name].allowed, true, name);
-    assert.equal(policy.stores[name].method, "jsonld_html", name);
+    assert.equal(policy.stores[name].method, name === "D1" ? "vtex_io_state" : "jsonld_html", name);
   }
+  assert.equal(policy.stores.Ara.minDelayMs, 5000);
   assert.equal(policy.stores.Ara.allowed, false);
   assert.equal(policy.stores.Ara.method, "none");
 });

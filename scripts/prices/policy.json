@@ -48,7 +48,7 @@
       ],
       "termsUrl": "https://www.d1.com.co/",
       "termsSummary": "Terminos leidos por el dueno, no verificados por el equipo; autorizo la lectura bajo las precauciones de este archivo.",
-      "method": "jsonld_html",
+      "method": "vtex_io_state",
       "bucaramanga": {
         "available": true,
         "how": "Por confirmar en el modulo de cada tienda (documentacion solamente; el codigo no lo interpreta)."
@@ -75,7 +75,7 @@
         "available": false,
         "how": "No aplica. Solo documentacion, el codigo no lo interpreta."
       },
-      "minDelayMs": 3000
+      "minDelayMs": 5000
     },
     "Exito": {
       "allowed": true,

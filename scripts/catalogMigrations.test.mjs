@@ -78,7 +78,7 @@ test("migrations are idempotent", () => {
 
 test("catalog constraints match the contract", () => {
   assert.match(m010, /check \(slug ~ '\^\[a-z_\]\{2,40\}\$'\)/);
-  assert.match(m010, /'bucaramanga', 'bucaramanga', 1|'bucaramanga'/);
+  assert.match(m010, /\('bucaramanga', 'bucaramanga', 1\)/);
   assert.match(m011, /fiber_g <= carbs_g/);
   assert.match(m011, /free_sugars_g <= carbs_g/);
   assert.match(m011, /sat_fat_g <= fat_g/);

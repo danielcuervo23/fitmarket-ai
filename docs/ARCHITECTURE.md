@@ -68,6 +68,12 @@ All tables have Row Level Security: a user only sees their own rows.
 | --- | --- |
 | `profiles` | One row per user: age, weight, height, activity level, sex (optional), household size, weekly budget, dietary restrictions |
 | `supermarkets` | Master list of supermarkets |
+| `cities` | Cities where prices can be shown (launch city: Bucaramanga); `profiles.city` points here |
+| `foods` | The food catalog: nutrition, pack size, static reference price (migrations 011-012) |
+| `store_products` | Which store sells which food, with its product page and pack size |
+| `prices` | Weekly prices per store product and city, with `source` (`official`, `user`, `estimate`) and date |
+| `current_prices` | View with the latest valid price per store product and city |
+| `city_reference_prices` | DANE SIPSA wholesale prices per food and city (migration 013); base of the "Aproximado" estimates |
 | `user_goals`, `user_supermarkets` | The goals and supermarkets each user chose |
 | `weekly_plans` | Every generated plan, stored as JSON (`plan_json`) |
 | `plan_generation_requests` | One row per generation try; used for the daily limit |
@@ -148,10 +154,55 @@ browser save and those policies is a later, separate step.
 ### Why a catalog
 
 Asking a language model for prices and calories produces plausible but wrong
-numbers. With the catalog (`_shared/catalog.ts`, about 70 foods with
-nutrition, pack size and a reference price) the AI only decides what to eat;
-cost and nutrition are arithmetic. Prices marked `estimate` are not yet
-verified against real shelves.
+numbers. With a catalog the AI only decides what to eat; cost and nutrition
+are arithmetic. The catalog now lives in the database (`foods`), and
+`_shared/catalog.ts` keeps the same foods as a static copy used as a fallback.
+
+### Catalog loader, cache and fallback
+
+`_shared/catalogLoader.ts` reads the catalog, the stores that sell each food
+and the prices of the user's city from the database. The result is cached in
+the function's memory (10 minutes by default, `CATALOG_CACHE_TTL_MS`, at most
+1 hour), so thousands of users do not each trigger the same queries. If the
+database cannot be read, the loader falls back to the static catalog and
+static prices, so a plan can still be generated; the log event
+`catalog_origin` says whether `db` or the static copy was used.
+
+### Price book
+
+`planner/priceBook.ts` answers "how much does this food cost at this store?"
+for the planner. In order of trust:
+
+1. A real price read from the store (`official`) or reported by users
+   (`user`, plan 5), if it is not older than 45 days.
+2. Otherwise an **estimate**: the DANE reference price of the city (if it is
+   within 0.33x-3x of the static reference price) or the static reference
+   price, times a per-store factor. DANE wholesale prices get a retail markup
+   (fresh produce 1.35, protein 1.20, staples 1.15).
+3. Users without a city keep the old behaviour (static prices).
+
+Each plan item records its source and date. The app shows "Actualizado el ..."
+for read prices and "Aproximado" for estimates (also for old plans that have
+no source).
+
+## Weekly prices
+
+A GitHub Actions workflow (`prices-weekly.yml`, Mondays 09:00 UTC, or by hand
+with `dry_run`) runs in the protected environment `prices` and writes with the
+service role. It has two parts:
+
+- **Store readers** (`scripts/prices/`): Exito, Carulla, Jumbo and D1 product
+  pages (VTEX; D1 at www.d1.com.co). Ara is **not** read because its terms
+  forbid it; Ara prices will come from user reports (plan 5) and DANE
+  estimates. Only product pages that robots.txt allows, at least 5 s between
+  requests, stop on a 429 or a block, and only the regular price and the pack
+  size are stored. The rules are in `scripts/prices/policy.json` (see
+  `docs/PRICE_SOURCES.md`). Prices out of a sane range are rejected and the
+  last good price is kept.
+- **DANE SIPSA** (`scripts/prices/dane/`): official wholesale prices for
+  Bucaramanga, saved in `city_reference_prices`, with the DANE attribution.
+
+The job never calls OpenAI and never changes plans already saved.
 
 ## Code shared between browser and functions
 
@@ -174,7 +225,16 @@ and the server cannot disagree.
 
 ## Known limits
 
-- Many catalog prices and per-supermarket price factors are estimates.
+- Real prices exist only for the foods already mapped to store pages; the
+  rest use DANE-based or static estimates ("Aproximado"). Some static
+  reference prices and per-store factors are still estimates.
+- How each store selects Bucaramanga is not yet verified (all selectors are
+  `verified: false`); Exito answered 429 in the live check.
+- The Carulla potato mapping needs checking (slug says 180 g, mapped as 1 kg).
+- Ara has no read prices until user reports exist (plan 5).
+- Reading stores is authorized by the owner under precautions, but a legal
+  review before public launch is pending.
+- The catalog cache is per function instance and up to 10 minutes old.
 - The AI chat screen is a placeholder.
 - Dietary rules understand Spanish and English food names, but only for the
   foods in the catalog; a food that is not in it cannot be excluded or used.
