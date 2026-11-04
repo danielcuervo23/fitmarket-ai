@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, ChevronRight, FileText, History } from "lucide-react";
 import type { WeeklyPlan } from "@/lib/ai/types";
 import type { ErrorKey } from "@/lib/errors";
+import { appendUnique } from "@/lib/weeklyPlansHistory";
 import {
   fetchWeeklyPlanById,
   fetchWeeklyPlansHistory,
@@ -34,22 +35,58 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
   const [selectedPlan, setSelectedPlan] = useState<WeeklyPlan | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  // Pagination: the next page to ask for, and whether there is one.
+  const [nextPage, setNextPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<ErrorKey | null>(null);
+  // Synchronous lock: React state updates late, so a fast double tap could
+  // start two requests for the same page and then skip the next one.
+  const loadingMoreRef = useRef(false);
 
   const loadHistory = useCallback(async () => {
     setIsLoading(true);
     setErrorKey(null);
+    setLoadMoreError(null);
 
-    const { data, error } = await fetchWeeklyPlansHistory();
+    const { data, error } = await fetchWeeklyPlansHistory(0);
 
-    if (error) {
-      setErrorKey(error);
+    if (error || !data) {
+      setErrorKey(error ?? "errors.load");
       setItems([]);
+      setHasMore(false);
     } else {
-      setItems(data ?? []);
+      setItems(data.items);
+      setHasMore(data.hasMore);
+      setNextPage(1);
     }
 
     setIsLoading(false);
   }, []);
+
+  const loadMore = async () => {
+    if (loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+
+    const requestedPage = nextPage;
+    setIsLoadingMore(true);
+    setLoadMoreError(null);
+
+    const { data, error } = await fetchWeeklyPlansHistory(requestedPage);
+
+    loadingMoreRef.current = false;
+    setIsLoadingMore(false);
+
+    if (error || !data) {
+      setLoadMoreError(error ?? "errors.load");
+      return;
+    }
+
+    // Appends without reloading earlier pages.
+    setItems((previous) => appendUnique(previous, data.items));
+    setHasMore(data.hasMore);
+    setNextPage(requestedPage + 1);
+  };
 
   useEffect(() => {
     void loadHistory();
@@ -120,7 +157,7 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
           <LoadingState message={t("history.loading")} />
         ) : errorKey ? (
           <ErrorState message={t(errorKey)} onRetry={() => void loadHistory()} />
-        ) : items.length === 0 ? (
+        ) : items.length === 0 && !hasMore ? (
           <EmptyState
             icon={<History size={26} />}
             title={t("history.empty")}
@@ -184,6 +221,28 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
               />
             </button>
           ))
+        )}
+
+        {/* Also shown with an empty list when hasMore: page 0 may contain
+            only invalid plans while older pages still have valid ones. */}
+        {!isLoading && !errorKey && (items.length > 0 || hasMore) && (
+          <>
+            {/* On error the button stays, so tapping it again retries. */}
+            {loadMoreError && <Alert tone="error">{t(loadMoreError)}</Alert>}
+            {hasMore && (
+              <button
+                type="button"
+                onClick={() => void loadMore()}
+                disabled={isLoadingMore}
+                aria-busy={isLoadingMore}
+                className="mt-1 w-full rounded-card border border-ink-100 bg-white p-3.5 text-[14px] font-bold text-brand-700 shadow-card transition-all active:scale-[0.99] disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-brand-600"
+              >
+                {isLoadingMore
+                  ? t("history.loadingMore")
+                  : t("history.loadMore")}
+              </button>
+            )}
+          </>
         )}
       </ScreenBody>
     </Screen>
