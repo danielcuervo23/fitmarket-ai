@@ -12,7 +12,13 @@ Quien: **Dueno** = tu. **Desarrollador** = el equipo/agentes.
 
 ## 2. Entorno de GitHub `prices`
 - **Dueno:** en GitHub crea el environment `prices` con los secretos `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` (primero los de staging). Opcional: `USDA_API_KEY`.
-- **Comprobar:** el entorno aparece y los secretos estan guardados (nadie los ve despues).
+- **Dueno: ponle candado al entorno** (asi la llave solo se usa desde la rama principal y con tu permiso; es como una caja fuerte que solo se abre en la oficina y con tu firma):
+  1. En GitHub entra al repositorio → **Settings** → **Environments** → **prices**.
+  2. En **Deployment branches and tags** elige **Selected branches and tags**, toca **Add deployment branch or tag rule** y escribe `main`. Guarda.
+  3. Marca **Required reviewers**, escribe tu usuario de GitHub y toca **Save protection rules**.
+  4. Desde ahora, cada vez que corra un trabajo de precios, GitHub te pide aprobarlo (boton **Review deployments** → **Approve and deploy**). Si no lo esperabas, toca **Reject**.
+- **Bueno saber:** el modo de prueba (`dry_run=true`) tambien usa la llave, porque necesita leer la base para comparar precios (no escribe nada). Por eso tambien te pedira aprobacion.
+- **Comprobar:** el entorno aparece, los secretos estan guardados (nadie los ve despues), dice "main" en las ramas permitidas y tu usuario como revisor.
 - **Deshacer:** borrar los secretos o el entorno; rotar la llave si se sospecha de fuga.
 
 ## 3. Correr el trabajo semanal contra staging
