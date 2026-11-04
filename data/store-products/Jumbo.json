@@ -1,9 +1,394 @@
 [
   {
+    "foodId": "huevo",
+    "externalId": "46965",
+    "name": "Huevos AA rojos San Pio x12und",
+    "packSize": 12,
+    "url": "https://www.jumbocolombia.com/huevo-aa-12unidades-san-pio/p"
+  },
+  {
+    "foodId": "atun_lata",
+    "externalId": "57827",
+    "name": "Atún Isabel claro lomitos agua x 160g",
+    "packSize": 160,
+    "url": "https://www.jumbocolombia.com/atun-isabel-claro-lomitos-agua-x160g/p"
+  },
+  {
+    "foodId": "tilapia",
+    "externalId": "27909",
+    "name": "Filete de Tilapia al Vacío Antillana x 360g Peso Neto",
+    "packSize": 360,
+    "url": "https://www.jumbocolombia.com/filete-de-tilapia-al-vacio-antillana-x-450g-peso-neto/p"
+  },
+  {
+    "foodId": "salmon",
+    "externalId": "41303",
+    "name": "Filete de salmón x450g",
+    "packSize": 450,
+    "url": "https://www.jumbocolombia.com/filete-de-salmon-x-450-g-2/p"
+  },
+  {
+    "foodId": "lomo_cerdo",
+    "externalId": "268186",
+    "name": "Lomo de cerdo completo La Fazenda (por kg)",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/lomo-de-cerdo-completo-la-fazenda-268186/p"
+  },
+  {
+    "foodId": "pernil_pollo",
+    "externalId": "166598",
+    "name": "Pierna Pernil Bx5 Iqf x 1300gr",
+    "packSize": 1300,
+    "url": "https://www.jumbocolombia.com/pierna-pernil-bx5-iqf-x-1300gr-3457979/p"
+  },
+  {
+    "foodId": "lentejas",
+    "externalId": "85308",
+    "name": "Lenteja Diana x500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/lenteja-diana-x-500g/p"
+  },
+  {
+    "foodId": "frijol",
+    "externalId": "438261",
+    "name": "Frijol Cuisine&Co Rojo 500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/frijol-cuisineco-rojo-500g-438261/p"
+  },
+  {
+    "foodId": "garbanzo",
+    "externalId": "130144",
+    "name": "Garbanzo Diana seleccionados x500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/garbanzo-diana-seleccionados-x500g/p"
+  },
+  {
+    "foodId": "arveja_seca",
+    "externalId": "89951",
+    "name": "Arveja Cuisine&Co x500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/arveja-cuisine-co-verde-x500g/p"
+  },
+  {
+    "foodId": "arroz_blanco",
+    "externalId": "13381",
+    "name": "Arroz Diana blanco x1kg",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/arroz-diana-x-1-kg/p"
+  },
+  {
+    "foodId": "arroz_integral",
+    "externalId": "57911",
+    "name": "Arroz Diana integral x1000g",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/arroz-diana-integral-x1000g/p"
+  },
+  {
+    "foodId": "pasta",
+    "externalId": "13268",
+    "name": "Pasta Clásica Spaghetti Doria x 500 g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/pasta-clasica-spaghetti-doria-x-500-g/p"
+  },
+  {
+    "foodId": "avena",
+    "externalId": "13043",
+    "name": "Avena Quaker hojuelas doypack x350g",
+    "packSize": 350,
+    "url": "https://www.jumbocolombia.com/avena-quaker-hojuela-doypack-x-350g/p"
+  },
+  {
+    "foodId": "harina_maiz",
+    "externalId": "13039",
+    "name": "Harina PAN maíz blanco x1000g",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/harina-pan-blanca-x-1000-g/p"
+  },
+  {
+    "foodId": "pan_tajado",
+    "externalId": "360321",
+    "name": "Pan Tajado Bimbo Blanco 600g",
+    "packSize": 600,
+    "url": "https://www.jumbocolombia.com/pan-tajado-bimbo-blanco-600g-3670722/p"
+  },
+  {
+    "foodId": "quinua",
+    "externalId": "89895",
+    "name": "Quinua Doria grano x300g",
+    "packSize": 300,
+    "url": "https://www.jumbocolombia.com/quinua-en-grano-doria-x300g/p"
+  },
+  {
     "foodId": "papa",
     "externalId": "52169",
     "name": "Papa sin lavar a granel x kg",
     "packSize": 1000,
     "url": "https://www.jumbocolombia.com/papa-sin-lavar-a-granel-x-kg/p"
+  },
+  {
+    "foodId": "papa_criolla",
+    "externalId": "24743",
+    "name": "Papa Criolla Mini x 1000 gr",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/papa-criolla-mini-x-500-g/p"
+  },
+  {
+    "foodId": "yuca",
+    "externalId": "438265",
+    "name": "Yuca Cuisine&Co Pelada Empacada Vacio 500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/yuca-cuisineco-pelada-empacada-vacio-500g-438265/p"
+  },
+  {
+    "foodId": "platano",
+    "externalId": "60762",
+    "name": "Plátano Comino kg",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/platano-comino-kg-0224727/p"
+  },
+  {
+    "foodId": "leche_entera",
+    "externalId": "206583",
+    "name": "Leche Entera Colanta Bolsa x1000ml",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/leche-entera-colanta-bolsa-x1000ml-3509861/p"
+  },
+  {
+    "foodId": "leche_deslactosada",
+    "externalId": "206585",
+    "name": "Leche deslactosada Colanta bolsa x1000ml",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/leche-colanta-deslactosada-bolsa-uht-x-1000ml/p"
+  },
+  {
+    "foodId": "yogur_natural",
+    "externalId": "241957",
+    "name": "Yogur griego Alpina Natural 500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/yogur-griego-alpina-natural-500g-3547539/p"
+  },
+  {
+    "foodId": "queso_campesino",
+    "externalId": "24049",
+    "name": "Queso campesino Colanta x250g",
+    "packSize": 250,
+    "url": "https://www.jumbocolombia.com/queso-campesino-x-250-g-colanta/p"
+  },
+  {
+    "foodId": "queso_mozzarella",
+    "externalId": "24127",
+    "name": "Queso mozzarella Colanta tajado x250g",
+    "packSize": 250,
+    "url": "https://www.jumbocolombia.com/queso-mozzarella-tajado-x-250-g-colanta/p"
+  },
+  {
+    "foodId": "mantequilla",
+    "externalId": "49078",
+    "name": "Mantequilla Alpina Con Sal 250g",
+    "packSize": 250,
+    "url": "https://www.jumbocolombia.com/mantequilla-alpina-con-sal-250g-0008275/p"
+  },
+  {
+    "foodId": "tomate_chonto",
+    "externalId": "29036",
+    "name": "Tomate chonto Frescocampo kosher x 1000gr",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/tomate-chonto-frescocampo-kosher-x-1000-g/p"
+  },
+  {
+    "foodId": "cebolla_cabezona",
+    "externalId": "37168",
+    "name": "Cebolla Cabezona Frescocampo Kosher x 1000gr",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/cebolla-cabezona-frescocampo-kosher-x-1000g/p"
+  },
+  {
+    "foodId": "cebolla_junca",
+    "externalId": "24619",
+    "name": "Cebolla Larga Malla x 500gr",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/cebolla-larga-malla-x-500-g/p"
+  },
+  {
+    "foodId": "zanahoria",
+    "externalId": "60759",
+    "name": "Zanahoria x500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/zanahoria-500g/p"
+  },
+  {
+    "foodId": "habichuela",
+    "externalId": "60818",
+    "name": "Habichuela x700gr",
+    "packSize": 700,
+    "url": "https://www.jumbocolombia.com/habichuela-x-700g-1/p"
+  },
+  {
+    "foodId": "brocoli",
+    "externalId": "438276",
+    "name": "Brocoli Cuisine &Co x500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/brocoli-cuisine-co-x500g-438276/p"
+  },
+  {
+    "foodId": "espinaca",
+    "externalId": "24661",
+    "name": "Espinaca x 500gr",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/espinaca-x-500-g/p"
+  },
+  {
+    "foodId": "lechuga",
+    "externalId": "24668",
+    "name": "Lechuga crespa x200gr",
+    "packSize": 200,
+    "url": "https://www.jumbocolombia.com/lechuga-crespa-x-200-g/p"
+  },
+  {
+    "foodId": "pepino",
+    "externalId": "45896",
+    "name": "Pepino sin semilla x 1000g",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/pepino-sin-semilla-1-kg/p"
+  },
+  {
+    "foodId": "ajo",
+    "externalId": "60764",
+    "name": "Ajo Nacional Cencosud Paquete x50g",
+    "packSize": 50,
+    "url": "https://www.jumbocolombia.com/ajo-nacional-cencosud-paquete-50g-0629098/p"
+  },
+  {
+    "foodId": "cilantro",
+    "externalId": "24791",
+    "name": "Cilantro x 100gr",
+    "packSize": 100,
+    "url": "https://www.jumbocolombia.com/cilantro-x-100-g/p"
+  },
+  {
+    "foodId": "ahuyama",
+    "externalId": "438258",
+    "name": "Ahuyama Cuisine&Co Pelada Trozos 500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/ahuyama-cuisineco-pelada-trozos-500g-438258/p"
+  },
+  {
+    "foodId": "manzana",
+    "externalId": "24906",
+    "name": "Manzana Royal gala x 6 un",
+    "packSize": 6,
+    "url": "https://www.jumbocolombia.com/manzana-royal-gala-x-6-und/p"
+  },
+  {
+    "foodId": "pera",
+    "externalId": "41015",
+    "name": "Pera importada bandeja x 6 un",
+    "packSize": 6,
+    "url": "https://www.jumbocolombia.com/pera-importada-bandeja-por-6-unidades/p"
+  },
+  {
+    "foodId": "aguacate",
+    "externalId": "60675",
+    "name": "Aguacate hass unidad",
+    "packSize": 1,
+    "url": "https://www.jumbocolombia.com/aguacate-hass-unidad/p"
+  },
+  {
+    "foodId": "pina",
+    "externalId": "44609",
+    "name": "Piña en trozos al vacío x500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/pina-vacio-x-500-grs/p"
+  },
+  {
+    "foodId": "fresa",
+    "externalId": "24724",
+    "name": "Fresa x250gr",
+    "packSize": 250,
+    "url": "https://www.jumbocolombia.com/fresa-x-250-g/p"
+  },
+  {
+    "foodId": "mora",
+    "externalId": "24721",
+    "name": "Mora x 500gr",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/mora-x-500g/p"
+  },
+  {
+    "foodId": "tomate_arbol",
+    "externalId": "58009",
+    "name": "Tomate de Árbol Cencosud x1kg",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/tomate-de-arbol-cencosud-1kg-0303604/p"
+  },
+  {
+    "foodId": "maracuya",
+    "externalId": "58157",
+    "name": "Maracuyá malla x500g",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/maracuya-malla-x-500g/p"
+  },
+  {
+    "foodId": "mani",
+    "externalId": "216422",
+    "name": "Maní La Especial sal x180g",
+    "packSize": 180,
+    "url": "https://www.jumbocolombia.com/mani-la-especial-sal-x180g/p"
+  },
+  {
+    "foodId": "almendras",
+    "externalId": "166627",
+    "name": "Almendras Manitoba naturales doy pack x180g",
+    "packSize": 180,
+    "url": "https://www.jumbocolombia.com/almendras-manitoba-naturales-doy-pack-x-180g-3458009/p"
+  },
+  {
+    "foodId": "nueces",
+    "externalId": "25011",
+    "name": "Nuez del nogal x 100 gr",
+    "packSize": 100,
+    "url": "https://www.jumbocolombia.com/nuez-del-nogal-x-100-g/p"
+  },
+  {
+    "foodId": "aceite_vegetal",
+    "externalId": "216280",
+    "name": "Aceite Gourmet Canola x900ml",
+    "packSize": 900,
+    "url": "https://www.jumbocolombia.com/aceite-gourmet-canola-x900ml/p"
+  },
+  {
+    "foodId": "aceite_oliva",
+    "externalId": "127884",
+    "name": "Aceite Premier oliva extra virgen x500ml",
+    "packSize": 500,
+    "url": "https://www.jumbocolombia.com/aceite-de-oliva-extravirgen-premier-500ml/p"
+  },
+  {
+    "foodId": "sal",
+    "externalId": "22118",
+    "name": "Sal Refisal bolsa x1000g",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/bolsa-sal-refisal-x-1000-g/p"
+  },
+  {
+    "foodId": "azucar",
+    "externalId": "13019",
+    "name": "Azúcar Riopaila blanca x1000g",
+    "packSize": 1000,
+    "url": "https://www.jumbocolombia.com/azucar-blanco-riopaila-x-1000g/p"
+  },
+  {
+    "foodId": "panela",
+    "externalId": "91409",
+    "name": "Panela Fonce redonda x900g",
+    "packSize": 900,
+    "url": "https://www.jumbocolombia.com/panela-fonce-redonda-x900g/p"
+  },
+  {
+    "foodId": "miel",
+    "externalId": "19606",
+    "name": "Miel de abejas Flor del monte x 360 g",
+    "packSize": 360,
+    "url": "https://www.jumbocolombia.com/miel-de-abejas-flor-del-monte-x-360-g/p"
   }
 ]

@@ -147,7 +147,7 @@
       "method": "vtex_io_state",
       "bucaramanga": {
         "available": true,
-        "how": "Por confirmar en el modulo de cada tienda (documentacion solamente; el codigo no lo interpreta)."
+        "how": "No comprobado (2026-11-04). La pagina de producto siempre trae el canal nacional por defecto (segmentToken channel 1, regionId null); la ciudad se elige en un modal con JavaScript que usa /api/ (prohibido). ?sc= en la pagina se ignora. Sigue verified:false en stores/jumbo.ts (documentacion solamente; el codigo no lo interpreta)."
       },
       "minDelayMs": 5000,
       "readOnly": "product_pages",
