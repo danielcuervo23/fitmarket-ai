@@ -1,0 +1,35 @@
+{
+  "Product:sobrebarriga-de-res-x-500-g": {
+    "productName": "Sobrebarriga en bandeja x500gr",
+    "items": [
+      {
+        "type": "id",
+        "id": "Product:sobrebarriga-de-res-x-500-g.items.0"
+      }
+    ]
+  },
+  "Product:sobrebarriga-de-res-x-500-g.items.0": {
+    "itemId": "25302",
+    "name": "Sobrebarriga en bandeja x500gr",
+    "measurementUnit": "kg",
+    "unitMultiplier": 0.5,
+    "sellers": [
+      {
+        "type": "id",
+        "id": "Product:sobrebarriga-de-res-x-500-g.items.0.sellers.0"
+      }
+    ]
+  },
+  "Product:sobrebarriga-de-res-x-500-g.items.0.sellers.0": {
+    "sellerDefault": true,
+    "commertialOffer": {
+      "type": "id",
+      "id": "$Product:sobrebarriga-de-res-x-500-g.items.0.sellers.0.commertialOffer"
+    }
+  },
+  "$Product:sobrebarriga-de-res-x-500-g.items.0.sellers.0.commertialOffer": {
+    "Price": 29920,
+    "ListPrice": 35200,
+    "AvailableQuantity": 999946
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "Product:aguacate-hass-unidad": {
+    "productName": "Aguacate hass unidad",
+    "items": [
+      {
+        "type": "id",
+        "id": "Product:aguacate-hass-unidad.items.0"
+      }
+    ]
+  },
+  "Product:aguacate-hass-unidad.items.0": {
+    "itemId": "60675",
+    "name": "Aguacate hass unidad",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "sellers": [
+      {
+        "type": "id",
+        "id": "Product:aguacate-hass-unidad.items.0.sellers.0"
+      }
+    ]
+  },
+  "Product:aguacate-hass-unidad.items.0.sellers.0": {
+    "sellerDefault": true,
+    "commertialOffer": {
+      "type": "id",
+      "id": "$Product:aguacate-hass-unidad.items.0.sellers.0.commertialOffer"
+    }
+  },
+  "$Product:aguacate-hass-unidad.items.0.sellers.0.commertialOffer": {
+    "Price": 1780,
+    "ListPrice": 1780,
+    "AvailableQuantity": 1000025
+  }
+}
