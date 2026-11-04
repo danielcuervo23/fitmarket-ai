@@ -34,22 +34,56 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
   const [selectedPlan, setSelectedPlan] = useState<WeeklyPlan | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  // Pagination: the next page to ask for, and whether there is one.
+  const [nextPage, setNextPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<ErrorKey | null>(null);
 
   const loadHistory = useCallback(async () => {
     setIsLoading(true);
     setErrorKey(null);
+    setLoadMoreError(null);
 
-    const { data, error } = await fetchWeeklyPlansHistory();
+    const { data, error } = await fetchWeeklyPlansHistory(0);
 
-    if (error) {
-      setErrorKey(error);
+    if (error || !data) {
+      setErrorKey(error ?? "errors.load");
       setItems([]);
+      setHasMore(false);
     } else {
-      setItems(data ?? []);
+      setItems(data.items);
+      setHasMore(data.hasMore);
+      setNextPage(1);
     }
 
     setIsLoading(false);
   }, []);
+
+  const loadMore = async () => {
+    if (isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    setLoadMoreError(null);
+
+    const { data, error } = await fetchWeeklyPlansHistory(nextPage);
+
+    setIsLoadingMore(false);
+
+    if (error || !data) {
+      setLoadMoreError(error ?? "errors.load");
+      return;
+    }
+
+    // Appends without reloading earlier pages. Skips ids already shown, in
+    // case a new plan was saved meanwhile and shifted the rows by one.
+    setItems((previous) => {
+      const seen = new Set(previous.map((item) => item.id));
+      return [...previous, ...data.items.filter((item) => !seen.has(item.id))];
+    });
+    setHasMore(data.hasMore);
+    setNextPage((page) => page + 1);
+  };
 
   useEffect(() => {
     void loadHistory();
@@ -184,6 +218,26 @@ export function PlanHistoryScreen({ onBack, onViewCurrentPlan }: Props) {
               />
             </button>
           ))
+        )}
+
+        {!isLoading && !errorKey && items.length > 0 && (
+          <>
+            {/* On error the button stays, so tapping it again retries. */}
+            {loadMoreError && <Alert tone="error">{t(loadMoreError)}</Alert>}
+            {hasMore && (
+              <button
+                type="button"
+                onClick={() => void loadMore()}
+                disabled={isLoadingMore}
+                aria-busy={isLoadingMore}
+                className="mt-1 w-full rounded-card border border-ink-100 bg-white p-3.5 text-[14px] font-bold text-brand-700 shadow-card transition-all active:scale-[0.99] disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-brand-600"
+              >
+                {isLoadingMore
+                  ? t("history.loadingMore")
+                  : t("history.loadMore")}
+              </button>
+            )}
+          </>
         )}
       </ScreenBody>
     </Screen>

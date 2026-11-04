@@ -145,6 +145,8 @@ export const app = defineMessages({
     "history.previous": "Plan anterior",
     "history.active": "Activo",
     "history.kcalPerDay": "{kcal} kcal/día",
+    "history.loadMore": "Ver más",
+    "history.loadingMore": "Cargando más planes...",
   },
   en: {
     "plural.product_one": "{count} product",
@@ -290,5 +292,7 @@ export const app = defineMessages({
     "history.previous": "Previous plan",
     "history.active": "Active",
     "history.kcalPerDay": "{kcal} kcal/day",
+    "history.loadMore": "Show more",
+    "history.loadingMore": "Loading more plans...",
   },
 });

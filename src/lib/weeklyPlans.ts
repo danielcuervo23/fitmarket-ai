@@ -3,23 +3,27 @@ import type { WeeklyPlan } from "@/lib/ai/types";
 import { dbErrorKey, type ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/session";
+import {
+  historyPageRange,
+  isMissingColumnError,
+  mapHistoryRows,
+  type WeeklyPlanHistoryPage,
+} from "@/lib/weeklyPlansHistory";
 
-export interface WeeklyPlanHistoryItem {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  estimated_total_cop: number;
-  product_count: number;
-  estimated_daily_kcal: number;
-  is_current: boolean;
-}
-
-function buildHistorySummary(
-  planJson: unknown,
-): Pick<
+export type {
   WeeklyPlanHistoryItem,
-  "estimated_total_cop" | "product_count" | "estimated_daily_kcal"
-> | null {
+  WeeklyPlanHistoryPage,
+} from "@/lib/weeklyPlansHistory";
+
+/**
+ * Legacy path only: reads the three list numbers out of a full plan_json.
+ * Returns the same shape as the light history query (see migration 009).
+ */
+function buildHistorySummary(planJson: unknown): {
+  estimated_total_cop: number;
+  estimated_daily_kcal: number;
+  shopping_item_count: number;
+} | null {
   const { data: plan, error } = parseWeeklyPlanJson(planJson);
 
   if (error || !plan) {
@@ -28,8 +32,8 @@ function buildHistorySummary(
 
   return {
     estimated_total_cop: plan.summary.estimated_total_cop,
-    product_count: plan.shopping_list.length,
     estimated_daily_kcal: plan.summary.estimated_daily_kcal,
+    shopping_item_count: plan.shopping_list.length,
   };
 }
 
@@ -104,8 +108,13 @@ export async function fetchLatestWeeklyPlan(): Promise<{
   return { data: plan as WeeklyPlan, error: null };
 }
 
-export async function fetchWeeklyPlansHistory(): Promise<{
-  data: WeeklyPlanHistoryItem[] | null;
+/**
+ * One page (20 plans, newest first) of the history list. Downloads only the
+ * three numbers the list shows, not the whole plan_json (~10 KB each).
+ * `page` starts at 0; only the first plan of page 0 is marked as current.
+ */
+export async function fetchWeeklyPlansHistory(page = 0): Promise<{
+  data: WeeklyPlanHistoryPage | null;
   error: ErrorKey | null;
 }> {
   const {
@@ -120,41 +129,53 @@ export async function fetchWeeklyPlansHistory(): Promise<{
     };
   }
 
+  // Asks for 21 rows: the 21st only tells us whether there is another page.
+  const { from, to } = historyPageRange(page);
+
   const { data: rows, error: selectError } = await supabase
     .from("weekly_plans")
-    .select("id, created_at, updated_at, plan_json")
+    .select(
+      "id, created_at, updated_at, " +
+        "estimated_total_cop:plan_json->summary->estimated_total_cop, " +
+        "estimated_daily_kcal:plan_json->summary->estimated_daily_kcal, " +
+        "shopping_item_count",
+    )
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
-  if (selectError) {
+  if (!selectError) {
+    return { data: mapHistoryRows(rows, page), error: null };
+  }
+
+  // TEMPORARY fallback: until migration 009 is applied the column
+  // shopping_item_count does not exist, so read the full plan_json (paginated)
+  // as before. This block can be removed once 009 is applied in production.
+  if (!isMissingColumnError(selectError)) {
     return { data: null, error: dbErrorKey(selectError, "errors.load") };
   }
 
-  if (!rows?.length) {
-    return { data: [], error: null };
+  const { data: legacyRows, error: legacyError } = await supabase
+    .from("weekly_plans")
+    .select("id, created_at, updated_at, plan_json")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (legacyError) {
+    return { data: null, error: dbErrorKey(legacyError, "errors.load") };
   }
 
-  const latestId = rows[0]?.id;
+  // Invalid plans keep their place (with no numbers) so that "current" and
+  // "has more" are decided exactly as in the light query.
+  const mapped = (legacyRows ?? []).map((row) => ({
+    id: row.id,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    ...buildHistorySummary(row.plan_json),
+  }));
 
-  const items: WeeklyPlanHistoryItem[] = rows
-    .map((row) => {
-      const summary = buildHistorySummary(row.plan_json);
-
-      if (!summary) {
-        return null;
-      }
-
-      return {
-        id: row.id,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        ...summary,
-        is_current: row.id === latestId,
-      };
-    })
-    .filter((item): item is WeeklyPlanHistoryItem => item !== null);
-
-  return { data: items, error: null };
+  return { data: mapHistoryRows(mapped, page), error: null };
 }
 
 export async function fetchWeeklyPlanById(planId: string): Promise<{
