@@ -125,6 +125,12 @@ assert.equal(
 );
 assert.equal(isRecoveryCallback("#access_token=abc&type=signup"), false);
 assert.equal(isRecoveryCallback(""), false);
+assert.equal(
+  isRecoveryCallback("#type=recovery"),
+  false,
+  "a hand-typed #type=recovery without a session token must not start recovery mode",
+);
+assert.equal(isRecoveryCallback("#access_token=&type=recovery"), false, "an empty token does not count");
 
 // --- Remembering that the session came from a recovery link ---------------
 assert.equal(nextRecoveryFlag(false, "PASSWORD_RECOVERY"), true);

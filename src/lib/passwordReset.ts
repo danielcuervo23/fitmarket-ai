@@ -131,9 +131,14 @@ export function hasAuthLinkError(search: string, hash: string): boolean {
   );
 }
 
-/** True when the URL hash carries a password-recovery session. */
+/**
+ * True when the URL hash looks like a password-recovery callback: it must
+ * say `type=recovery` and carry an access token. Supabase still validates
+ * the token; this only decides whether to start in recovery mode.
+ */
 export function isRecoveryCallback(hash: string): boolean {
-  return params(hash).get("type") === "recovery";
+  const p = params(hash);
+  return p.get("type") === "recovery" && Boolean(p.get("access_token"));
 }
 
 /**
