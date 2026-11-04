@@ -6,7 +6,8 @@
 // the shelf prices we sampled (data/price-samples). Every figure shown to a
 // user from this source is labelled "Aproximado" and later replaced by real
 // shelf prices (store readers, user reports) when they exist. Calibrate with
-// those samples; do not read these numbers as official statistics.
+// those samples; do not read these numbers as official statistics. The
+// public evidence behind each factor is listed in docs/DATA_SOURCES.md.
 export const RETAIL_MARKUP = {
   /** Fruit, vegetables and tubers: high waste and handling, the widest margin. */
   fresco: 1.35,
