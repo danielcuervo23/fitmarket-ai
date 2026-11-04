@@ -65,9 +65,15 @@ Tests never use the network: they run against the fixtures in
 
 ## Wholesale reference prices: DANE SIPSA
 
-Fuente: DANE – SIPSA (Sistema de Información de Precios y Abastecimiento del
-Sector Agropecuario). Public, official data from the Colombian statistics
-office, read through its public SOAP web service
+Fuente: Departamento Administrativo Nacional de Estadística: www.dane.gov.co
+(SIPSA, Sistema de Información de Precios y Abastecimiento del Sector
+Agropecuario). DANE's terms of use
+(<https://www.dane.gov.co/index.php/terminos-y-condiciones>) allow use,
+transformation and analysis of its data with that literal citation, and DANE
+is not responsible for how third parties use or interpret it: our
+"Aproximado" prices are our own calculations, not official DANE figures, and
+the app says so. Public, official data from the Colombian statistics office,
+read through its public SOAP web service
 (`https://appweb.dane.gov.co/sipsaWS/SrvSipsaUpraBeanService`, SOAP 1.2,
 operation `promediosSipsaSemanaMadr`; guide:
 <https://www.dane.gov.co/index.php/estadisticas-por-tema/agropecuario/sistema-de-informacion-de-precios-sipsa/servicio-web-para-consulta-de-la-base-de-datos-de-sipsa>).
@@ -86,7 +92,22 @@ operation `promediosSipsaSemanaMadr`; guide:
   reference price; otherwise it is reported as an anomaly and skipped.
 - The planner uses it only as the base of **estimated** prices (shown as
   "Aproximado") when it is at most 45 days old; real store prices win over it.
-- Attribution is shown in the privacy policy ("Fuentes de datos", es/en).
+- Attribution is shown in the privacy policy ("Fuentes de datos", es/en) with
+  the same literal citation (checked by `scripts/prices/dane/attribution.test.mjs`).
+
+Evidence behind the retail markups (2026-11-04 review; still approximations):
+
+- Packaged staples (`abarrotes` 1.15): DANE, Encuesta Anual de Comercio 2013,
+  cost/sales ratio of supermarkets ("no especializados con surtido
+  principalmente de alimentos", CIIU 4711) = 86.5%, i.e. sales = 1.156 x cost
+  (<https://www.dane.gov.co/files/investigaciones/boletines/eac/bol_eac_2013.pdf>).
+- Fresh produce (`fresco` 1.35): CCI (2002) and Cámara de Comercio de Bogotá
+  (2004), cited by Parrado & Montoya, Agronomía Colombiana 25(2) 377-382, 2007:
+  supermarket margin on fruit and vegetables 35-45%, neighbourhood shop 30-40%
+  (<https://distantreader.org/stacks/journals/agrocol/agrocol-14143.pdf>).
+  1.35 is the low end of that range.
+- Eggs and fish (`proteina` 1.20): no official margin found; our shelf samples
+  of eggs (data/price-samples) sit at 1.0-1.34 x the Centroabastos price.
 
 Re-running (reads the network; `--dry-run` writes nothing and needs no secrets):
 

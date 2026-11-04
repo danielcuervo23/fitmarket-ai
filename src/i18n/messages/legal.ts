@@ -30,7 +30,7 @@ export const legal = defineMessages({
       "Los planes son una guía generada por IA y no reemplazan el consejo de un profesional de la salud. Si tienes alergias graves o una condición médica, consulta a un especialista y revisa siempre los ingredientes.",
     "privacy.s7.title": "Fuentes de datos",
     "privacy.s7.body":
-      "Datos nutricionales: USDA FoodData Central (dominio público) y Open Food Facts (ODbL). Precios mayoristas de referencia: Fuente: DANE – SIPSA (datos públicos oficiales); los precios aproximados que ves se calculan a partir de ellos y siempre se marcan como Aproximado.",
+      "Datos nutricionales: USDA FoodData Central (dominio público) y Open Food Facts (ODbL). Precios mayoristas de referencia: Fuente: Departamento Administrativo Nacional de Estadística: www.dane.gov.co (SIPSA, datos públicos oficiales). Los precios aproximados que ves son cálculos propios de FitMarket a partir de esos datos (no son cifras oficiales del DANE) y siempre se marcan como Aproximado.",
 
     "account.privacy": "Política de privacidad",
     "account.dangerZone": "Zona de peligro",
@@ -72,7 +72,7 @@ export const legal = defineMessages({
       "Plans are an AI-generated guide and don't replace advice from a health professional. If you have severe allergies or a medical condition, consult a specialist and always check ingredients.",
     "privacy.s7.title": "Data sources",
     "privacy.s7.body":
-      "Nutrition data: USDA FoodData Central (public domain) and Open Food Facts (ODbL). Wholesale reference prices: Source: DANE – SIPSA (official public data); the approximate prices you see are derived from them and always labelled Aproximado.",
+      "Nutrition data: USDA FoodData Central (public domain) and Open Food Facts (ODbL). Wholesale reference prices: Fuente: Departamento Administrativo Nacional de Estadística: www.dane.gov.co (SIPSA, official public data). The approximate prices you see are FitMarket's own calculations from that data (not official DANE figures) and are always labelled Aproximado.",
 
     "account.privacy": "Privacy policy",
     "account.dangerZone": "Danger zone",

@@ -6,7 +6,7 @@ interface Props {
   onBack: () => void;
 }
 
-const UPDATED_AT = "2026-10-23";
+const UPDATED_AT = "2026-11-04";
 
 const SECTIONS: { title: MessageKey; body: MessageKey }[] = [
   { title: "privacy.s1.title", body: "privacy.s1.body" },
