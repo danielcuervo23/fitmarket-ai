@@ -51,6 +51,7 @@ Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decisio
 ## Carulla (carulla.com)
 - robots.txt y plataforma identicos a Exito (mismo grupo). Terminos en https://www.carulla.com/terminos-condiciones, sin clausula explicita de scraping.
 - Mismos problemas que Exito (API bloqueada, 429, Bucaramanga sin verificar).
+- 2026-11-04 (mapeo del paso 4): robots.txt respondio 200; la siguiente peticion (el sitemap que robots.txt lista, 8.7 s despues) respondio **429** con las cabeceras `rate-limit-reason: bot` y `rate-limit-threshold: 166` (Cloudflare delante de `faststore-prod`). El limite es por **identificarse como robot** (el user agent dice "Bot"), no por velocidad. Se paro la tienda sin reintentar. Exito no se toco (misma plataforma, ya habia dado 429 dos veces). Sin cambiar el user agent (no permitido) no se pueden leer ni el sitemap ni las paginas de producto; queda para decision del dueno.
 - Decision: **No** (por ahora). ~~(Superada por la decision del dueno del 2026-11-04: Carulla se lee bajo las precauciones.)~~
 
 ## Jumbo (tiendasjumbo.co, redirige a jumbocolombia.com)
