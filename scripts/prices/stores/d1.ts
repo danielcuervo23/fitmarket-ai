@@ -50,18 +50,26 @@ export const BUCARAMANGA_SELECTOR: CitySelector = {
  * Only a bare "Unidad" (no number or "x<number>" right before it) means one unit; "2 Unidades"
  * is left as is so the parser reads 2 and the pack does not match a single unit.
  * D1 also writes thousands with a dot ("1.000 G" = 1000 g; only before g/ml, so "2.5 Kg" keeps
- * its decimal) and a net weight after a count ("Ajo Malla X 3 Unidades - 100 G" = 100 g net,
- * "Cilantro Unidad 100 G" = 100 g net).
+ * its decimal) and, for a mesh or bunch, a net weight after a count ("Ajo Malla X 3 Unidades - 100 G"
+ * = 100 g net, "Cilantro Unidad 100 G" = 100 g net).
  */
 const WEIGHT_AHEAD = String.raw`(?=\d+(?:[.,]\d+)?\s*(?:kg|grs?|g|ml|l)\b)`;
-const COUNT_THEN_NET_WEIGHT = new RegExp(String.raw`(?:\bx\s*)?\b\d+\s*unidad(?:es)?\s*-\s*${WEIGHT_AHEAD}`, "gi");
+/**
+ * Only a mesh or a bunch ("Malla", "Atado", "Manojo") states its total net weight after the count.
+ * Elsewhere "Yogurt X 6 Unidades - 200 G" is 6 items of 200 g: left alone, the parser sees two
+ * sizes and the pack is refused (never a 200 g pack priced for 6).
+ */
+const COUNT_THEN_NET_WEIGHT = new RegExp(
+  String.raw`(\b(?:malla|atado|manojo)\s+)(?:x\s*)?\d+\s*unidad(?:es)?\s*-\s*${WEIGHT_AHEAD}`,
+  "gi",
+);
 /** "Cilantro Unidad 100 G": one bunch whose net weight follows. */
 const UNIT_THEN_NET_WEIGHT = new RegExp(String.raw`(?<![\dxX]\s*)\bunidad\s+${WEIGHT_AHEAD}`, "gi");
 
 function normalizeName(name: string): string {
   return name
     .replace(/\b(\d{1,3})\.(\d{3})(?=\s*(?:grs?|g|gramos?|ml|cc)\b)/gi, "$1$2")
-    .replace(COUNT_THEN_NET_WEIGHT, "")
+    .replace(COUNT_THEN_NET_WEIGHT, "$1")
     .replace(UNIT_THEN_NET_WEIGHT, "")
     .replace(/\bgrs?\b/gi, "g")
     .replace(/(?<![\dxX]\s*)\bunidad(?:es)?\b/gi, "1 und");

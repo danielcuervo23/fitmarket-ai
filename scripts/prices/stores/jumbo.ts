@@ -32,10 +32,12 @@ export const BUCARAMANGA_SELECTOR: CitySelector = {
 /**
  * Jumbo names write sizes as "x350grs", "x 2kgr", "x 6 un" or a bare "unidad". Turn them into
  * text the shared size parser knows. Only a bare "unidad" (no number right before it) is one
- * unit; "2 unidades" is left alone so a single-unit mapping does not match a two-pack.
+ * unit; "2 unidades" is left alone so a single-unit mapping does not match a two-pack. A dot
+ * before three digits and g/ml is a thousands separator ("1.000 g" = 1000 g; "2.5 kg" keeps its decimal).
  */
 function normalizeName(name: string): string {
   return name
+    .replace(/\b(\d{1,3})\.(\d{3})(?=\s*(?:grs?|g|gramos?|ml|cc)\b)/gi, "$1$2")
     .replace(/(\d)\s*kgrs?\b/gi, "$1 kg")
     .replace(/(\d)\s*grs\b/gi, "$1 g")
     .replace(/(?<![\dxX]\s*)\bunidad\b/gi, "1 und");

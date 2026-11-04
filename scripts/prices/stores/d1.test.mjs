@@ -208,3 +208,13 @@ test("the D1 mapping file has one entry per food and covers most of the catalog"
   assert.equal(new Set(foodIds).size, foodIds.length);
   assert.ok(entries.length >= 50, `only ${entries.length} D1 mappings`);
 });
+
+test("a counted multipack with a per-item weight ('Yogurt X 6 Unidades - 200 G') is never a 200 g pack", () => {
+  const named = (name, pack) => parse("d1-arroz-albar-500g", pack, "1379", (s) => (s[itemKey(s)].name = name));
+  for (const pack of [200, 1200, 6, 1]) {
+    assert.deepEqual(named("Yogurt X 6 Unidades - 200 G", pack), { ok: false, reason: "pack_mismatch" }, String(pack));
+  }
+  // A mesh or a bunch keeps its net weight.
+  assert.equal(named("Ajo Malla X 3 Unidades - 100 G", 100).ok, true);
+  assert.equal(named("Cebolla Atado 4 Unidades - 500 G", 500).ok, true);
+});

@@ -119,3 +119,11 @@ test("Bucaramanga stays unverified: product pages only expose the national defau
   assert.equal(jumbo.BUCARAMANGA_SELECTOR.verified, false);
   assert.deepEqual(jumbo.BUCARAMANGA_SELECTOR.headers, {});
 });
+
+test("a dot thousands separator before g/ml is read as thousands ('1.000 g' is 1000 g)", () => {
+  const named = (name, pack) => parse("vtex-io-arroz-sopa-500g", pack, "13391", rename(name));
+  assert.equal(named("Arroz Roa x 1.000 g", 1000).ok, true);
+  assert.deepEqual(named("Arroz Roa x 1.000 g", 1), { ok: false, reason: "pack_mismatch" });
+  assert.equal(named("Leche Alqueria 1.100 ml", 1100).ok, true);
+  assert.equal(named("Papa 2.5 kg", 2500).ok, true);
+});
