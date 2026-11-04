@@ -61,6 +61,7 @@ test("prices lookups are indexed and idempotent", () => {
   assert.match(m011, /unique \(store_product_id, city, source, observed_on\)/);
   assert.match(m011, /create index if not exists prices_city_product_date_idx on public\.prices \(city, store_product_id, observed_on desc\)/);
   assert.match(m011, /create index if not exists store_products_food_id_idx/);
+  assert.match(m011, /create index if not exists prices_store_product_id_idx on public\.prices \(store_product_id\)/);
 });
 
 test("migrations are idempotent", () => {

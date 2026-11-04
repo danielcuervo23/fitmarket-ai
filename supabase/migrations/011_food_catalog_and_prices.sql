@@ -122,6 +122,10 @@ comment on column public.prices.source is
 create index if not exists prices_city_product_date_idx
   on public.prices (city, store_product_id, observed_on desc);
 
+-- Borrado en cascada desde store_products y consultas por producto sin ciudad.
+create index if not exists prices_store_product_id_idx
+  on public.prices (store_product_id);
+
 -- ---------------------------------------------------------------------------
 -- 4. current_prices: último precio official/user de productos activos
 -- ---------------------------------------------------------------------------
