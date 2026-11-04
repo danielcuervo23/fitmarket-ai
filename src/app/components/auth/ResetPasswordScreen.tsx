@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { updatePassword } from "@/lib/auth";
 import type { ErrorKey } from "@/lib/errors";
-import { hasAuthLinkError, validateNewPassword } from "@/lib/passwordReset";
+import {
+  hasAuthLinkError,
+  leaveRecoverySession,
+  validateNewPassword,
+} from "@/lib/passwordReset";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -43,12 +47,32 @@ export function ResetPasswordScreen({
   const [confirmation, setConfirmation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
+  // Kept apart from errorKey: a failed sign-out on the "invalid link" screen
+  // must not replace the reason that screen is shown.
+  const [leaveErrorKey, setLeaveErrorKey] = useState<ErrorKey | null>(null);
   const [saved, setSaved] = useState(false);
   const savedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (saved) savedRef.current?.focus();
   }, [saved]);
+
+  // Leaving without a new password ends the recovery session (and the
+  // recovery flag), so the router does not bounce the user back here and
+  // nobody who picks up this device later is signed in by an unfinished
+  // reset.
+  const leave = async (next: () => void) => {
+    if (isLoading) return;
+    setLeaveErrorKey(null);
+    setIsLoading(true);
+    try {
+      setLeaveErrorKey(await leaveRecoverySession(signOut, next));
+    } catch {
+      setLeaveErrorKey("errors.signOut");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const linkUnusable =
     !saved &&
@@ -61,10 +85,21 @@ export function ResetPasswordScreen({
         body={t("auth.error.resetLinkInvalid")}
         actions={
           <>
-            <Button size="lg" full onClick={onRequestNewLink}>
+            {leaveErrorKey && <Alert tone="error">{t(leaveErrorKey)}</Alert>}
+            <Button
+              size="lg"
+              full
+              loading={isLoading}
+              onClick={() => void leave(onRequestNewLink)}
+            >
               {t("resetPassword.requestNew")}
             </Button>
-            <Button variant="ghost" full onClick={onGoToLogin}>
+            <Button
+              variant="ghost"
+              full
+              disabled={isLoading}
+              onClick={() => void leave(onGoToLogin)}
+            >
               {t("forgotPassword.backToLogin")}
             </Button>
           </>
@@ -105,21 +140,6 @@ export function ResetPasswordScreen({
     }
   };
 
-  // Leaving without a new password ends the recovery session, so nobody who
-  // picks up this device later is signed in by an unfinished reset.
-  const handleCancel = async () => {
-    setIsLoading(true);
-    const { error } = await signOut();
-    setIsLoading(false);
-
-    if (error) {
-      setErrorKey(error);
-      return;
-    }
-
-    onGoToLogin();
-  };
-
   if (saved) {
     return (
       <Screen className="bg-white">
@@ -138,14 +158,18 @@ export function ResetPasswordScreen({
     );
   }
 
-  const clearError = () => setErrorKey(null);
+  const clearError = () => {
+    setErrorKey(null);
+    setLeaveErrorKey(null);
+  };
+  const formError = leaveErrorKey ?? errorKey;
 
   return (
     <Screen className="bg-white">
       <ScreenHeader
         title={t("resetPassword.title")}
         subtitle={t("resetPassword.subtitle")}
-        onBack={() => void handleCancel()}
+        onBack={() => void leave(onGoToLogin)}
         disabled={isLoading}
       />
 
@@ -180,7 +204,7 @@ export function ResetPasswordScreen({
         </ScreenBody>
 
         <ScreenFooter>
-          {errorKey && <Alert tone="error">{t(errorKey)}</Alert>}
+          {formError && <Alert tone="error">{t(formError)}</Alert>}
 
           <Button type="submit" size="lg" full loading={isLoading}>
             {t("resetPassword.submit")}

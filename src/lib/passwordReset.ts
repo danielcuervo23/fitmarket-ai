@@ -231,3 +231,19 @@ export function recoveryRedirect(state: {
 
   return resetPath;
 }
+
+/**
+ * Leaves an unfinished recovery: signs out first (which also turns the
+ * recovery flag off) and only then runs `next`, so `recoveryRedirect` does
+ * not send the user straight back. If signing out fails, `next` is skipped
+ * and the error is returned for the screen to show.
+ */
+export async function leaveRecoverySession(
+  signOut: () => Promise<{ error: ErrorKey | null }>,
+  next: () => void,
+): Promise<ErrorKey | null> {
+  const { error } = await signOut();
+  if (error) return error;
+  next();
+  return null;
+}

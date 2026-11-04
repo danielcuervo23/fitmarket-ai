@@ -6,6 +6,7 @@ import {
   hasAuthLinkError,
   initialRecoveryFlag,
   isRecoveryCallback,
+  leaveRecoverySession,
   nextRecoveryFlag,
   readRecoveryFlag,
   recoveryRedirect,
@@ -254,5 +255,51 @@ assert.equal(
   null,
   "normal signed-in users are never redirected",
 );
+
+// --- Leaving the "link is no longer valid" screen -------------------------
+// When saving fails with an expired session, the local session and the flag
+// are still alive. "Ask for a new link" / "Back to sign in" must sign out
+// first, otherwise the redirect above sends the user straight back.
+{
+  const calls = [];
+  const error = await leaveRecoverySession(
+    async () => {
+      calls.push("signOut");
+      return { error: null };
+    },
+    () => calls.push("navigate"),
+  );
+  assert.equal(error, null);
+  assert.deepEqual(calls, ["signOut", "navigate"], "sign out first, then leave");
+}
+{
+  const calls = [];
+  const error = await leaveRecoverySession(
+    async () => {
+      calls.push("signOut");
+      return { error: "errors.signOut" };
+    },
+    () => calls.push("navigate"),
+  );
+  assert.equal(error, "errors.signOut");
+  assert.deepEqual(calls, ["signOut"], "if signing out fails, stay and show the error");
+}
+{
+  // After signing out, the user is no longer forced back to the reset screen.
+  const isRecovering = nextRecoveryFlag(true, "SIGNED_OUT", false);
+  assert.equal(
+    recoveryRedirect({ location: "/forgot-password", resetPath: RESET, isRecovering, hasSession: false }),
+    null,
+  );
+  assert.equal(
+    recoveryRedirect({ location: "/login", resetPath: RESET, isRecovering, hasSession: false }),
+    null,
+  );
+  // Even if the session were still around for a moment, the flag is off.
+  assert.equal(
+    recoveryRedirect({ location: "/login", resetPath: RESET, isRecovering, hasSession: true }),
+    null,
+  );
+}
 
 console.log("passwordReset: all checks passed");
