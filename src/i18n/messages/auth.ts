@@ -60,6 +60,11 @@ export const auth = defineMessages({
     "resetPassword.continue": "Continuar a FitMarket AI",
     "resetPassword.invalidTitle": "El enlace ya no sirve",
     "resetPassword.requestNew": "Pedir un enlace nuevo",
+    "resetPassword.signOutOthers": "Cerrar sesión en mis otros dispositivos",
+    "resetPassword.signOutOthersHint":
+      "Recomendado si crees que alguien más entró a tu cuenta.",
+    "resetPassword.otherDevicesFailed":
+      "Tu contraseña se cambió, pero no pudimos cerrar las otras sesiones.",
 
     "register.title": "Crea tu cuenta",
     "register.subtitle": "Comienza gratis, sin tarjeta de crédito.",
@@ -131,6 +136,11 @@ export const auth = defineMessages({
     "resetPassword.continue": "Continue to FitMarket AI",
     "resetPassword.invalidTitle": "This link no longer works",
     "resetPassword.requestNew": "Request a new link",
+    "resetPassword.signOutOthers": "Sign me out on my other devices",
+    "resetPassword.signOutOthersHint":
+      "Recommended if you think someone else got into your account.",
+    "resetPassword.otherDevicesFailed":
+      "Your password was changed, but we couldn't sign out your other sessions.",
 
     "register.title": "Create your account",
     "register.subtitle": "Start for free, no credit card needed.",

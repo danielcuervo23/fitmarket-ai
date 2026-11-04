@@ -247,3 +247,28 @@ export async function leaveRecoverySession(
   next();
   return null;
 }
+
+/** The part of `supabase.auth` used to close the other sessions. */
+export interface OtherSessionsClient {
+  signOut(options: { scope: "others" }): Promise<{ error: unknown }>;
+}
+
+/**
+ * Runs after the new password is saved. When the user ticked "sign me out on
+ * my other devices", closes every other session (this one stays open). The
+ * password change already succeeded, so a failure here only yields a
+ * non-blocking warning.
+ */
+export async function signOutOtherDevicesIfAsked(
+  signOutOthers: boolean,
+  client: OtherSessionsClient,
+): Promise<{ warningKey: ErrorKey | null }> {
+  if (!signOutOthers) return { warningKey: null };
+
+  try {
+    const { error } = await client.signOut({ scope: "others" });
+    return { warningKey: error ? "resetPassword.otherDevicesFailed" : null };
+  } catch {
+    return { warningKey: "resetPassword.otherDevicesFailed" };
+  }
+}

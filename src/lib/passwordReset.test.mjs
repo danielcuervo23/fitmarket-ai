@@ -11,6 +11,7 @@ import {
   readRecoveryFlag,
   recoveryRedirect,
   resetRequestErrorKey,
+  signOutOtherDevicesIfAsked,
   updatePasswordErrorKey,
   validateNewPassword,
   validateResetEmail,
@@ -300,6 +301,36 @@ assert.equal(
     recoveryRedirect({ location: "/login", resetPath: RESET, isRecovering, hasSession: true }),
     null,
   );
+}
+
+// --- Optionally signing out the other devices after the change ------------
+{
+  // Box left unticked: nothing else happens.
+  const calls = [];
+  const client = { signOut: async (options) => { calls.push(options); return { error: null }; } };
+  const result = await signOutOtherDevicesIfAsked(false, client);
+  assert.deepEqual(result, { warningKey: null });
+  assert.deepEqual(calls, [], "signOut is not called when the box is unticked");
+}
+{
+  // Box ticked: only the OTHER sessions are closed, this one stays.
+  const calls = [];
+  const client = { signOut: async (options) => { calls.push(options); return { error: null }; } };
+  const result = await signOutOtherDevicesIfAsked(true, client);
+  assert.deepEqual(result, { warningKey: null });
+  assert.deepEqual(calls, [{ scope: "others" }]);
+}
+{
+  // Box ticked but signing the others out fails: the password is already
+  // saved, so it is still a success, with a gentle warning.
+  const client = { signOut: async () => ({ error: { message: "Failed to fetch" } }) };
+  assert.deepEqual(await signOutOtherDevicesIfAsked(true, client), {
+    warningKey: "resetPassword.otherDevicesFailed",
+  });
+  const throwing = { signOut: async () => { throw new Error("offline"); } };
+  assert.deepEqual(await signOutOtherDevicesIfAsked(true, throwing), {
+    warningKey: "resetPassword.otherDevicesFailed",
+  }, "a thrown error is treated the same way, never as a failed password change");
 }
 
 console.log("passwordReset: all checks passed");

@@ -4,6 +4,7 @@ import { isValidEmail, MIN_PASSWORD_LENGTH } from "@/lib/authRules";
 import {
   buildPasswordResetRedirect,
   resetRequestErrorKey,
+  signOutOtherDevicesIfAsked,
   updatePasswordErrorKey,
 } from "@/lib/passwordReset";
 import { supabase } from "@/lib/supabase";
@@ -123,13 +124,25 @@ export async function requestPasswordReset(
   return { error: resetRequestErrorKey(error) };
 }
 
-/** Saves a new password for the signed-in (or recovering) user. */
+/**
+ * Saves a new password for the signed-in (or recovering) user. With
+ * `signOutOthers`, every other session is closed afterwards (this one stays);
+ * if that part fails the password is still saved and `warning` says so.
+ */
 export async function updatePassword(
   password: string,
-): Promise<{ error: ErrorKey | null }> {
+  { signOutOthers = false }: { signOutOthers?: boolean } = {},
+): Promise<{ error: ErrorKey | null; warning: ErrorKey | null }> {
   const { error } = await supabase.auth.updateUser({ password });
 
-  return { error: error ? updatePasswordErrorKey(error) : null };
+  if (error) return { error: updatePasswordErrorKey(error), warning: null };
+
+  const { warningKey } = await signOutOtherDevicesIfAsked(
+    signOutOthers,
+    supabase.auth,
+  );
+
+  return { error: null, warning: warningKey };
 }
 
 export async function signOut(): Promise<{ error: ErrorKey | null }> {

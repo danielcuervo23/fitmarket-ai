@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { updatePassword } from "@/lib/auth";
 import type { ErrorKey } from "@/lib/errors";
 import {
@@ -51,6 +51,12 @@ export function ResetPasswordScreen({
   // must not replace the reason that screen is shown.
   const [leaveErrorKey, setLeaveErrorKey] = useState<ErrorKey | null>(null);
   const [saved, setSaved] = useState(false);
+  // Optional and off by default: the user can save without touching it.
+  const [signOutOthers, setSignOutOthers] = useState(false);
+  const [savedWarningKey, setSavedWarningKey] = useState<ErrorKey | null>(
+    null,
+  );
+  const signOutOthersHintId = useId();
   const savedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -123,7 +129,9 @@ export function ResetPasswordScreen({
     setIsLoading(true);
 
     try {
-      const { error } = await updatePassword(password);
+      const { error, warning } = await updatePassword(password, {
+        signOutOthers,
+      });
 
       if (error) {
         setErrorKey(error);
@@ -132,6 +140,7 @@ export function ResetPasswordScreen({
 
       setPassword("");
       setConfirmation("");
+      setSavedWarningKey(warning);
       setSaved(true);
     } catch {
       setErrorKey("errors.network");
@@ -144,10 +153,13 @@ export function ResetPasswordScreen({
     return (
       <Screen className="bg-white">
         <ScreenHeader title={t("resetPassword.successTitle")} />
-        <ScreenBody className="pb-4">
+        <ScreenBody className="flex flex-col gap-3 pb-4">
           <div ref={savedRef} tabIndex={-1} className="outline-none">
             <Alert tone="success">{t("resetPassword.success")}</Alert>
           </div>
+          {savedWarningKey && (
+            <Alert tone="warning">{t(savedWarningKey)}</Alert>
+          )}
         </ScreenBody>
         <ScreenFooter>
           <Button size="lg" full onClick={onDone}>
@@ -201,6 +213,26 @@ export function ResetPasswordScreen({
               clearError();
             }}
           />
+
+          <div className="flex flex-col gap-0.5">
+            <label className="-mx-2 flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-2 text-[14px] font-semibold text-ink-700 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-600">
+              <input
+                type="checkbox"
+                checked={signOutOthers}
+                disabled={isLoading}
+                aria-describedby={signOutOthersHintId}
+                onChange={(event) => setSignOutOthers(event.target.checked)}
+                className="size-5 shrink-0 accent-brand-600 outline-none"
+              />
+              {t("resetPassword.signOutOthers")}
+            </label>
+            <p
+              id={signOutOthersHintId}
+              className="pl-8 text-xs text-ink-500"
+            >
+              {t("resetPassword.signOutOthersHint")}
+            </p>
+          </div>
         </ScreenBody>
 
         <ScreenFooter>
