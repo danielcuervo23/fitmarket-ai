@@ -181,3 +181,43 @@ test("no city prices means the same plan totals as before", () => {
   assert.deepEqual(a.shopping_list, c.shopping_list);
   assert.equal(weekCost(week, 2, options.stores), a.summary.estimated_total_cop);
 });
+
+test("offers with a bad packSize are ignored and the estimate applies", () => {
+  const estimate = STATIC_PRICE_BOOK.quote(huevo, 12, ["D1"]).costCop;
+
+  for (const packSize of [0, -5, Number.NaN, Number.POSITIVE_INFINITY]) {
+    const quote = createCityPriceBook([{ ...eggOffer, packSize }], { today: TODAY }).quote(huevo, 12, ["D1"]);
+
+    assert.equal(quote.source, "estimate", String(packSize));
+    assert.equal(quote.costCop, estimate);
+  }
+});
+
+test("offers far from the reference pack (kg typed as g) are ignored", () => {
+  const arroz = getIngredient("arroz_blanco");
+  const offer = { storeId: "D1", foodId: "arroz_blanco", regularPriceCop: 4000, source: "user", observedOn: TODAY };
+  const estimate = STATIC_PRICE_BOOK.quote(arroz, 900, ["D1"]).costCop;
+
+  for (const packSize of [arroz.pack / 1000, arroz.pack * 11, arroz.pack * 0.09]) {
+    const quote = createCityPriceBook([{ ...offer, packSize }], { today: TODAY }).quote(arroz, 900, ["D1"]);
+
+    assert.equal(quote.source, "estimate", String(packSize));
+    assert.equal(quote.costCop, estimate);
+  }
+
+  for (const packSize of [arroz.pack * 0.1, arroz.pack * 10]) {
+    assert.equal(createCityPriceBook([{ ...offer, packSize }], { today: TODAY }).quote(arroz, 900, ["D1"]).source, "user");
+  }
+});
+
+test("an offer dated in the future is not fresh", () => {
+  const book = createCityPriceBook([{ ...eggOffer, observedOn: "2026-11-05" }], { today: TODAY });
+
+  assert.equal(book.quote(huevo, 12, ["D1"]).source, "estimate");
+});
+
+test("an invalid today throws a clear error", () => {
+  for (const today of ["", "yesterday", "2026-13-40", "2026/11/04"]) {
+    assert.throws(() => createCityPriceBook([eggOffer], { today }), /today/i, today);
+  }
+});

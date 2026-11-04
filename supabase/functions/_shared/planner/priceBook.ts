@@ -9,6 +9,10 @@ export const MAX_PRICE_AGE_DAYS = 45;
 export interface PriceOffer {
   storeId: string;
   foodId: string;
+  /**
+   * Size of the pack in the ingredient's base unit (the same as
+   * `ingredient.unit`: g, ml or unit), never kg or L.
+   */
   packSize: number;
   regularPriceCop: number;
   source: "official" | "user";
@@ -34,6 +38,15 @@ const DAY_MS = 86_400_000;
 
 function dayNumber(date: string): number {
   return /^\d{4}-\d{2}-\d{2}$/.test(date) ? Date.parse(`${date}T00:00:00Z`) / DAY_MS : NaN;
+}
+
+/**
+ * Sanity rule against unit mix-ups (kg typed as g, L as ml): an offer's pack
+ * must be between 0.1x and 10x the ingredient's reference pack, else it is
+ * ignored and the estimate applies.
+ */
+function plausiblePack(ingredient: Ingredient, packSize: number): boolean {
+  return packSize * 10 >= ingredient.pack && packSize <= ingredient.pack * 10;
 }
 
 const packsFor = (qty: number, packSize: number): number =>
@@ -71,6 +84,11 @@ export function createCityPriceBook(
   },
 ): PriceBook {
   const today = dayNumber(options.today);
+
+  if (!Number.isFinite(today)) {
+    throw new Error(`createCityPriceBook: invalid today "${options.today}" (expected YYYY-MM-DD)`);
+  }
+
   const maxAge = options.maxAgeDays ?? MAX_PRICE_AGE_DAYS;
   const all = new Map<string, PriceOffer[]>();
   const fresh = new Map<string, PriceOffer[]>();
@@ -91,7 +109,7 @@ export function createCityPriceBook(
 
     const age = today - dayNumber(offer.observedOn);
 
-    if (Number.isFinite(age) && age <= maxAge) {
+    if (age >= 0 && age <= maxAge) {
       fresh.set(key, [...(fresh.get(key) ?? []), offer]);
     }
   }
@@ -107,9 +125,11 @@ export function createCityPriceBook(
   };
 
   const quoteAt = (ingredient: Ingredient, qty: number, store: string): Quote => {
-    const options = fresh.get(keyOf(store, ingredient.id));
+    const options = fresh
+      .get(keyOf(store, ingredient.id))
+      ?.filter((offer) => plausiblePack(ingredient, offer.packSize));
 
-    if (!options || qty <= 0) {
+    if (!options?.length || qty <= 0) {
       return estimateQuote(ingredient, qty, store);
     }
 
