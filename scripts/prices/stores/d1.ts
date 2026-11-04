@@ -32,15 +32,17 @@ const MAX_BODY_CHARS = 8_000_000;
 // query has no region argument, there is one seller ("1", Tiendas D1) and the
 // signed price token says salesChannel "1"; the `sc=` parameter is blocked by
 // robots.txt. A vtex_segment cookie with a Bucaramanga postal code (680001) gave
-// a byte-identical offer and price token, so either the cookie is ignored or the
-// price is national; the page alone cannot tell which. Press (Blu Radio) reports
-// one price list for every D1 store, but D1 publishes no official statement we
-// may read under the precautions. So the default price is read and this stays
-// unverified until the owner compares a few prices in a browser set to Bucaramanga.
+// a byte-identical offer, so the robot always reads D1's default region.
+// D1 prices DO vary by region: checked by hand on 2026-11-04 in a browser with
+// Bucaramanga chosen in D1's address picker vs the default the robot sees
+// (arroz Albar 500 g 1750 vs 1750, huevo AA x30 13990 vs 14650, tomate chonto
+// 1 kg 5300 vs 5100). So this MUST stay unverified: the robot never writes D1
+// prices as Bucaramanga. D1 Bucaramanga prices come from the "Anotar precio"
+// bookmarklet (scripts/prices/manual), which reads the person's own page.
 export const BUCARAMANGA_SELECTOR: CitySelector = {
   verified: false,
   headers: {},
-  note: "D1 default (national) price list; one seller and sales channel 1; Bucaramanga match pending a manual browser check",
+  note: "D1 default region (not Bucaramanga: prices vary by region, checked 2026-11-04); Bucaramanga prices come from the manual bookmarklet",
 };
 
 /**

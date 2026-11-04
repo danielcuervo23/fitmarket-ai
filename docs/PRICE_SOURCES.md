@@ -36,7 +36,16 @@ Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decisio
 - Terminos (cambio de host): `policy.json` ahora apunta a `https://www.d1.com.co/` y ya no a `domicilios.tiendasd1.com`. Las URLs probadas en el host viejo (`/terminos-y-condiciones`) daban 404 y el pie de pagina se carga con JavaScript; no se pudo leer ningun texto legal.
 - Decision: **No**. No se pudieron leer los terminos. ~~(Superada por la decision del dueno del 2026-11-04: D1 se lee bajo las precauciones.)~~
 - Mapeos (2026-11-04): 51 de 70 alimentos tienen producto en D1 (`data/store-products/D1.json`), encontrados con los sitemaps de producto (`/sitemap.xml` -> `/sitemap/product-0..2.xml`) y confirmados abriendo cada pagina de producto. Sin producto adecuado en D1: sobrebarriga, sardinas, yuca, habichuela, repollo, remolacha, calabacin, pina, guayaba, maracuya, nueces; y frutas o verduras que D1 vende de otra forma que el catalogo (pepino, ahuyama, papaya y mango por unidad cuando el catalogo usa gramos; manzana, naranja, mandarina y pera por peso cuando el catalogo usa unidades). El brocoli es la bolsa congelada de 500 g y la mora la congelada de 500 g.
-- Bucaramanga (2026-11-04, solo paginas de producto): **sin verificar**. La pagina se guarda en cache publica y trae un solo precio por defecto: un vendedor (`1`, Tiendas D1), canal de venta `1` (lo dice el `priceToken` firmado) y ninguna region en la consulta del producto. El parametro `sc=` esta bloqueado por robots.txt. Una cookie `vtex_segment` con codigo postal de Bucaramanga (680001) devolvio exactamente la misma oferta y el mismo `priceToken`: o la cookie se ignora o el precio es nacional; la pagina sola no lo distingue. La prensa (Blu Radio) dice que D1 usa la misma lista de precios en todas sus tiendas del pais, pero no hay una declaracion oficial que se pueda leer bajo las precauciones (las paginas `/pagina/...` no son paginas de producto). Para pasar a `verified: true`: el dueno compara unos 5 precios en un navegador normal con un codigo postal de Bucaramanga; si coinciden con los del lector, se cambia `BUCARAMANGA_SELECTOR.verified` en `scripts/prices/stores/d1.ts`.
+- Bucaramanga (2026-11-04, solo paginas de producto): el robot **no puede** elegir Bucaramanga. La pagina se guarda en cache publica y trae un solo precio por defecto: un vendedor (`1`, Tiendas D1), canal de venta `1` (lo dice el `priceToken` firmado) y ninguna region en la consulta del producto. El parametro `sc=` esta bloqueado por robots.txt. Una cookie `vtex_segment` con codigo postal de Bucaramanga (680001) devolvio exactamente la misma oferta y el mismo `priceToken`.
+- **Comprobado a mano el 2026-11-04: los precios de D1 SI cambian por region.** En un navegador normal, con Bucaramanga elegida en el selector de direccion de D1, frente al precio por defecto que ve el robot (sin ubicacion):
+
+  | Producto | Bucaramanga | Por defecto (robot) |
+  |---|---|---|
+  | Arroz Albar 500 g | 1750 | 1750 |
+  | Huevo AA x30 | 13990 | 14650 |
+  | Tomate chonto 1 kg | 5300 | 5100 |
+
+  El `__STATE__` de la pagina en el navegador de la persona trae el precio de la region elegida: el marcador "Anotar precio" leyo 5300 (Bucaramanga) para "Tomate Chonto X 1000 G". Conclusion: el trabajo semanal mantiene `verified: false` para D1 (nunca guarda sus precios como Bucaramanga) y **los precios de Bucaramanga de D1 vienen del marcador** (`manual_browser`). La nota de prensa que hablaba de una sola lista de precios nacional queda descartada.
 
 ## Ara (aratiendas.com)
 - robots.txt: bloquea `/wp-admin/` y varias rutas `/productos_*`.
@@ -78,7 +87,7 @@ Desde el 2026-11-04 Carulla y Exito bloquean a cualquier cliente que se identifi
 - El importador (`scripts/prices/manual/import.ts`, o el workflow manual `prices-manual.yml`) valida todo y escribe los precios como `source = 'official'` para Bucaramanga: es un precio leido por una persona en la pagina oficial de la tienda. Pasa por los mismos controles de rango y de saltos que el trabajo semanal.
 - Se guarda lo mismo que antes: precio regular y tamano (mas nombre, codigo y direccion del producto). Nunca fotos, descripciones ni logos.
 
-Carulla y Exito usan este metodo. Jumbo y D1 tambien pueden usarlo (por ejemplo, mientras su selector de Bucaramanga siga sin verificar para el robot). Ara sigue en no: sus terminos prohiben copiar el contenido, se haga como se haga.
+Carulla, Exito y D1 usan este metodo (D1 porque sus precios cambian por region y el robot solo ve la region por defecto; ver la seccion de D1). Jumbo tambien puede usarlo mientras su selector de Bucaramanga siga sin verificar para el robot. Ara sigue en no: sus terminos prohiben copiar el contenido, se haga como se haga.
 
 ## Pendiente
 - Revision legal antes del lanzamiento publico (recomendada al dueno, pendiente).

@@ -51,7 +51,7 @@
       "method": "vtex_io_state",
       "bucaramanga": {
         "available": true,
-        "how": "Sin verificar (2026-11-04). La pagina de producto muestra un solo precio por defecto: un vendedor (1, Tiendas D1), canal de venta 1, sin region en la consulta; sc= esta bloqueado por robots.txt. Una cookie de ubicacion con codigo postal de Bucaramanga (680001) no cambio nada. La prensa dice que D1 usa la misma lista de precios en todo el pais, pero no hay declaracion oficial leible. Para verificar: el dueno compara unos 5 precios en un navegador con codigo postal de Bucaramanga. Solo documentacion; el codigo no lo interpreta."
+        "how": "El robot NO puede elegir Bucaramanga (2026-11-04): la pagina de producto trae el precio de la region por defecto (un vendedor, canal 1, sin region en la consulta; sc= bloqueado por robots.txt; una cookie con codigo postal 680001 no cambio nada). Los precios de D1 SI cambian por region: comprobado a mano el 2026-11-04 con Bucaramanga elegida en el selector de D1 frente al precio por defecto (arroz Albar 500 g 1750 vs 1750, huevo AA x30 13990 vs 14650, tomate chonto 1 kg 5300 vs 5100). Por eso stores/d1.ts sigue en verified:false y los precios de Bucaramanga de D1 se anotan con el marcador manual (manual_browser). Solo documentacion; el codigo no lo interpreta."
       },
       "minDelayMs": 5000,
       "readOnly": "product_pages",

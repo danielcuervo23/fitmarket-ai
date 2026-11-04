@@ -148,3 +148,21 @@ test("confirmsPack checks a pack typed by the person against the page with the s
   assert.equal(confirmsPack("D1", html, 1000), false);
   assert.equal(confirmsPack("Carulla", fast("vtex-faststore-arroz-500g"), 500), true);
 });
+
+test("a Jumbo item sold as a bare 'unidad' is a pack of one unit, with Jumbo's own rules", () => {
+  const r = read(io("jumbo-aguacate-hass-unidad"), "https://www.jumbocolombia.com/aguacate-hass-unidad/p");
+  assert.equal(r.ok, true);
+  assert.equal(r.product.externalId, "60675");
+  assert.equal(r.product.packSize, 1);
+  assert.equal(r.product.regularPriceCop, 1780);
+  assert.equal(confirmsPack("Jumbo", io("jumbo-aguacate-hass-unidad"), 1), true);
+});
+
+test("Jumbo sizes written as 'grs' are read with Jumbo's own rules", () => {
+  const state = fixture("vtex-io-arroz-sopa-500g");
+  state["Product:arroz-para-sopa-cerearroz-x-500-g.items.0"].name = "Arroz Cerearroz para sopa x350grs";
+  const r = read(ioHtml(state), "https://www.jumbocolombia.com/arroz-para-sopa-cerearroz-x-500-g/p");
+  assert.equal(r.ok, true);
+  assert.equal(r.product.packSize, 350);
+  assert.equal(confirmsPack("Jumbo", ioHtml(state), 350), true);
+});

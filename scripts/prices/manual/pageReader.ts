@@ -1,4 +1,5 @@
 import { parseD1Product } from "../stores/d1.ts";
+import { parseJumboProduct } from "../stores/jumbo.ts";
 import {
   extractFastStoreProduct,
   extractVtexIoProduct,
@@ -65,7 +66,7 @@ function extract(storeId: StoreId, html: string): VtexRaw | null {
   return isFastStore(storeId) ? extractFastStoreProduct(html) : extractVtexIoProduct(html);
 }
 
-/** The reduced page data as a tiny VTEX IO page, so D1's own reader (with its name rules) can price it. */
+/** The reduced page data as a tiny VTEX IO page, so D1's and Jumbo's own readers (with their name rules) can price it. */
 function miniIoHtml(raw: VtexRaw): string {
   const key = "Product:p";
   const state = {
@@ -89,6 +90,7 @@ function miniIoHtml(raw: VtexRaw): string {
 /** Prices the reduced page for one pack size with the same rules as the store's weekly reader. */
 function priceFor(storeId: StoreId, raw: VtexRaw, packSize: number): ReadResult {
   if (storeId === "D1") return parseD1Product(miniIoHtml(raw), raw.sku, packSize);
+  if (storeId === "Jumbo") return parseJumboProduct(miniIoHtml(raw), raw.sku, packSize);
   return parseVtexProduct(raw, raw.sku, packSize);
 }
 
