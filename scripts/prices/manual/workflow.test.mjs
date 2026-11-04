@@ -33,3 +33,15 @@ test("it imports the committed files, skipping the stale ones", () => {
   assert.match(yml, /--skip-stale/);
   assert.match(yml, /data\/manual-prices\/\*\.json/);
 });
+
+test("both price workflows only run on the main branch (secrets never reach other branches)", () => {
+  const weekly = readFileSync(path.join(root, ".github/workflows/prices-weekly.yml"), "utf8").replace(/\r\n/g, "\n");
+  for (const text of [yml, weekly]) {
+    assert.match(text, /^ {4}if: github\.ref == 'refs\/heads\/main'\n {4}runs-on:/m);
+    assert.match(text, /^ {4}environment: prices$/m);
+  }
+});
+
+test("the manual workflow never accepts unconfirmed packs, pack changes or price outliers", () => {
+  assert.doesNotMatch(yml, /--allow-/);
+});

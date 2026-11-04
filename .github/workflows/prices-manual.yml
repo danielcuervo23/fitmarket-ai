@@ -23,6 +23,9 @@ concurrency:
 
 jobs:
   import:
+    # Only main. The real lock is the 'prices' environment restricted to main with a
+    # required reviewer (docs/ROLLOUT-plan-1.md step 2); this line is a second guard.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Protected GitHub environment: holds the two secrets below.
