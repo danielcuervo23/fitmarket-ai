@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { usdaRequest } from "./usdaRequest.ts";
 import { draftFoodsFileSchema, type DraftFoodJson } from "./foodSchema.ts";
 import {
   buildExtendedFields,
@@ -84,10 +85,9 @@ async function lookup(
     if (fromDump !== undefined) {
       return parseUsdaFood(fromDump);
     }
-    const key = process.env.USDA_API_KEY || "DEMO_KEY";
-    const url = `https://api.nal.usda.gov/fdc/v1/food/${encodeURIComponent(food.nutritionRef)}?format=abridged&api_key=${encodeURIComponent(key)}`;
+    const request = usdaRequest(food.nutritionRef, process.env.USDA_API_KEY);
     await sleep(REQUEST_DELAY_MS);
-    return parseUsdaFood(await getJson(url, {}));
+    return parseUsdaFood(await getJson(request.url, request.headers));
   }
 
   const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(food.nutritionRef)}.json?fields=code,product_name,nutriments`;
