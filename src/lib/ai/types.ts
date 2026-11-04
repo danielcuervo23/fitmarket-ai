@@ -74,6 +74,10 @@ export interface ShoppingItem {
   category: ShoppingCategory;
   /** Supermarket id from user_supermarkets / supermarkets table. */
   store_id: string;
+  /** Where the price comes from (newer plans); missing means estimate. */
+  price_source?: "official" | "user" | "estimate";
+  /** Date (YYYY-MM-DD) the price was last confirmed. */
+  price_updated_at?: string;
 }
 
 /** High-level totals returned with each generation. */

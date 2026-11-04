@@ -91,6 +91,10 @@ export const app = defineMessages({
     "market.generate": "Generar plan",
     "market.whatIf": "¿Y si aumentas tu presupuesto?",
     "market.whatIfNote": "Ejemplos orientativos, no una garantía.",
+    "market.priceApprox": "Aproximado",
+    "market.priceUpdated": "Actualizado el {date}",
+    "market.approxNote":
+      "Los precios marcados como aproximados son estimados; pueden variar en tu tienda.",
     "market.whatIfNoPlan":
       "Genera tu plan semanal para ver recomendaciones según tu presupuesto.",
     "market.whatIfNoBudget":
@@ -238,6 +242,10 @@ export const app = defineMessages({
     "market.generate": "Generate plan",
     "market.whatIf": "What if you raise your budget?",
     "market.whatIfNote": "Indicative examples, not a guarantee.",
+    "market.priceApprox": "Approximate",
+    "market.priceUpdated": "Updated {date}",
+    "market.approxNote":
+      "Prices marked approximate are estimates and may differ at your store.",
     "market.whatIfNoPlan":
       "Generate your weekly plan to see recommendations based on your budget.",
     "market.whatIfNoBudget":
