@@ -110,9 +110,7 @@ test("every food cites its source", () => {
 test("seed migration is generated from foods.json", () => {
   assert.equal(
     buildSeedSql(foods),
-    read("../../supabase/migrations/012_seed_foods.sql").replaceAll("
-", "
-"),
+    read("../../supabase/migrations/012_seed_foods.sql").replaceAll("\r\n", "\n"),
   );
 });
 
