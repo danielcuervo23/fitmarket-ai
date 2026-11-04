@@ -35,6 +35,15 @@ export const errors = defineMessages({
       "No pudimos crear tu cuenta. Revisa tus datos e intenta de nuevo.",
     "auth.error.confirmEmail":
       "Revisa tu correo y confirma tu cuenta. Luego inicia sesión para continuar.",
+    "auth.error.passwordMismatch": "Las contraseñas no coinciden.",
+    "auth.error.samePassword":
+      "La nueva contraseña debe ser distinta de la anterior.",
+    "auth.error.passwordWeak":
+      "Esa contraseña es muy débil. Usa una más larga o mezcla letras, números y símbolos.",
+    "auth.error.resetLinkInvalid":
+      "Este enlace venció o ya se usó. Pide uno nuevo para cambiar tu contraseña.",
+    "auth.error.passwordUpdateFailed":
+      "No pudimos guardar tu nueva contraseña. Intenta de nuevo en unos segundos.",
 
     "gen.error.serverConfig":
       "El servicio de generación no está disponible ahora. Intenta más tarde.",
@@ -103,6 +112,15 @@ export const errors = defineMessages({
       "We couldn't create your account. Check your details and try again.",
     "auth.error.confirmEmail":
       "Check your email and confirm your account, then sign in to continue.",
+    "auth.error.passwordMismatch": "The passwords don't match.",
+    "auth.error.samePassword":
+      "Your new password must be different from the old one.",
+    "auth.error.passwordWeak":
+      "That password is too weak. Make it longer or mix letters, numbers and symbols.",
+    "auth.error.resetLinkInvalid":
+      "This link has expired or was already used. Request a new one to change your password.",
+    "auth.error.passwordUpdateFailed":
+      "We couldn't save your new password. Try again in a few seconds.",
 
     "gen.error.serverConfig":
       "The generation service isn't available right now. Please try later.",

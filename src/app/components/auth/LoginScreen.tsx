@@ -17,10 +17,16 @@ import {
 interface Props {
   onSuccess: () => void;
   onGoToRegister: () => void;
+  onForgotPassword: () => void;
   onBack: () => void;
 }
 
-export function LoginScreen({ onSuccess, onGoToRegister, onBack }: Props) {
+export function LoginScreen({
+  onSuccess,
+  onGoToRegister,
+  onForgotPassword,
+  onBack,
+}: Props) {
   const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -92,6 +98,14 @@ export function LoginScreen({ onSuccess, onGoToRegister, onBack }: Props) {
               setErrorKey(null);
             }}
           />
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            disabled={isLoading}
+            className="-mt-1 self-end text-[13px] font-bold text-brand-700 hover:underline disabled:opacity-50"
+          >
+            {t("login.forgotPassword")}
+          </button>
         </ScreenBody>
 
         <ScreenFooter>
