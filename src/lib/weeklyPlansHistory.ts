@@ -106,21 +106,6 @@ export function mapHistoryRows(
 }
 
 /**
- * True when the query failed because a column does not exist yet (migration
- * 009 not applied): Postgres 42703, PostgREST PGRST204 or "does not exist".
- */
-export function isMissingColumnError(
-  error: { code?: string; message?: string } | null | undefined,
-): boolean {
-  if (!error) return false;
-  const code = error.code ?? "";
-  const message = (error.message ?? "").toLowerCase();
-  return (
-    code === "42703" || code === "PGRST204" || message.includes("does not exist")
-  );
-}
-
-/**
  * Adds the next page after the plans already shown, skipping ids already in
  * the list (if a new plan is saved meanwhile, rows shift by one between pages).
  */
