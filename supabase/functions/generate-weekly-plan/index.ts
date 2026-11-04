@@ -10,8 +10,9 @@ import {
   MAX_TIME_BUDGET_MS,
 } from "../_shared/planner/callBudget.ts";
 import { generatePlan } from "../_shared/planner/generate.ts";
-import { savePlanForUser } from "../_shared/planStorage.ts";
+import { respondWithGeneratedPlan } from "../_shared/planStorage.ts";
 import { positiveIntOr, shouldRefund } from "../_shared/quota.ts";
+import { parseWeeklyPlanJson } from "../_shared/weeklyPlanSchema.ts";
 
 const DEFAULT_DAILY_GENERATION_LIMIT = 10;
 
@@ -171,7 +172,12 @@ Deno.serve(async (req: Request) => {
     // writes the user must not control: the refund below and saving the plan.
     const createServiceClient = () => {
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-      return serviceKey ? createClient(supabaseUrl, serviceKey) : null;
+      return serviceKey
+        ? createClient(supabaseUrl, serviceKey, {
+            // A per-request server client: no session to keep or refresh.
+            auth: { persistSession: false, autoRefreshToken: false },
+          })
+        : null;
     };
 
     // A try that failed because of us gives the user their try back. Users
@@ -195,20 +201,19 @@ Deno.serve(async (req: Request) => {
     };
 
     if ("plan" in outcome) {
-      // Saved here so a network drop after generation does not lose a plan
-      // already paid for. user_id comes from the verified JWT only. If the
+      // Checked with the shared schema, then saved here so a network drop
+      // after generation does not lose a plan already paid for. user_id comes
+      // from the verified JWT only. An invalid plan is not saved and answers
+      // invalid_format (422), never refunded: its calls were billed. If the
       // save fails the response still carries the plan, without planId, and
       // the browser saves it as before.
-      const planId = await savePlanForUser(
-        createServiceClient(),
-        user.id,
-        outcome.plan,
-      );
+      const { status, body } = await respondWithGeneratedPlan(outcome.plan, {
+        parse: parseWeeklyPlanJson,
+        client: createServiceClient(),
+        userId: user.id,
+      });
 
-      return json(
-        planId ? { plan: outcome.plan, planId } : { plan: outcome.plan },
-        200,
-      );
+      return json(body, status);
     }
 
     const { code, message, budget, diagnostics } = outcome.error;

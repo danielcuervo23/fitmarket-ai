@@ -115,18 +115,23 @@ Users can delete their own rows but cannot edit the request counter. The
    ones (`planner/swaps.ts`).
 10. **Name the dishes:** meals changed by swaps are renamed so the dish name
     always matches its ingredients.
-11. **Save** the plan in `weekly_plans` with the service role
-    (`_shared/planStorage.ts`). `user_id` always comes from the verified JWT,
-    never from the request body. A plan already paid for at OpenAI is
-    therefore kept even if the connection drops before the browser gets it.
+11. **Validate and save:** the plan is checked with the shared schema
+    (`weeklyPlanSchema.ts`) and, only if it passes, saved in `weekly_plans`
+    with the service role (`_shared/planStorage.ts`), waiting at most 5 s
+    for the insert. `user_id` always comes from the verified JWT, never from
+    the request body. A plan the schema rejects is not saved (it would hide
+    the user's previous valid plan) and answers `invalid_format` (422), not
+    refunded. When the save succeeds, a plan already paid for at OpenAI is
+    kept even if the connection drops before the browser gets it.
 12. **Return** `{ plan, planId }`, or an error code with diagnostics (how many
     foods were available, why each try failed). Tries that fail because of the
     service, not the user, are given back to the user's daily limit.
 
-If the server save fails (no `SUPABASE_SERVICE_ROLE_KEY`, insert error), the
-request does not fail: the answer is `{ plan }` without `planId`, the event
+If the server save fails (no `SUPABASE_SERVICE_ROLE_KEY`, insert error or
+timeout), the request does not fail: the answer is `{ plan }` without `planId`, the event
 `plan_save_failed` is logged with a code only, and the browser saves the plan
-itself with `saveWeeklyPlan`, as it always did.
+itself with `saveWeeklyPlan`, as it always did. In that case the plan is only
+kept if the browser receives it; a dropped connection still loses it.
 
 The browser validates the plan again with the shared schema
 (`weeklyPlanSchema.ts`) before showing it. `planId` is accepted only if it is
