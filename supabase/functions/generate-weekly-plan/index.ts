@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
 import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
-import { logEvent } from "../_shared/log.ts";
+import { logEvent, logUnexpected } from "../_shared/log.ts";
 import { callOpenAI } from "../_shared/openai.ts";
 import {
   DEFAULT_MAX_MODEL_CALLS,
@@ -205,7 +205,8 @@ Deno.serve(async (req: Request) => {
       code === "server_config" ? 503 : code === "rate_limited" ? 429 : 422;
 
     return json({ error: message, code, diagnostics }, status);
-  } catch {
+  } catch (error) {
+    logUnexpected("generate-weekly-plan", error);
     return json(
       { error: "Error inesperado al generar tu plan.", code: "unexpected" },
       500,
