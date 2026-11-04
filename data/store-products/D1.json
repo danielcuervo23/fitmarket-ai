@@ -1,23 +1,359 @@
 [
   {
-    "foodId": "arroz_blanco",
-    "externalId": "1379",
-    "name": "Arroz Estandar Albar 500 g",
+    "foodId": "pechuga_pollo",
+    "externalId": "819",
+    "name": "Pechugas de Pollo Brasset 1200 G",
+    "packSize": 1200,
+    "url": "https://www.d1.com.co/pechugas-pollo-brasset-1200g-12005094/p"
+  },
+  {
+    "foodId": "pernil_pollo",
+    "externalId": "1678",
+    "name": "Muslos de Pollo Brasset 700 G",
+    "packSize": 700,
+    "url": "https://www.d1.com.co/muslos-de-pollo-brasset-700-g-12001289/p"
+  },
+  {
+    "foodId": "carne_molida_res",
+    "externalId": "348",
+    "name": "Molida de Res 85/15 Red Cut 500 G",
     "packSize": 500,
-    "url": "https://www.d1.com.co/arroz-estandar-albar-500grs-12000051/p"
+    "url": "https://www.d1.com.co/molida-res-85-15-red-cut-500g-12006573/p"
+  },
+  {
+    "foodId": "lomo_cerdo",
+    "externalId": "1094",
+    "name": "Lomo de Cerdo Red Cut X 500 G",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/lomo-cerdo-red-cut-500g-12001637/p"
+  },
+  {
+    "foodId": "huevo",
+    "externalId": "1515",
+    "name": "Huevo Tipo Aa 30 Und",
+    "packSize": 30,
+    "url": "https://www.d1.com.co/huevo-tipo-aa-30-und-12003315/p"
+  },
+  {
+    "foodId": "atun_lata",
+    "externalId": "836",
+    "name": "Atún en Agua Carlo Forte 170 G Neto",
+    "packSize": 170,
+    "url": "https://www.d1.com.co/atun-en-agua-carlo-forte-170g-12004370/p"
+  },
+  {
+    "foodId": "tilapia",
+    "externalId": "673",
+    "name": "Filetes de Tilapia Captain Bay X 400 G",
+    "packSize": 400,
+    "url": "https://www.d1.com.co/filetes-tilapia-captain-bay-400g-12001958/p"
+  },
+  {
+    "foodId": "salmon",
+    "externalId": "667",
+    "name": "Filetes de Salmón Captain Bay X 350 G",
+    "packSize": 350,
+    "url": "https://www.d1.com.co/filetes-salmon-captain-bay-350g-12001957/p"
   },
   {
     "foodId": "lentejas",
     "externalId": "1381",
-    "name": "Lenteja El Estio 500 g",
+    "name": "Lenteja el Estío 500 Grs",
     "packSize": 500,
     "url": "https://www.d1.com.co/lenteja-el-estio-500g-12000042/p"
   },
   {
+    "foodId": "frijol",
+    "externalId": "1574",
+    "name": "Frijol Rojo el Estio 500 G",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/frijol-rojo-el-estio-500-g-12004975/p"
+  },
+  {
+    "foodId": "garbanzo",
+    "externalId": "1168",
+    "name": "Garbanzo el Estío 500 Grs",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/garbanzo-el-estio-500g-12000044/p"
+  },
+  {
+    "foodId": "arveja_seca",
+    "externalId": "965",
+    "name": "Arveja el Estio 500 Grs",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/arveja-el-estio-500g-12000039/p"
+  },
+  {
+    "foodId": "arroz_blanco",
+    "externalId": "1379",
+    "name": "Arroz Estándar Albar 500 Grs",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/arroz-estandar-albar-500grs-12000051/p"
+  },
+  {
+    "foodId": "arroz_integral",
+    "externalId": "1286",
+    "name": "Arroz Integral Diana 1.000 G",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/arroz-integral-diana-1000g-12003653/p"
+  },
+  {
+    "foodId": "pasta",
+    "externalId": "295",
+    "name": "Spaghetti Deliziare 500 G",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/spaghetti-deliziare-500g-12000286/p"
+  },
+  {
+    "foodId": "avena",
+    "externalId": "1541",
+    "name": "Avena en Hojuelas Fit Graan 400 G",
+    "packSize": 400,
+    "url": "https://www.d1.com.co/avena-en-hojuelas-fit-graan-400-g-12007754/p"
+  },
+  {
+    "foodId": "harina_maiz",
+    "externalId": "1116",
+    "name": "Harina de Maiz Blanco Quicksy X 1 Kg",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/harina-maiz-blanco-quicksy-1kg-12001208/p"
+  },
+  {
+    "foodId": "pan_tajado",
+    "externalId": "1172",
+    "name": "Pan Tajado Blanco Horneaditos 450 Grs",
+    "packSize": 450,
+    "url": "https://www.d1.com.co/pan-tajado-blanco-horneaditos-450g-12000050/p"
+  },
+  {
+    "foodId": "quinua",
+    "externalId": "1291",
+    "name": "Grano Entero de Quinua 300 G",
+    "packSize": 300,
+    "url": "https://www.d1.com.co/grano-entero-quinua-natri-300g-12003645/p"
+  },
+  {
+    "foodId": "papa",
+    "externalId": "1237",
+    "name": "Papa Pastusa X 2500 G",
+    "packSize": 2500,
+    "url": "https://www.d1.com.co/papa-pastusa-x-2500g-12006190/p"
+  },
+  {
+    "foodId": "papa_criolla",
+    "externalId": "1441",
+    "name": "Papa Criolla 1000 G",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/papa-criolla-1000g-12007453/p"
+  },
+  {
+    "foodId": "platano",
+    "externalId": "629",
+    "name": "Plátano X 1000 G",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/platano-harton-x-1000g-12000110/p"
+  },
+  {
+    "foodId": "leche_entera",
+    "externalId": "892",
+    "name": "Leche Entera Bolsa UHT Latti 900 Ml",
+    "packSize": 900,
+    "url": "https://www.d1.com.co/leche-entera-bolsa-uht-latti-900ml-12000094/p"
+  },
+  {
+    "foodId": "leche_deslactosada",
+    "externalId": "818",
+    "name": "Leche Deslactosada Bolsa UHT Latti 900 Ml",
+    "packSize": 900,
+    "url": "https://www.d1.com.co/leche-deslactosada-bolsa-uht-latti-900ml-12005757/p"
+  },
+  {
+    "foodId": "yogur_natural",
+    "externalId": "1057",
+    "name": "Yogurt Griego Natural Vita Latti 330 Gr",
+    "packSize": 330,
+    "url": "https://www.d1.com.co/yogurt-griego-natural-vita-latti-330g-12003254/p"
+  },
+  {
+    "foodId": "queso_campesino",
+    "externalId": "1234",
+    "name": "Queso Campesino Bloque Latti X350 G",
+    "packSize": 350,
+    "url": "https://www.d1.com.co/queso-campesino-bloque-latti-x350g-12006219/p"
+  },
+  {
+    "foodId": "queso_mozzarella",
+    "externalId": "961",
+    "name": "Queso Mozzarella Bloque Latti 400 Grs",
+    "packSize": 400,
+    "url": "https://www.d1.com.co/queso-mozzarella-bloque-latti-400g-12000164/p"
+  },
+  {
+    "foodId": "mantequilla",
+    "externalId": "1007",
+    "name": "Mantequilla Latti X 200 Gr",
+    "packSize": 200,
+    "url": "https://www.d1.com.co/mantequilla-latti-x-200gr-12005810/p"
+  },
+  {
+    "foodId": "tomate_chonto",
+    "externalId": "1024",
+    "name": "Tomate Chonto X 1000 G",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/tomate-chonto-x-1000g-12005556/p"
+  },
+  {
+    "foodId": "cebolla_cabezona",
+    "externalId": "1019",
+    "name": "Cebolla Cabezona X 1000 G",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/cebolla-cabezona-x-1000g-12005767/p"
+  },
+  {
+    "foodId": "cebolla_junca",
+    "externalId": "201",
+    "name": "Cebolla Larga 500 Gr",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/cebolla-larga-500g-12003363/p"
+  },
+  {
+    "foodId": "zanahoria",
+    "externalId": "662",
+    "name": "Zanahoria X 1000 G",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/zanahoria-x-1000g-12002258/p"
+  },
+  {
+    "foodId": "brocoli",
+    "externalId": "992",
+    "name": "Brocoli Congelado Cooltivo 500 G",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/brocoli-congelado-cooltivo-500g-12006464/p"
+  },
+  {
+    "foodId": "espinaca",
+    "externalId": "791",
+    "name": "Espinaca X 200 G",
+    "packSize": 200,
+    "url": "https://www.d1.com.co/espinaca-x-200g-12006666/p"
+  },
+  {
+    "foodId": "lechuga",
+    "externalId": "815",
+    "name": "Lechuga Verde Crespa X 180 G",
+    "packSize": 180,
+    "url": "https://www.d1.com.co/lechuga-verde-crespa-x-180g-12005805/p"
+  },
+  {
     "foodId": "pimenton",
     "externalId": "157",
-    "name": "Pimenton unidad",
+    "name": "Pimentón Unidad",
     "packSize": 1,
     "url": "https://www.d1.com.co/pimenton-unidad-12005183/p"
+  },
+  {
+    "foodId": "ajo",
+    "externalId": "657",
+    "name": "Ajo Malla X 3 Unidades - 100 G",
+    "packSize": 100,
+    "url": "https://www.d1.com.co/ajo-malla-3-und-100g-12002709/p"
+  },
+  {
+    "foodId": "cilantro",
+    "externalId": "1443",
+    "name": "Cilantro Unidad 100 G",
+    "packSize": 100,
+    "url": "https://www.d1.com.co/cilantro-unidad-100g-12007450/p"
+  },
+  {
+    "foodId": "banano",
+    "externalId": "145",
+    "name": "Banano Unidad",
+    "packSize": 1,
+    "url": "https://www.d1.com.co/banano-12005468/p"
+  },
+  {
+    "foodId": "aguacate",
+    "externalId": "1435",
+    "name": "Aguacate Hass Unidad",
+    "packSize": 1,
+    "url": "https://www.d1.com.co/aguacate-hass-unidad-12006122/p"
+  },
+  {
+    "foodId": "fresa",
+    "externalId": "1437",
+    "name": "Fresa 250 G",
+    "packSize": 250,
+    "url": "https://www.d1.com.co/fresa-250-g-12007997/p"
+  },
+  {
+    "foodId": "mora",
+    "externalId": "212",
+    "name": "Mora Congelada Tree Fruts 500 Grs",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/mora-congelada-tree-fruts-500g-12002530/p"
+  },
+  {
+    "foodId": "tomate_arbol",
+    "externalId": "373",
+    "name": "Tomate de Arbol X 1000 G",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/tomate-de-arbol-x-1000g-12005773/p"
+  },
+  {
+    "foodId": "mani",
+    "externalId": "1149",
+    "name": "Mani Salado Nuthos 200 Grs",
+    "packSize": 200,
+    "url": "https://www.d1.com.co/mani-salado-nuthos-200g-12000323/p"
+  },
+  {
+    "foodId": "almendras",
+    "externalId": "1111",
+    "name": "Almendra Nuthos 150 Grs",
+    "packSize": 150,
+    "url": "https://www.d1.com.co/almendra-nuthos-150g-12001205/p"
+  },
+  {
+    "foodId": "aceite_vegetal",
+    "externalId": "597",
+    "name": "Aceite de Canola Don Olio 900 Ml",
+    "packSize": 900,
+    "url": "https://www.d1.com.co/aceite-canola-don-olio-12004356/p"
+  },
+  {
+    "foodId": "aceite_oliva",
+    "externalId": "708",
+    "name": "Aceite Oliva Extravir Castell D F 500 Ml",
+    "packSize": 500,
+    "url": "https://www.d1.com.co/aceite-oliva-extravirgen-castell-de-ferro-12000330/p"
+  },
+  {
+    "foodId": "sal",
+    "externalId": "214",
+    "name": "Sal Refisal 1000 G",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/sal-refisal-1000g-12002874/p"
+  },
+  {
+    "foodId": "azucar",
+    "externalId": "1153",
+    "name": "Azúcar Blanca 1000 Grs",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/azucar-blanca-1000g-12000249/p"
+  },
+  {
+    "foodId": "panela",
+    "externalId": "733",
+    "name": "Panela Redonda 1000 Grs",
+    "packSize": 1000,
+    "url": "https://www.d1.com.co/panela-redonda-1000g-12000120/p"
+  },
+  {
+    "foodId": "miel",
+    "externalId": "688",
+    "name": "Miel de Abejas Meel 350 Grs",
+    "packSize": 350,
+    "url": "https://www.d1.com.co/miel-de-abejas-meel-350g-12000826/p"
   }
 ]

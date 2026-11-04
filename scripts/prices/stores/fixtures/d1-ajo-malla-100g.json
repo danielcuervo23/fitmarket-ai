@@ -1,0 +1,16 @@
+{
+  "Product:ajo-malla-3-und-100g-12002709": {
+    "productName": "Ajo Malla 3 Unidades"
+  },
+  "Product:ajo-malla-3-und-100g-12002709.items.0": {
+    "itemId": "657",
+    "name": "Ajo Malla X 3 Unidades - 100 G",
+    "measurementUnit": "un",
+    "unitMultiplier": 1
+  },
+  "$Product:ajo-malla-3-und-100g-12002709.items.0.sellers.0.commertialOffer": {
+    "Price": 1100,
+    "ListPrice": 1100,
+    "AvailableQuantity": 99999
+  }
+}

@@ -27,22 +27,42 @@ export const BLOCKED_RULES = [
 
 const MAX_BODY_CHARS = 8_000_000;
 
-// D1 shows prices after the shopper picks an address or store (a postal-code
-// modal driven by JavaScript / API calls). That cannot be done with product
-// pages alone, so the store default region is read and this stays unverified.
+// D1 picks a location with a JavaScript postal-code modal (API calls). Checked on
+// 2026-11-04 with product pages only: the page is publicly cached, the product
+// query has no region argument, there is one seller ("1", Tiendas D1) and the
+// signed price token says salesChannel "1"; the `sc=` parameter is blocked by
+// robots.txt. A vtex_segment cookie with a Bucaramanga postal code (680001) gave
+// a byte-identical offer and price token, so either the cookie is ignored or the
+// price is national; the page alone cannot tell which. Press (Blu Radio) reports
+// one price list for every D1 store, but D1 publishes no official statement we
+// may read under the precautions. So the default price is read and this stays
+// unverified until the owner compares a few prices in a browser set to Bucaramanga.
 export const BUCARAMANGA_SELECTOR: CitySelector = {
   verified: false,
   headers: {},
-  note: "D1 default region; Bucaramanga selection pending owner confirmation",
+  note: "D1 default (national) price list; one seller and sales channel 1; Bucaramanga match pending a manual browser check",
 };
 
 /**
  * D1 names write sizes as "500 Grs" and "Unidad"; turn them into text the shared size parser knows.
  * Only a bare "Unidad" (no number or "x<number>" right before it) means one unit; "2 Unidades"
  * is left as is so the parser reads 2 and the pack does not match a single unit.
+ * D1 also writes thousands with a dot ("1.000 G" = 1000 g; only before g/ml, so "2.5 Kg" keeps
+ * its decimal) and a net weight after a count ("Ajo Malla X 3 Unidades - 100 G" = 100 g net,
+ * "Cilantro Unidad 100 G" = 100 g net).
  */
+const WEIGHT_AHEAD = String.raw`(?=\d+(?:[.,]\d+)?\s*(?:kg|grs?|g|ml|l)\b)`;
+const COUNT_THEN_NET_WEIGHT = new RegExp(String.raw`(?:\bx\s*)?\b\d+\s*unidad(?:es)?\s*-\s*${WEIGHT_AHEAD}`, "gi");
+/** "Cilantro Unidad 100 G": one bunch whose net weight follows. */
+const UNIT_THEN_NET_WEIGHT = new RegExp(String.raw`(?<![\dxX]\s*)\bunidad\s+${WEIGHT_AHEAD}`, "gi");
+
 function normalizeName(name: string): string {
-  return name.replace(/\bgrs?\b/gi, "g").replace(/(?<![\dxX]\s*)\bunidad(?:es)?\b/gi, "1 und");
+  return name
+    .replace(/\b(\d{1,3})\.(\d{3})(?=\s*(?:grs?|g|gramos?|ml|cc)\b)/gi, "$1$2")
+    .replace(COUNT_THEN_NET_WEIGHT, "")
+    .replace(UNIT_THEN_NET_WEIGHT, "")
+    .replace(/\bgrs?\b/gi, "g")
+    .replace(/(?<![\dxX]\s*)\bunidad(?:es)?\b/gi, "1 und");
 }
 
 /** Prices one D1 product page body for the mapped sku (`externalId`) and pack size (g, ml or unit). */

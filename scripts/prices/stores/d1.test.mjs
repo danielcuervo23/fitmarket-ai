@@ -171,3 +171,40 @@ test("d1.ts guards use the same host, path pattern and blocked rules as policy.j
   const expected = [...policy.precautions.neverRequest, ...store.disallowedPaths].filter(isRule);
   assert.deepEqual([...new Set(d1.BLOCKED_RULES)].sort(), [...new Set(expected)].sort());
 });
+
+test("a dot thousands separator before g/ml is read as thousands ('1.000 G' is 1000 g)", () => {
+  const named = (name, pack) => parse("d1-arroz-albar-500g", pack, "1379", (s) => (s[itemKey(s)].name = name));
+  assert.deepEqual(named("Arroz Integral Diana 1.000 G", 1000), { ok: true, regularPriceCop: 1650, promoPriceCop: null });
+  assert.deepEqual(named("Arroz Integral Diana 1.000 G", 1), { ok: false, reason: "pack_mismatch" });
+  assert.deepEqual(named("Aceite 3.000 Ml", 3000), { ok: true, regularPriceCop: 1650, promoPriceCop: null });
+  // A decimal kilo/litre amount keeps its decimal meaning.
+  assert.deepEqual(named("Arroz 2.5 Kg", 2500), { ok: true, regularPriceCop: 1650, promoPriceCop: null });
+});
+
+test("'X 3 Unidades - 100 G' is a net weight of 100 g, never 3 units", () => {
+  const named = (name, pack) => parse("d1-arroz-albar-500g", pack, "1379", (s) => (s[itemKey(s)].name = name));
+  assert.deepEqual(named("Ajo Malla X 3 Unidades - 100 G", 100), { ok: true, regularPriceCop: 1650, promoPriceCop: null });
+  assert.deepEqual(named("Ajo Malla X 3 Unidades - 100 G", 3), { ok: false, reason: "pack_mismatch" });
+  assert.deepEqual(named("Ajo Malla X 3 Unidades - 100 G", 1), { ok: false, reason: "pack_mismatch" });
+  // Without the dash the count and the weight stay ambiguous.
+  assert.deepEqual(named("Ajo Malla 3 Unidades 100 G", 100), { ok: false, reason: "pack_mismatch" });
+});
+
+test("'Unidad 100 G' is one bunch of 100 g net, never one unit", () => {
+  const named = (name, pack) => parse("d1-arroz-albar-500g", pack, "1379", (s) => (s[itemKey(s)].name = name));
+  assert.deepEqual(named("Cilantro Unidad 100 G", 100), { ok: true, regularPriceCop: 1650, promoPriceCop: null });
+  assert.deepEqual(named("Cilantro Unidad 100 G", 1), { ok: false, reason: "pack_mismatch" });
+});
+
+test("real D1 pages with dot thousands and net weights are priced (trimmed fixtures)", () => {
+  assert.deepEqual(parse("d1-arroz-integral-1000g", 1000, "1286"), { ok: true, regularPriceCop: 4500, promoPriceCop: null });
+  assert.deepEqual(parse("d1-ajo-malla-100g", 100, "657"), { ok: true, regularPriceCop: 1100, promoPriceCop: null });
+  assert.deepEqual(parse("d1-cilantro-unidad-100g", 100, "1443"), { ok: true, regularPriceCop: 2350, promoPriceCop: null });
+});
+
+test("the D1 mapping file has one entry per food and covers most of the catalog", () => {
+  const entries = JSON.parse(readFileSync(path.join(root, "data/store-products/D1.json"), "utf8"));
+  const foodIds = entries.map((e) => e.foodId);
+  assert.equal(new Set(foodIds).size, foodIds.length);
+  assert.ok(entries.length >= 50, `only ${entries.length} D1 mappings`);
+});
