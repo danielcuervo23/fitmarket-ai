@@ -1,4 +1,5 @@
-import { dbErrorKey, type ErrorKey } from "@/lib/errors";
+import type { ErrorKey } from "@/lib/errors";
+import { profileUpdateError } from "@/lib/profileUpdate";
 import { supabase } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/session";
 
@@ -151,14 +152,12 @@ export async function saveDietaryRestrictions(
     return { error: "errors.notSignedIn" };
   }
 
-  const { error } = await supabase
+  // `select` returns the updated rows, so "no profile yet" is detectable.
+  const { data, error } = await supabase
     .from("profiles")
     .update({ dietary_restrictions: restrictions })
-    .eq("id", user.id);
+    .eq("id", user.id)
+    .select("id");
 
-  if (error) {
-    return { error: dbErrorKey(error) };
-  }
-
-  return { error: null };
+  return { error: profileUpdateError({ data, error }) };
 }
