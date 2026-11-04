@@ -27,7 +27,7 @@ import {
   type ComposeIssue,
 } from "./compose.ts";
 import { changedMeals, renameMeals, unnamedMeals } from "./naming.ts";
-import { CATALOG } from "../catalog.ts";
+import { STATIC_CATALOG, type Catalog } from "../catalog.ts";
 import { allowedCatalog, buildRestrictionRules } from "./restrictions.ts";
 import { carriedByAny } from "./stores.ts";
 import { DAYS, SLOTS } from "./types.ts";
@@ -224,10 +224,16 @@ function issueFeedback(issue: ComposeIssue): string {
  * tested without calling OpenAI. `limits` caps the number of model calls and
  * the total time (defaults: 12 calls, 120 s from now).
  */
+/** What the planner reads from outside; each field falls back to the built-in data. */
+export interface PlannerDeps {
+  catalog?: Catalog;
+}
+
 export async function generatePlan(
   input: GenerateInput,
   rawCallModel: ModelCall,
   limits?: Partial<GenerationLimits>,
+  deps: PlannerDeps = {},
 ): Promise<GenerateOutcome> {
   const floor = MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
 
@@ -245,9 +251,10 @@ export async function generatePlan(
     };
   }
 
-  const rules = buildRestrictionRules(input.restrictions);
+  const catalog = deps.catalog ?? STATIC_CATALOG;
+  const rules = buildRestrictionRules(input.restrictions, catalog);
   // Only offer foods the user's own supermarkets sell.
-  const allowed = allowedCatalog(rules).filter((ingredient) =>
+  const allowed = allowedCatalog(rules, catalog).filter((ingredient) =>
     carriedByAny(input.stores, ingredient.id),
   );
 
@@ -259,7 +266,7 @@ export async function generatePlan(
           "Tus restricciones dejan muy pocos ingredientes disponibles para armar un plan.",
         diagnostics: {
           availableFoods: allowed.length,
-          totalFoods: CATALOG.length,
+          totalFoods: catalog.all.length,
           reasons: [],
         },
       },
@@ -274,7 +281,7 @@ export async function generatePlan(
   });
 
   return withUsage(
-    await composeWithinBudget(input, rules, allowed, budget),
+    await composeWithinBudget(input, rules, allowed, budget, catalog),
     budget.usage,
   );
 }
@@ -298,6 +305,7 @@ async function composeWithinBudget(
   rules: ReturnType<typeof buildRestrictionRules>,
   allowed: ReturnType<typeof allowedCatalog>,
   budget: CallBudget,
+  catalog: Catalog,
 ): Promise<GenerateOutcome> {
   const { callModel, canStart } = budget;
   const allowedIds = new Set(allowed.map((ingredient) => ingredient.id));
@@ -314,7 +322,7 @@ async function composeWithinBudget(
       ...failure.error,
       diagnostics: {
         availableFoods: allowed.length,
-        totalFoods: CATALOG.length,
+        totalFoods: catalog.all.length,
         reasons,
       },
     },
@@ -398,7 +406,7 @@ async function composeWithinBudget(
         }),
     });
 
-    const { week, issue } = parseComposition(raw, allowedIds);
+    const { week, issue } = parseComposition(raw, allowedIds, catalog);
 
     if (!week || issue) {
       feedback = issue ? issueFeedback(issue) : undefined;
@@ -416,8 +424,8 @@ async function composeWithinBudget(
       continue;
     }
 
-    const normalized = normalizeWeek(week, targets.kcal);
-    const quality = checkQuality(normalized, targets);
+    const normalized = normalizeWeek(week, targets.kcal, catalog);
+    const quality = checkQuality(normalized, targets, catalog);
     const isLastAttempt = attempt === MAX_ATTEMPTS - 1;
 
     // A low-variety week is still a usable plan on the last try; a plan far
@@ -449,6 +457,7 @@ async function composeWithinBudget(
       targetKcal: targets.kcal,
       allowedIds,
       stores: input.stores,
+      catalog,
     });
 
     if (fitted.cost > input.weeklyBudgetCop) {
@@ -475,7 +484,9 @@ async function composeWithinBudget(
         ...unnamedMeals(fitted.week),
       ]),
     ];
-    const finalWeek = await renameMeals(fitted.week, toRename, callModel);
+    const finalWeek = await renameMeals(fitted.week, toRename, callModel, {
+      catalog,
+    });
 
     logEvent("plan_generated", {
       attempt,
@@ -488,6 +499,7 @@ async function composeWithinBudget(
         householdSize: input.householdSize,
         stores: input.stores,
         targets,
+        catalog,
       }),
     };
   }

@@ -1,4 +1,9 @@
-import { CATALOG, type DietTag, type Ingredient } from "../catalog.ts";
+import {
+  STATIC_CATALOG,
+  type Catalog,
+  type DietTag,
+  type Ingredient,
+} from "../catalog.ts";
 import {
   FOOD_ALIASES,
   FOOD_GROUPS,
@@ -90,13 +95,33 @@ function nameWords(ingredient: Ingredient): Set<string> {
   return tokens;
 }
 
-const TOKENS_BY_ID = new Map(
-  CATALOG.map((ingredient) => [ingredient.id, nameWords(ingredient)]),
-);
+interface NameIndex {
+  tokensById: Map<string, Set<string>>;
+  allTokens: string[];
+}
 
-const ALL_TOKENS = [
-  ...new Set([...TOKENS_BY_ID.values()].flatMap((tokens) => [...tokens])),
-];
+const NAME_INDEXES = new WeakMap<Catalog, NameIndex>();
+
+/** Name words of every food, built once per catalog. */
+function nameIndex(catalog: Catalog): NameIndex {
+  let index = NAME_INDEXES.get(catalog);
+
+  if (!index) {
+    const tokensById = new Map(
+      catalog.all.map((ingredient) => [ingredient.id, nameWords(ingredient)]),
+    );
+
+    index = {
+      tokensById,
+      allTokens: [
+        ...new Set([...tokensById.values()].flatMap((tokens) => [...tokens])),
+      ],
+    };
+    NAME_INDEXES.set(catalog, index);
+  }
+
+  return index;
+}
 
 /** Edit distance, stopping early once it is clearly above `limit`. */
 function withinDistance(a: string, b: string, limit: number): boolean {
@@ -132,7 +157,7 @@ function withinDistance(a: string, b: string, limit: number): boolean {
 }
 
 /** Fixes a misspelled word ("aguacte" -> "aguacate"), or returns null. */
-function correctTypo(word: string): string | null {
+function correctTypo(word: string, catalog: Catalog): string | null {
   if (word.length < 5) {
     return null;
   }
@@ -140,7 +165,7 @@ function correctTypo(word: string): string | null {
   const limit = word.length >= 8 ? 2 : 1;
 
   return (
-    ALL_TOKENS.find(
+    nameIndex(catalog).allTokens.find(
       (token) => token.length >= 5 && withinDistance(word, token, limit),
     ) ?? null
   );
@@ -162,7 +187,11 @@ interface Match {
 }
 
 /** What one free-text entry means in catalog terms. */
-function matchFreeText(raw: string, retried = false): Match {
+function matchFreeText(
+  raw: string,
+  catalog: Catalog,
+  retried = false,
+): Match {
   const tags = new Set<DietTag>();
   const ids = new Set<string>();
   const text = normalizeText(raw);
@@ -180,27 +209,28 @@ function matchFreeText(raw: string, retried = false): Match {
     group.ids?.forEach((id) => ids.add(id));
 
     if (group.category) {
-      CATALOG.filter(
+      catalog.all.filter(
         (ingredient) => ingredient.category === group.category,
       ).forEach((ingredient) => ids.add(ingredient.id));
     }
   }
 
   const textWords = words(text);
+  const { tokensById } = nameIndex(catalog);
 
   // "cebolla larga" means the scallion, not every onion: prefer foods that
   // match all the words, and fall back to any word ("pollo asado").
   const hits = (word: string, id: string) =>
-    variants(word).some((variant) => TOKENS_BY_ID.get(id)?.has(variant));
-  const byAll = CATALOG.filter(
+    variants(word).some((variant) => tokensById.get(id)?.has(variant));
+  const byAll = catalog.all.filter(
     (ingredient) =>
       textWords.length > 0 &&
       textWords.every((word) => hits(word, ingredient.id)),
   );
-  const byAny = CATALOG.filter((ingredient) =>
+  const byAny = catalog.all.filter((ingredient) =>
     textWords.some((word) => hits(word, ingredient.id)),
   );
-  const exact = CATALOG.filter(
+  const exact = catalog.all.filter(
     (ingredient) =>
       normalizeText(ingredient.name.es) === text ||
       normalizeText(ingredient.name.en) === text,
@@ -216,17 +246,20 @@ function matchFreeText(raw: string, retried = false): Match {
 
   // Last resort: a typo. Retry once with each word corrected.
   if (!retried) {
-    const corrected = textWords.map((word) => correctTypo(word) ?? word);
+    const corrected = textWords.map((word) => correctTypo(word, catalog) ?? word);
 
     if (corrected.some((word, index) => word !== textWords[index])) {
-      return matchFreeText(corrected.join(" "), true);
+      return matchFreeText(corrected.join(" "), catalog, true);
     }
   }
 
   return { tags, ids, matched: false };
 }
 
-export function buildRestrictionRules(restrictions: string[]): RestrictionRules {
+export function buildRestrictionRules(
+  restrictions: string[],
+  catalog: Catalog = STATIC_CATALOG,
+): RestrictionRules {
   const excludedTags = new Set<DietTag>();
   const excludedIds = new Set<string>();
   const unmatchedText: string[] = [];
@@ -244,7 +277,7 @@ export function buildRestrictionRules(restrictions: string[]): RestrictionRules 
       continue;
     }
 
-    const match = matchFreeText(key);
+    const match = matchFreeText(key, catalog);
     match.tags.forEach((tag) => excludedTags.add(tag));
     match.ids.forEach((id) => excludedIds.add(id));
 
@@ -260,15 +293,18 @@ export function buildRestrictionRules(restrictions: string[]): RestrictionRules 
  * What one free-text entry will exclude, for showing the user how we
  * understood it before they generate a plan.
  */
-export function explainRestriction(raw: string): {
+export function explainRestriction(
+  raw: string,
+  catalog: Catalog = STATIC_CATALOG,
+): {
   matched: boolean;
   ingredients: Ingredient[];
 } {
-  const match = matchFreeText(raw);
+  const match = matchFreeText(raw, catalog);
 
   return {
     matched: match.matched,
-    ingredients: CATALOG.filter(
+    ingredients: catalog.all.filter(
       (ingredient) =>
         match.ids.has(ingredient.id) ||
         ingredient.tags.some((tag) => match.tags.has(tag)),
@@ -287,6 +323,9 @@ export function isAllowed(
 }
 
 /** Catalog the AI may use for this user. */
-export function allowedCatalog(rules: RestrictionRules): Ingredient[] {
-  return CATALOG.filter((ingredient) => isAllowed(ingredient, rules));
+export function allowedCatalog(
+  rules: RestrictionRules,
+  catalog: Catalog = STATIC_CATALOG,
+): Ingredient[] {
+  return catalog.all.filter((ingredient) => isAllowed(ingredient, rules));
 }

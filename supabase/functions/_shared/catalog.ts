@@ -183,6 +183,28 @@ export function getIngredient(id: string): Ingredient | undefined {
   return BY_ID.get(id);
 }
 
+/** A set of ingredients the planner works from, looked up by id. */
+export interface Catalog {
+  readonly all: readonly Ingredient[];
+  get(id: string): Ingredient | undefined;
+}
+
+export function createCatalog(items: readonly Ingredient[]): Catalog {
+  const byId = new Map<string, Ingredient>();
+
+  for (const item of items) {
+    if (byId.has(item.id)) {
+      throw new Error(`Duplicate ingredient id in catalog: ${item.id}`);
+    }
+
+    byId.set(item.id, item);
+  }
+
+  return { all: items, get: (id) => byId.get(id) };
+}
+
+export const STATIC_CATALOG: Catalog = createCatalog(CATALOG);
+
 export const CATALOG_IDS: readonly string[] = CATALOG.map(
   (ingredient) => ingredient.id,
 );
