@@ -34,7 +34,8 @@ export interface GenerationUsage {
 export const DEFAULT_MAX_MODEL_CALLS = 12;
 /**
  * Below the Edge Function wall-clock limit (150 s on the free plan) with room
- * for auth, database reads and the response.
+ * for auth, database reads, saving the plan (one insert, capped by
+ * PLAN_SAVE_TIMEOUT_MS in ../planStorage.ts) and the response.
  */
 export const DEFAULT_TIME_BUDGET_MS = 120_000;
 /** Upper bounds for the settings, so a typo cannot pass the platform limit. */
