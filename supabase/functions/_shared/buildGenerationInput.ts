@@ -86,11 +86,11 @@ export async function buildGenerationInputFromDb(
   data: GenerationRequest | null;
   error: GenerationInputError | null;
 }> {
-  const [profileResult, goalsResult, supermarketsResult] = await Promise.all([
+  const [profileResult, goalsResult, supermarketsResult, cityResult] = await Promise.all([
     supabase
       .from("profiles")
       .select(
-        "weekly_budget_cop, dietary_restrictions, age, weight_kg, height_cm, activity_level, sex, household_size, city",
+        "weekly_budget_cop, dietary_restrictions, age, weight_kg, height_cm, activity_level, sex, household_size",
       )
       .eq("id", userId)
       .maybeSingle(),
@@ -99,6 +99,9 @@ export async function buildGenerationInputFromDb(
       .from("user_supermarkets")
       .select("supermarket_id")
       .eq("user_id", userId),
+    // Separate on purpose: if migration 010 (profiles.city) is not applied yet, this
+    // read fails and generation continues without a city instead of failing.
+    supabase.from("profiles").select("city").eq("id", userId).maybeSingle(),
   ]);
 
   if (profileResult.error) {
@@ -184,7 +187,7 @@ export async function buildGenerationInputFromDb(
       goals,
       stores,
       restrictions: normalizeRestrictions(profile?.dietary_restrictions),
-      city: normalizeCity(profile?.city),
+      city: normalizeCity(cityResult.error ? null : cityResult.data?.city),
       householdSize:
         Number.isInteger(household) && household >= 1 && household <= 8
           ? household
