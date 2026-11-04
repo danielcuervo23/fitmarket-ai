@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/session";
 import {
   historyPageRange,
-  isMissingColumnError,
   mapHistoryRows,
   type WeeklyPlanHistoryPage,
 } from "@/lib/weeklyPlansHistory";
@@ -14,28 +13,6 @@ export type {
   WeeklyPlanHistoryItem,
   WeeklyPlanHistoryPage,
 } from "@/lib/weeklyPlansHistory";
-
-/**
- * Legacy path only: reads the three list numbers out of a full plan_json.
- * Returns the same shape as the light history query (see migration 009).
- */
-function buildHistorySummary(planJson: unknown): {
-  estimated_total_cop: number;
-  estimated_daily_kcal: number;
-  shopping_item_count: number;
-} | null {
-  const { data: plan, error } = parseWeeklyPlanJson(planJson);
-
-  if (error || !plan) {
-    return null;
-  }
-
-  return {
-    estimated_total_cop: plan.summary.estimated_total_cop,
-    estimated_daily_kcal: plan.summary.estimated_daily_kcal,
-    shopping_item_count: plan.shopping_list.length,
-  };
-}
 
 export async function saveWeeklyPlan(
   plan: WeeklyPlan,
@@ -132,6 +109,8 @@ export async function fetchWeeklyPlansHistory(page = 0): Promise<{
   // Asks for 21 rows: the 21st only tells us whether there is another page.
   // id is the tie-breaker so two plans with the same created_at never move
   // between pages (matches the index of migration 009).
+  // Depends on migration 009: shopping_item_count is a column generated from
+  // plan_json->'shopping_list', so the full plan_json is never downloaded.
   const { from, to } = historyPageRange(page);
 
   const { data: rows, error: selectError } = await supabase
@@ -147,39 +126,11 @@ export async function fetchWeeklyPlansHistory(page = 0): Promise<{
     .order("id", { ascending: false })
     .range(from, to);
 
-  if (!selectError) {
-    return { data: mapHistoryRows(rows, page), error: null };
-  }
-
-  // TEMPORARY fallback: until migration 009 is applied the column
-  // shopping_item_count does not exist, so read the full plan_json (paginated)
-  // as before. This block can be removed once 009 is applied in production.
-  if (!isMissingColumnError(selectError)) {
+  if (selectError) {
     return { data: null, error: dbErrorKey(selectError, "errors.load") };
   }
 
-  const { data: legacyRows, error: legacyError } = await supabase
-    .from("weekly_plans")
-    .select("id, created_at, updated_at, plan_json")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .range(from, to);
-
-  if (legacyError) {
-    return { data: null, error: dbErrorKey(legacyError, "errors.load") };
-  }
-
-  // Invalid plans keep their place (with no numbers) so that "current" and
-  // "has more" are decided exactly as in the light query.
-  const mapped = (legacyRows ?? []).map((row) => ({
-    id: row.id,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-    ...buildHistorySummary(row.plan_json),
-  }));
-
-  return { data: mapHistoryRows(mapped, page), error: null };
+  return { data: mapHistoryRows(rows, page), error: null };
 }
 
 export async function fetchWeeklyPlanById(planId: string): Promise<{
