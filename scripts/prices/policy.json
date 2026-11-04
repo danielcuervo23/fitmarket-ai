@@ -1,0 +1,61 @@
+{
+  "checkedOn": "2026-11-04",
+  "userAgent": "FitMarketPriceBot/1.0 (+https://fitmarket-ai.vercel.app)",
+  "stores": {
+    "D1": {
+      "allowed": false,
+      "reason": "Terminos de uso no accesibles (el sitio los carga con JavaScript y no se pudieron leer); ademas robots.txt bloquea /busca/* y /buscapagina/*. Ante la duda, no se lee.",
+      "robotsUrl": "https://domicilios.tiendasd1.com/robots.txt",
+      "disallowedPaths": ["/account/*", "/login/*", "/checkout/*", "/busca/*", "/quick-view/*", "/espiar/*", "/buscapagina/*"],
+      "termsUrl": "https://www.d1.com.co/",
+      "termsSummary": "No verificado: no se encontro texto de terminos legible por medios automaticos.",
+      "method": "none",
+      "bucaramanga": { "available": false, "how": "No verificado. Solo documentacion, el codigo no lo interpreta." },
+      "minDelayMs": 3000
+    },
+    "Ara": {
+      "allowed": false,
+      "reason": "Los terminos de uso prohiben expresamente spiders y cualquier metodo automatico para acceder, copiar o monitorear el contenido del sitio. Ademas el catalogo publico parece ser solo volante de promocion.",
+      "robotsUrl": "https://aratiendas.com/robots.txt",
+      "disallowedPaths": ["/wp-admin/", "/productos_polulares/", "/productos_nuevos/", "/productos_contenido/", "/productos_rebajon/"],
+      "termsUrl": "https://aratiendas.com/terminos-y-condiciones/",
+      "termsSummary": "Usos no permitidos: utilizar spiders, site copiers o cualquier otro programa o metodo para acceder, adquirir, copiar o monitorear el contenido de las paginas web de Jeronimo Martins (Tiendas Ara). Prohibida la copia y reproduccion sin permiso escrito.",
+      "method": "none",
+      "bucaramanga": { "available": false, "how": "No aplica. Solo documentacion, el codigo no lo interpreta." },
+      "minDelayMs": 3000
+    },
+    "Exito": {
+      "allowed": false,
+      "reason": "Los terminos no prohiben expresamente el acceso automatico, pero robots.txt bloquea /api/ y /s? (la via practica para leer precios), el sitio respondio 429 (Too Many Requests) a nuestro agente y no se pudo comprobar como se selecciona Bucaramanga. Ante la duda, no se lee.",
+      "robotsUrl": "https://www.exito.com/robots.txt",
+      "disallowedPaths": ["/account/", "/login", "/checkout/", "/quick-view/", "/espiar/", "/s?", "/api/", "/coleccion/"],
+      "termsUrl": "https://www.exito.com/terminos-condiciones",
+      "termsSummary": "Terminos del Vendedor: la plataforma permite al Vendedor cancelar cuentas o prohibir acceso por conductas violatorias; imagenes, marcas y demas elementos son propiedad intelectual protegida. No hay clausula explicita sobre scraping.",
+      "method": "none",
+      "bucaramanga": { "available": false, "how": "No verificado. Solo documentacion, el codigo no lo interpreta." },
+      "minDelayMs": 3000
+    },
+    "Carulla": {
+      "allowed": false,
+      "reason": "Misma plataforma y mismo robots.txt que Exito: /api/ y /s? bloqueados, 429 al consultar con nuestro agente, y Bucaramanga sin verificar. Ante la duda, no se lee.",
+      "robotsUrl": "https://www.carulla.com/robots.txt",
+      "disallowedPaths": ["/account/", "/login", "/checkout/", "/quick-view/", "/espiar/", "/s?", "/api/", "/coleccion/"],
+      "termsUrl": "https://www.carulla.com/terminos-condiciones",
+      "termsSummary": "Terminos del Vendedor (Grupo Exito): no hay clausula explicita sobre scraping; se reserva el derecho de prohibir el acceso a quien incumpla los terminos y se abstiene de conductas que afecten el funcionamiento de la plataforma.",
+      "method": "none",
+      "bucaramanga": { "available": false, "how": "No verificado. Solo documentacion, el codigo no lo interpreta." },
+      "minDelayMs": 3000
+    },
+    "Jumbo": {
+      "allowed": false,
+      "reason": "Terminos de uso no accesibles (la pagina carga con JavaScript y no muestra texto legible); robots.txt bloquea /busca*, ?*ciudad y otros parametros. Ante la duda, no se lee.",
+      "robotsUrl": "https://www.jumbocolombia.com/robots.txt",
+      "disallowedPaths": ["/Account*", "/account*", "/busca*", "/checkout/", "/login*", "/cart", "/?*ciudad", "/?*map", "/?*page"],
+      "termsUrl": "https://www.jumbocolombia.com/terminos-y-condiciones",
+      "termsSummary": "No verificado: la pagina de terminos no devolvio texto legible.",
+      "method": "none",
+      "bucaramanga": { "available": false, "how": "No verificado. Solo documentacion, el codigo no lo interpreta." },
+      "minDelayMs": 3000
+    }
+  }
+}
