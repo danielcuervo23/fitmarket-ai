@@ -68,15 +68,20 @@ function isNetworkFailure(error: AuthErrorLike): boolean {
 
 /**
  * Result of asking for a reset e-mail. `null` means "show the neutral
- * 'if an account exists, we sent a link' message". Only problems the user can
- * act on (no connection, too many requests) are shown, so the screen never
- * tells anyone whether an address is registered.
+ * 'if an account exists, we sent a link' message".
+ *
+ * Only problems that do not depend on the address are shown: no connection,
+ * and the per-IP request limit (`over_request_rate_limit`). The e-mail send
+ * limits (once every 60 s per user, the hourly e-mail quota) only apply when
+ * Supabase actually sends a message, i.e. when the account exists, so they —
+ * and any 429 we cannot identify — get the neutral message instead.
  */
 export function resetRequestErrorKey(
   error: AuthErrorLike | null,
 ): ErrorKey | null {
   if (!error) return null;
-  if (isRateLimited(error)) return "auth.error.rateLimit";
+  if (error.code === "over_request_rate_limit") return "auth.error.rateLimit";
+  if (isRateLimited(error)) return null;
   if (isNetworkFailure(error)) return "errors.network";
   return null;
 }

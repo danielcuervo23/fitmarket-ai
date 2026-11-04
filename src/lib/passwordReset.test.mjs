@@ -52,12 +52,38 @@ assert.equal(
   null,
 );
 assert.equal(resetRequestErrorKey({ message: "Database error finding user", status: 500 }), null);
+// Supabase only applies the e-mail send limits ("once every 60 s", the hourly
+// e-mail quota) when it actually sends a message, i.e. when the account
+// exists. Saying "too many requests" would reveal that, so these show the
+// neutral message too.
 assert.equal(
   resetRequestErrorKey({ message: "email rate limit exceeded", status: 429, code: "over_email_send_rate_limit" }),
-  "auth.error.rateLimit",
+  null,
+  "the e-mail send limit only hits existing accounts",
+);
+assert.equal(
+  resetRequestErrorKey({
+    message: "For security purposes, you can only request this after 42 seconds.",
+    status: 429,
+    code: "over_email_send_rate_limit",
+  }),
+  null,
+  "the per-user 60 s limit only hits existing accounts",
 );
 assert.equal(
   resetRequestErrorKey({ message: "For security purposes, you can only request this after 42 seconds.", status: 429 }),
+  null,
+  "same per-user limit from an older server without an error code",
+);
+assert.equal(
+  resetRequestErrorKey({ message: "Too many requests", status: 429 }),
+  null,
+  "an unidentified 429 cannot be proven account-independent, so it stays neutral",
+);
+// The per-IP request limit does not depend on the account, so it is safe
+// (and useful) to tell the user to wait.
+assert.equal(
+  resetRequestErrorKey({ message: "Request rate limit reached", status: 429, code: "over_request_rate_limit" }),
   "auth.error.rateLimit",
 );
 assert.equal(
