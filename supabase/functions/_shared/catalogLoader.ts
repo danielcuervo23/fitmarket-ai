@@ -319,8 +319,14 @@ async function cached<T>(
   const started = withTimeout(load(), options.timeoutMs)
     .then((value) => {
       if (options.ttlMs > 0) {
-        if (cache.size >= MAX_CITY_ENTRIES && !cache.has(key)) {
-          cache.delete(cache.keys().next().value as string);
+        // Only per-city entries are capped (oldest first); the global
+        // foods and inactive entries are never evicted.
+        if (key.startsWith("prices:") && !cache.has(key)) {
+          const cityKeys = [...cache.keys()].filter((k) => k.startsWith("prices:"));
+
+          if (cityKeys.length >= MAX_CITY_ENTRIES) {
+            cache.delete(cityKeys[0]);
+          }
         }
 
         cache.set(key, { value, expiresAt: options.now() + options.ttlMs });
@@ -381,34 +387,32 @@ async function loadFoods(client: CatalogClient): Promise<Catalog> {
   return createCatalog([...items.values()]);
 }
 
-interface CityPrices {
-  offers: PriceOffer[];
-  inactive: { storeId: string; foodId: string }[];
+type InactiveProduct = { storeId: string; foodId: string };
+
+/** Store products switched off, the same for every city: cached once. */
+async function loadInactive(client: CatalogClient): Promise<InactiveProduct[]> {
+  const rows = await readAll(() =>
+    client.from("store_products").select("store_id, food_id").eq("is_active", false).order("id")
+  );
+
+  return rows.map(inactiveRow).filter((row): row is InactiveProduct => row !== null);
 }
 
-async function loadCityPrices(client: CatalogClient, city: string): Promise<CityPrices> {
-  const [priceRows, inactiveRows] = await Promise.all([
-    readAll(() =>
-      client
-        .from("current_prices")
-        .select("store_id, food_id, store_product_id, pack_size, regular_price_cop, source, observed_on")
-        .eq("city", city)
-        .order("store_product_id")
-    ),
-    readAll(() =>
-      client.from("store_products").select("store_id, food_id").eq("is_active", false).order("id")
-    ),
-  ]);
+async function loadCityOffers(client: CatalogClient, city: string): Promise<PriceOffer[]> {
+  const priceRows = await readAll(() =>
+    client
+      .from("current_prices")
+      .select("store_id, food_id, store_product_id, pack_size, regular_price_cop, source, observed_on")
+      .eq("city", city)
+      .order("store_product_id")
+  );
   const offers = priceRows.map(priceRowToOffer).filter((offer): offer is PriceOffer => offer !== null);
-  const inactive = inactiveRows
-    .map(inactiveRow)
-    .filter((row): row is { storeId: string; foodId: string } => row !== null);
 
   if (offers.length < priceRows.length) {
     logEvent("prices_rows_skipped", { reason: "invalid_row", count: priceRows.length - offers.length });
   }
 
-  return { offers, inactive };
+  return offers;
 }
 
 const STATIC_DATA: PlannerData = {
@@ -439,7 +443,10 @@ export async function loadPlannerData(
     cached("foods", resolved, () => loadFoods(client)),
     safeCity === null
       ? Promise.resolve(null)
-      : cached(`prices:${safeCity}`, resolved, () => loadCityPrices(client, safeCity)),
+      : Promise.all([
+          cached(`prices:${safeCity}`, resolved, () => loadCityOffers(client, safeCity)),
+          cached("inactive", resolved, () => loadInactive(client)),
+        ]),
   ]);
 
   if (catalogResult.status === "rejected") {
@@ -457,11 +464,16 @@ export async function loadPlannerData(
   return {
     catalog: catalogResult.value,
     prices: cityPrices
-      ? createCityPriceBook(cityPrices.offers, {
+      ? createCityPriceBook(cityPrices[0], {
           today: bogotaToday(resolved.now()),
-          inactive: cityPrices.inactive,
+          inactive: cityPrices[1],
         })
       : STATIC_PRICE_BOOK,
     origin: "db",
   };
+}
+
+/** The `deps` argument of generatePlan, built from the loaded data in one place. */
+export function plannerDeps(data: PlannerData): { catalog: Catalog; prices: PriceBook } {
+  return { catalog: data.catalog, prices: data.prices };
 }

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { beforeEach, test } from "node:test";
 import { CATALOG, STATIC_CATALOG, createCatalog, getIngredient } from "./catalog.ts";
 import {
@@ -6,6 +7,7 @@ import {
   bogotaToday,
   foodRowToIngredient,
   loadPlannerData,
+  plannerDeps,
   resetPlannerDataCache,
   resolveCacheTtlMs,
 } from "./catalogLoader.ts";
@@ -441,4 +443,56 @@ test("renameMeals fallback naming uses the given catalog", async () => {
 
   assert.equal(renamed.lun.cena.name.es, "Bocadillo");
   assert.equal(fallbackName(week.lun.cena, custom).en, "Guava paste");
+});
+
+// ---- Fix round 1
+
+const letters = (n) => `ciudad_${String.fromCharCode(97 + (n % 26))}${String.fromCharCode(97 + Math.floor(n / 26))}`;
+
+test("many cities never evict the global foods entry", async () => {
+  const client = fakeClient({
+    foods: page(allRows()),
+    store_products: page([]),
+    current_prices: page([]),
+  });
+  const options = { now: () => NOW, ttlMs: 600_000 };
+
+  await loadPlannerData(client, letters(0), options);
+
+  for (let i = 1; i <= 60; i += 1) {
+    await loadPlannerData(client, letters(i), options);
+  }
+
+  assert.equal(callsTo(client, "foods").length, 1, "foods was read once and stayed cached");
+});
+
+test("the inactive list is read once for all cities", async () => {
+  const client = fakeClient({
+    foods: page(allRows()),
+    store_products: page([{ store_id: "Exito", food_id: "huevo" }]),
+    current_prices: page([]),
+  });
+  const options = { now: () => NOW, ttlMs: 600_000 };
+
+  const a = await loadPlannerData(client, "bogota", options);
+  const b = await loadPlannerData(client, "bucaramanga", options);
+
+  assert.equal(callsTo(client, "store_products").length, 1);
+  assert.equal(a.prices.carries("Exito", "huevo"), false);
+  assert.equal(b.prices.carries("Exito", "huevo"), false);
+});
+
+test("plannerDeps hands the loaded catalog and prices to the planner", async () => {
+  const data = await loadPlannerData(fakeClient({ foods: page(allRows()) }), null);
+  const deps = plannerDeps(data);
+
+  assert.equal(deps.catalog, data.catalog);
+  assert.equal(deps.prices, data.prices);
+});
+
+test("generate-weekly-plan passes the planner data to generatePlan", () => {
+  const source = readFileSync(new URL("../generate-weekly-plan/index.ts", import.meta.url), "utf8");
+  const call = source.slice(source.indexOf("await generatePlan("));
+
+  assert.match(call, /plannerDeps\(plannerData\)\s*,?\s*\)/, "4th argument of generatePlan");
 });

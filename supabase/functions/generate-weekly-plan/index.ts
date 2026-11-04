@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
 import {
   loadPlannerData,
+  plannerDeps,
   resolveCacheTtlMs,
   type CatalogClient,
 } from "../_shared/catalogLoader.ts";
@@ -178,7 +179,7 @@ Deno.serve(async (req: Request) => {
           DEFAULT_TIME_BUDGET_MS,
           MAX_TIME_BUDGET_MS,
         ),
-    });
+    }, plannerDeps(plannerData));
 
     // Service role client, or null when the key is not configured. Used for
     // writes the user must not control: the refund below and saving the plan.
