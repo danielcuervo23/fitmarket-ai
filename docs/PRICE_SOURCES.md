@@ -2,21 +2,33 @@
 
 Fecha de la revision: 2026-11-04.
 
-> Aviso: es una revision razonada hecha por el equipo, **no es asesoria legal**. Falta el visto bueno del dueno del proyecto (pendiente). Regla aplicada: ante la duda, no se lee la tienda.
+> Aviso: es una revision razonada hecha por el equipo, **no es asesoria legal**. El dueno ya tomo la decision de abajo; la revision legal profesional antes del lanzamiento publico sigue pendiente. Regla aplicada: ante la duda, no se lee la tienda.
 
 El robot se identifica como `FitMarketPriceBot/1.0 (+https://fitmarket-ai.vercel.app)` (URL del proyecto, no un correo personal). El archivo `scripts/prices/policy.json` es la version para maquinas de este documento; el lector de precios solo usa tiendas con `allowed: true`. El texto `bucaramanga.how` es solo documentacion: el codigo nunca lo interpreta.
+
+## Decision del dueno (2026-11-04)
+
+El dueno autorizo leer **Exito, Carulla, D1 y Jumbo**; leyo el mismo los terminos de D1 y de Jumbo. **Ara sigue en no**, porque sus terminos lo prohiben expresamente. Se le recomendo una **revision legal antes del lanzamiento publico**; esa revision esta **pendiente**.
+
+Precauciones obligatorias (tambien en `policy.json`):
+- Solo paginas de producto individuales (por ejemplo `/<slug>/p`) que robots.txt no bloquee. Nunca `/api/`, `/s?`, `/busca*` ni rutas o parametros bloqueados por robots.txt.
+- Lectura semanal, despacio: al menos 5000 ms entre peticiones, con el user agent identificado, y parar si llega un 429 o un bloqueo.
+- Solo se guardan el precio regular y el tamano del paquete. Nunca fotos, descripciones ni logos.
+- Si una tienda pide parar, se para de inmediato y se pasa a `allowed: false`.
 
 ## Resumen
 
 | Tienda | Se puede leer | Motivo corto |
 |---|---|---|
-| D1 | No | Terminos no legibles; robots bloquea /busca/* |
+| D1 | Si | Autorizado por el dueno (2026-11-04), solo paginas de producto |
 | Ara | No | Terminos prohiben spiders y copia automatica |
-| Exito | No | robots bloquea /api/ y /s?; 429; Bucaramanga sin verificar |
-| Carulla | No | Igual que Exito (misma plataforma) |
-| Jumbo | No | Terminos no legibles; robots bloquea /busca* y ?ciudad |
+| Exito | Si | Autorizado por el dueno; terminos sin prohibicion explicita |
+| Carulla | Si | Igual que Exito (misma plataforma) |
+| Jumbo | Si | Autorizado por el dueno (2026-11-04), solo paginas de producto |
 
-Consecuencia: hoy ninguna tienda esta autorizada. Las tareas que leen precios reales no deben leer ninguna tienda hasta que el dueno decida (por ejemplo, pidiendo permiso por escrito a una tienda o usando una fuente oficial o un acuerdo).
+Nota: la forma de elegir Bucaramanga en cada tienda aun no esta comprobada; cada modulo de tienda la define y la verifica (el texto `how` es solo documentacion).
+
+Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decision del dueno; los veredictos de abajo quedan superados por la decision de arriba (salvo Ara).
 
 ## D1 (domicilios.tiendasd1.com / d1.com.co)
 - robots.txt (revisado hoy): bloquea `/account/*`, `/login/*`, `/checkout/*`, `/busca/*`, `/quick-view/*`, `/espiar/*`, `/buscapagina/*` y varios parametros de busqueda.
@@ -45,7 +57,6 @@ Consecuencia: hoy ninguna tienda esta autorizada. Las tareas que leen precios re
 - Terminos (https://www.jumbocolombia.com/terminos-y-condiciones): la pagina carga con JavaScript y no devolvio texto legible ni con curl ni con una lectura web.
 - Decision: **No**. No se pudieron leer los terminos.
 
-## Pendiente del dueno
-- Dar el visto bueno (u objetar) a esta revision.
-- Decidir como obtener precios sin leer las tiendas: permiso escrito, fuente oficial de datos, o aportes manuales.
-- Opcional: cambiar la URL de contacto del robot si prefiere otra.
+## Pendiente
+- Revision legal antes del lanzamiento publico (recomendada al dueno, pendiente).
+- Confirmar como se elige Bucaramanga en cada tienda (en cada modulo).

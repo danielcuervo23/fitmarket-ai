@@ -40,7 +40,7 @@ test("allowed stores have a reading method, Bucaramanga coverage and polite dela
     assert.notEqual(s.method, "none", name);
     assert.ok(["vtex_api", "jsonld_html", "json_api"].includes(s.method), name);
     assert.equal(s.bucaramanga.available, true, name);
-    assert.ok(s.minDelayMs >= 2000, name);
+    assert.ok(s.minDelayMs >= 5000, name);
     assert.ok(s.termsUrl.startsWith("https://"), name);
     assert.ok(s.robotsUrl.startsWith("https://"), name);
     assert.ok(s.termsSummary.length >= 40, name);
@@ -57,4 +57,37 @@ test("user agent names a contact", () => {
   assert.match(policy.userAgent, /^FitMarketPriceBot\/\d+\.\d+ \(\+https:\/\/.+\)$/);
   assert.equal(policy.userAgent, "FitMarketPriceBot/1.0 (+https://fitmarket-ai.vercel.app)");
   assert.ok(!policy.userAgent.includes("@"));
+});
+
+test("owner decision 2026-11-04: four stores allowed, Ara forbidden", () => {
+  for (const name of ["Exito", "Carulla", "D1", "Jumbo"]) {
+    assert.equal(policy.stores[name].allowed, true, name);
+    assert.equal(policy.stores[name].method, "jsonld_html", name);
+  }
+  assert.equal(policy.stores.Ara.allowed, false);
+  assert.equal(policy.stores.Ara.method, "none");
+});
+
+test("allowed stores never touch paths that robots.txt blocks", () => {
+  for (const [name, s] of entries.filter(([, s]) => s.allowed === true)) {
+    assert.ok(s.disallowedPaths.length > 0, name);
+    assert.equal(s.readOnly, "product_pages", name);
+    assert.ok(s.productPathPattern.endsWith("/p"), name);
+  }
+});
+
+test("owner authorization and precautions are recorded", () => {
+  assert.equal(policy.ownerAuthorization.date, "2026-11-04");
+  assert.equal(policy.ownerAuthorization.legalReviewBeforePublicLaunch, "pending");
+  assert.equal(policy.precautions.cadence, "weekly");
+  assert.ok(policy.precautions.minDelayMs >= 5000);
+  assert.deepEqual(policy.precautions.stopOnStatus, [429]);
+  assert.deepEqual(policy.precautions.storeOnly, ["regularPrice", "packageSize"]);
+  assert.ok(policy.precautions.neverStore.includes("images"));
+  assert.ok(policy.precautions.neverStore.includes("descriptions"));
+  assert.ok(policy.precautions.neverStore.includes("logos"));
+  assert.ok(policy.precautions.neverRequest.includes("/api/"));
+  assert.ok(policy.precautions.neverRequest.includes("/s?"));
+  assert.ok(policy.precautions.neverRequest.includes("/busca*"));
+  assert.match(policy.precautions.onStoreRequestToStop, /allowed: false/);
 });
