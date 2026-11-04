@@ -1,5 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
+import {
+  loadPlannerData,
+  resolveCacheTtlMs,
+  type CatalogClient,
+} from "../_shared/catalogLoader.ts";
 import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
 import { logEvent, logUnexpected } from "../_shared/log.ts";
 import { callOpenAI } from "../_shared/openai.ts";
@@ -152,6 +157,13 @@ Deno.serve(async (req: Request) => {
         429,
       );
     }
+
+    // Catalog and city prices, read with the caller's own client (never the
+    // service role). Any problem falls back to the built-in data.
+    const plannerData = await loadPlannerData(supabase as unknown as CatalogClient, input.city, {
+      ttlMs: resolveCacheTtlMs(Deno.env.get("CATALOG_CACHE_TTL_MS")),
+    });
+    logEvent("catalog_origin", { origin: plannerData.origin });
 
     const outcome = await generatePlan(input, callOpenAI, {
       maxModelCalls: positiveIntOr(

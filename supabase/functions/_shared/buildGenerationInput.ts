@@ -15,6 +15,15 @@ const GOAL_TYPES = new Set([
   "energy",
 ]);
 
+/** The generation input plus the profile city (null when unset or invalid). */
+export type GenerationRequest = GenerateInput & { city: string | null };
+
+const CITY_SLUG = /^[a-z_]{2,40}$/;
+
+function normalizeCity(raw: unknown): string | null {
+  return typeof raw === "string" && CITY_SLUG.test(raw) ? raw : null;
+}
+
 const SUPERMARKET_IDS = new Set(["D1", "Ara", "Exito", "Jumbo", "Carulla"]);
 
 /** Ids the app offers as tiles; anything else is free text. */
@@ -74,14 +83,14 @@ export async function buildGenerationInputFromDb(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<{
-  data: GenerateInput | null;
+  data: GenerationRequest | null;
   error: GenerationInputError | null;
 }> {
   const [profileResult, goalsResult, supermarketsResult] = await Promise.all([
     supabase
       .from("profiles")
       .select(
-        "weekly_budget_cop, dietary_restrictions, age, weight_kg, height_cm, activity_level, sex, household_size",
+        "weekly_budget_cop, dietary_restrictions, age, weight_kg, height_cm, activity_level, sex, household_size, city",
       )
       .eq("id", userId)
       .maybeSingle(),
@@ -175,6 +184,7 @@ export async function buildGenerationInputFromDb(
       goals,
       stores,
       restrictions: normalizeRestrictions(profile?.dietary_restrictions),
+      city: normalizeCity(profile?.city),
       householdSize:
         Number.isInteger(household) && household >= 1 && household <= 8
           ? household
