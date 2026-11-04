@@ -66,6 +66,7 @@ const DEFAULT_PROFILE: ProfileInput = {
   activity_level: "moderate",
   sex: null,
   household_size: 1,
+  city: null,
 };
 
 function sameProfile(a: ProfileInput, b: ProfileInput): boolean {
@@ -75,7 +76,8 @@ function sameProfile(a: ProfileInput, b: ProfileInput): boolean {
     a.height === b.height &&
     a.activity_level === b.activity_level &&
     a.sex === b.sex &&
-    a.household_size === b.household_size
+    a.household_size === b.household_size &&
+    a.city === b.city
   );
 }
 

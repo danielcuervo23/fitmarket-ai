@@ -26,6 +26,7 @@ const DEFAULTS: ProfileInput = {
   activity_level: "moderate",
   sex: null,
   household_size: 1,
+  city: null,
 };
 
 export function ProfileScreen({ name, onNext, onBack }: Props) {

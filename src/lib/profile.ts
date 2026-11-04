@@ -1,5 +1,6 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { dbErrorKey, type ErrorKey } from "@/lib/errors";
+import { isCitySlug } from "@/lib/cities";
 import { supabase } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/session";
 
@@ -21,6 +22,8 @@ export interface ProfileInput {
   sex: Sex | null;
   /** People who share the same shopping (1-8). */
   household_size: number;
+  /** Optional city slug where the user shops. null = not set. */
+  city: string | null;
 }
 
 /** Campos de preferencias almacenados en public.profiles */
@@ -58,6 +61,7 @@ function buildProfileRow(userId: string, input: ProfileInput) {
     activity_level: input.activity_level,
     sex: input.sex,
     household_size: Math.min(8, Math.max(1, Math.round(input.household_size))),
+    city: isCitySlug(input.city) ? input.city : null,
   };
 }
 
@@ -95,6 +99,7 @@ export async function upsertProfile(
         activity_level: row.activity_level,
         sex: row.sex,
         household_size: row.household_size,
+        city: row.city,
       })
       .eq("id", user.id);
 
@@ -130,7 +135,7 @@ export async function fetchProfile(): Promise<{
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("age, weight_kg, height_cm, activity_level, sex, household_size")
+    .select("age, weight_kg, height_cm, activity_level, sex, household_size, city")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -157,6 +162,7 @@ export async function fetchProfile(): Promise<{
         : "moderate",
       sex: data.sex === "female" || data.sex === "male" ? data.sex : null,
       household_size: Number(data.household_size) || 1,
+      city: isCitySlug(data.city) ? data.city : null,
     },
     error: null,
   };
