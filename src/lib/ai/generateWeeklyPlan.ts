@@ -3,6 +3,7 @@ import type { GenerationErrorCode } from "@shared/errors.ts";
 import { parseWeeklyPlanJson } from "@/lib/ai/weeklyPlanSchema";
 import type { WeeklyPlan } from "@/lib/ai/types";
 import type { ErrorKey } from "@/lib/errors";
+import { readPlanId } from "@/lib/planId";
 import { supabase } from "@/lib/supabase";
 
 export interface BudgetTooLowGenerationError {
@@ -35,6 +36,8 @@ export type GenerateWeeklyPlanError =
 
 interface GenerateWeeklyPlanResponse {
   plan?: unknown;
+  /** Id of the row the server already saved; missing on older servers. */
+  planId?: unknown;
   error?: string;
   code?: GenerationErrorCode;
   diagnostics?: unknown;
@@ -178,6 +181,11 @@ function invokeFailureKey(error: unknown): ErrorKey {
 
 export async function generateWeeklyPlan(): Promise<{
   data: WeeklyPlan | null;
+  /**
+   * Set when the server already saved the plan in `weekly_plans`. Null means
+   * the caller must save it (older server, or the server save failed).
+   */
+  planId: string | null;
   error: GenerateWeeklyPlanError | null;
 }> {
   const { data: payload, error: invokeError } =
@@ -190,7 +198,7 @@ export async function generateWeeklyPlan(): Promise<{
   const knownError = toGenerationError(body);
 
   if (knownError) {
-    return { data: null, error: knownError };
+    return { data: null, planId: null, error: knownError };
   }
 
   if (invokeError) {
@@ -198,6 +206,7 @@ export async function generateWeeklyPlan(): Promise<{
 
     return {
       data: null,
+      planId: null,
       error: { kind: "message", messageKey: invokeFailureKey(invokeError) },
     };
   }
@@ -205,6 +214,7 @@ export async function generateWeeklyPlan(): Promise<{
   if (!body?.plan) {
     return {
       data: null,
+      planId: null,
       error: { kind: "message", messageKey: "gen.error.failed" },
     };
   }
@@ -214,9 +224,10 @@ export async function generateWeeklyPlan(): Promise<{
   if (parseError || !plan) {
     return {
       data: null,
+      planId: null,
       error: { kind: "message", messageKey: "gen.error.invalidFormat" },
     };
   }
 
-  return { data: plan as WeeklyPlan, error: null };
+  return { data: plan as WeeklyPlan, planId: readPlanId(body), error: null };
 }

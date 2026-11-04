@@ -10,6 +10,7 @@ import {
   MAX_TIME_BUDGET_MS,
 } from "../_shared/planner/callBudget.ts";
 import { generatePlan } from "../_shared/planner/generate.ts";
+import { savePlanForUser } from "../_shared/planStorage.ts";
 import { positiveIntOr, shouldRefund } from "../_shared/quota.ts";
 
 const DEFAULT_DAILY_GENERATION_LIMIT = 10;
@@ -166,17 +167,24 @@ Deno.serve(async (req: Request) => {
         ),
     });
 
+    // Service role client, or null when the key is not configured. Used for
+    // writes the user must not control: the refund below and saving the plan.
+    const createServiceClient = () => {
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      return serviceKey ? createClient(supabaseUrl, serviceKey) : null;
+    };
+
     // A try that failed because of us gives the user their try back. Users
     // cannot delete their own rows (so they cannot reset the counter), which
     // is why this uses the service role.
     const refund = async () => {
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      const serviceClient = createServiceClient();
 
-      if (!serviceKey || !recorded?.id) {
+      if (!serviceClient || !recorded?.id) {
         return;
       }
 
-      const { error } = await createClient(supabaseUrl, serviceKey)
+      const { error } = await serviceClient
         .from("plan_generation_requests")
         .delete()
         .eq("id", recorded.id);
@@ -187,7 +195,20 @@ Deno.serve(async (req: Request) => {
     };
 
     if ("plan" in outcome) {
-      return json({ plan: outcome.plan }, 200);
+      // Saved here so a network drop after generation does not lose a plan
+      // already paid for. user_id comes from the verified JWT only. If the
+      // save fails the response still carries the plan, without planId, and
+      // the browser saves it as before.
+      const planId = await savePlanForUser(
+        createServiceClient(),
+        user.id,
+        outcome.plan,
+      );
+
+      return json(
+        planId ? { plan: outcome.plan, planId } : { plan: outcome.plan },
+        200,
+      );
     }
 
     const { code, message, budget, diagnostics } = outcome.error;
