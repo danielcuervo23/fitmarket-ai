@@ -1,14 +1,15 @@
 import {
-  costOf,
-  getIngredient,
+  STATIC_CATALOG,
   gramsOf,
   nutritionOf,
+  type Catalog,
   type Ingredient,
   type Nutrition,
   type ShoppingCategory,
 } from "../catalog.ts";
 import type { NutritionTargets } from "../nutrition.ts";
-import { cheapestStore } from "./stores.ts";
+import type { PriceBook, PriceSource } from "./priceBook.ts";
+import { STATIC_PRICE_BOOK } from "./stores.ts";
 import { SWAP_RULES } from "./swaps.ts";
 import {
   DAYS,
@@ -43,9 +44,9 @@ function roundQty(ingredient: Ingredient, qty: number): number {
   return Math.max(1, Math.round(qty));
 }
 
-function mealKcal(meal: ComposedMeal): number {
+function mealKcal(meal: ComposedMeal, catalog: Catalog): number {
   return meal.items.reduce((sum, item) => {
-    const ingredient = getIngredient(item.id);
+    const ingredient = catalog.get(item.id);
     return ingredient ? sum + nutritionOf(ingredient, item.qty).kcal : sum;
   }, 0);
 }
@@ -61,12 +62,16 @@ function addNutrition(total: Nutrition, add: Nutrition): Nutrition {
 
 const ZERO: Nutrition = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
 
-export function dayNutrition(week: ComposedWeek, day: Day): Nutrition {
+export function dayNutrition(
+  week: ComposedWeek,
+  day: Day,
+  catalog: Catalog = STATIC_CATALOG,
+): Nutrition {
   let total = ZERO;
 
   for (const slot of SLOTS) {
     for (const item of week[day][slot].items) {
-      const ingredient = getIngredient(item.id);
+      const ingredient = catalog.get(item.id);
 
       if (ingredient) {
         total = addNutrition(total, nutritionOf(ingredient, item.qty));
@@ -105,6 +110,7 @@ function cloneWeek(week: ComposedWeek): ComposedWeek {
 export function normalizeWeek(
   week: ComposedWeek,
   targetKcal: number,
+  catalog: Catalog = STATIC_CATALOG,
 ): ComposedWeek {
   const result = cloneWeek(week);
 
@@ -114,7 +120,7 @@ export function normalizeWeek(
 
     for (const slot of SLOTS) {
       for (const item of result[day][slot].items) {
-        const ingredient = getIngredient(item.id);
+        const ingredient = catalog.get(item.id);
 
         if (!ingredient) {
           continue;
@@ -141,7 +147,7 @@ export function normalizeWeek(
 
     for (const slot of SLOTS) {
       for (const item of result[day][slot].items) {
-        const ingredient = getIngredient(item.id);
+        const ingredient = catalog.get(item.id);
 
         if (ingredient && ingredient.category !== "condimentos") {
           item.qty = roundQty(ingredient, item.qty * factor);
@@ -184,24 +190,25 @@ export function costAt(
   ingredient: Ingredient,
   qty: number,
   stores: string[],
+  prices: PriceBook = STATIC_PRICE_BOOK,
 ): number {
-  const { factor } = cheapestStore(ingredient, stores);
-
-  return Math.round(costOf(ingredient, qty) * factor);
+  return prices.quote(ingredient, qty, stores).costCop;
 }
 
 export function weekCost(
   week: ComposedWeek,
   householdSize: number,
   stores: string[],
+  catalog: Catalog = STATIC_CATALOG,
+  prices: PriceBook = STATIC_PRICE_BOOK,
 ): number {
   let total = 0;
 
   for (const [id, qty] of totalsByIngredient(week, householdSize)) {
-    const ingredient = getIngredient(id);
+    const ingredient = catalog.get(id);
 
     if (ingredient) {
-      total += costAt(ingredient, qty, stores);
+      total += costAt(ingredient, qty, stores, prices);
     }
   }
 
@@ -214,13 +221,16 @@ export interface WeekStats {
   distinctIngredients: number;
 }
 
-export function weekStats(week: ComposedWeek): WeekStats {
+export function weekStats(
+  week: ComposedWeek,
+  catalog: Catalog = STATIC_CATALOG,
+): WeekStats {
   let kcal = 0;
   let protein = 0;
   const ids = new Set<string>();
 
   for (const day of DAYS) {
-    const nutrition = dayNutrition(week, day);
+    const nutrition = dayNutrition(week, day, catalog);
     kcal += nutrition.kcal;
     protein += nutrition.protein;
 
@@ -264,9 +274,10 @@ function applySwap(
   fromId: string,
   toId: string,
   keep: "protein" | "kcal",
+  catalog: Catalog,
 ): ComposedWeek {
-  const from = getIngredient(fromId);
-  const to = getIngredient(toId);
+  const from = catalog.get(fromId);
+  const to = catalog.get(toId);
   const next = cloneWeek(week);
 
   if (!from || !to) {
@@ -318,11 +329,15 @@ export function fitToBudget(
     targetKcal: number;
     allowedIds: ReadonlySet<string>;
     stores: string[];
+    catalog?: Catalog;
+    prices?: PriceBook;
   },
 ): FitResult {
   const { budgetCop, householdSize, targetKcal, allowedIds, stores } = options;
-  let current = normalizeWeek(week, targetKcal);
-  let cost = weekCost(current, householdSize, stores);
+  const catalog = options.catalog ?? STATIC_CATALOG;
+  const prices = options.prices ?? STATIC_PRICE_BOOK;
+  let current = normalizeWeek(week, targetKcal, catalog);
+  let cost = weekCost(current, householdSize, stores, catalog, prices);
   let swaps = 0;
 
   // Each swap removes an ingredient from the plan, so this always terminates.
@@ -336,10 +351,17 @@ export function fitToBudget(
       }
 
       const candidate = normalizeWeek(
-        applySwap(current, rule.from, rule.to, rule.keep),
+        applySwap(current, rule.from, rule.to, rule.keep, catalog),
         targetKcal,
+        catalog,
       );
-      const candidateCost = weekCost(candidate, householdSize, stores);
+      const candidateCost = weekCost(
+        candidate,
+        householdSize,
+        stores,
+        catalog,
+        prices,
+      );
 
       if (candidateCost < cost && (!best || candidateCost < best.cost)) {
         best = { week: candidate, cost: candidateCost };
@@ -415,6 +437,9 @@ export interface PlanShoppingItem {
   estimated_price_cop: number;
   category: ShoppingCategory;
   store_id: string;
+  price_source?: PriceSource;
+  /** YYYY-MM-DD; only when the price is not an estimate. */
+  price_updated_at?: string;
 }
 
 export interface BuiltPlan {
@@ -437,10 +462,14 @@ export function assemblePlan(
     householdSize: number;
     stores: string[];
     targets: NutritionTargets;
+    catalog?: Catalog;
+    prices?: PriceBook;
   },
 ): BuiltPlan {
   const { householdSize, stores, targets } = options;
-  const stats = weekStats(week);
+  const catalog = options.catalog ?? STATIC_CATALOG;
+  const prices = options.prices ?? STATIC_PRICE_BOOK;
+  const stats = weekStats(week, catalog);
 
   const weekly_menu = {} as BuiltPlan["weekly_menu"];
   const weekly_menu_en = {} as BuiltPlan["weekly_menu_en"];
@@ -454,7 +483,7 @@ export function assemblePlan(
     for (const slot of SLOTS) {
       const meal = week[day][slot];
       const ingredients = meal.items
-        .map((item) => ({ ingredient: getIngredient(item.id), qty: item.qty }))
+        .map((item) => ({ ingredient: catalog.get(item.id), qty: item.qty }))
         .filter(
           (entry): entry is { ingredient: Ingredient; qty: number } =>
             entry.ingredient !== undefined,
@@ -474,24 +503,24 @@ export function assemblePlan(
   let total = 0;
 
   for (const [id, qty] of totalsByIngredient(week, householdSize)) {
-    const ingredient = getIngredient(id);
+    const ingredient = catalog.get(id);
 
     if (!ingredient) {
       continue;
     }
 
-    const packs = Math.ceil(qty / ingredient.pack - 1e-9);
-    const { store } = cheapestStore(ingredient, stores);
-    const cost = costAt(ingredient, qty, stores);
-    total += cost;
+    const quote = prices.quote(ingredient, qty, stores);
+    total += quote.costCop;
 
     shopping_list.push({
       name: ingredient.name.es,
       name_en: ingredient.name.en,
-      quantity: formatPurchase(ingredient, packs * ingredient.pack),
-      estimated_price_cop: cost,
+      quantity: formatPurchase(ingredient, quote.packs * quote.packSize),
+      estimated_price_cop: quote.costCop,
       category: ingredient.category,
-      store_id: store,
+      store_id: quote.store,
+      price_source: quote.source,
+      ...(quote.observedOn ? { price_updated_at: quote.observedOn } : {}),
     });
   }
 
@@ -520,8 +549,9 @@ export type QualityIssue =
 export function checkQuality(
   week: ComposedWeek,
   targets: NutritionTargets,
+  catalog: Catalog = STATIC_CATALOG,
 ): QualityIssue | null {
-  const stats = weekStats(week);
+  const stats = weekStats(week, catalog);
 
   if (stats.avgProtein < targets.proteinG * 0.85) {
     return {
@@ -548,6 +578,9 @@ export function feedbackFor(issue: QualityIssue): string {
 }
 
 /** Helper for tests and callers that need the kcal of one meal. */
-export function kcalOfMeal(meal: ComposedMeal): number {
-  return Math.round(mealKcal(meal));
+export function kcalOfMeal(
+  meal: ComposedMeal,
+  catalog: Catalog = STATIC_CATALOG,
+): number {
+  return Math.round(mealKcal(meal, catalog));
 }

@@ -1,4 +1,5 @@
-import { type Ingredient, type ShoppingCategory } from "../catalog.ts";
+import { costOf, type Ingredient, type ShoppingCategory } from "../catalog.ts";
+import type { PriceBook } from "./priceBook.ts";
 
 /**
  * Where to buy each ingredient, and what it costs there.
@@ -103,3 +104,24 @@ export function cheapestStore(
 
   return best ?? { store: stores[0] ?? "", factor: 1 };
 }
+
+/**
+ * Today's behaviour as a price book: the national reference price times the
+ * store's price level, always labelled as an estimate. Used when the user has
+ * no city prices.
+ */
+export const STATIC_PRICE_BOOK: PriceBook = {
+  carries,
+  quote(ingredient, qty, stores) {
+    const { store, factor } = cheapestStore(ingredient, stores);
+
+    return {
+      store,
+      costCop: Math.round(costOf(ingredient, qty) * factor),
+      packs: qty <= 0 ? 0 : Math.ceil(qty / ingredient.pack - 1e-9),
+      packSize: ingredient.pack,
+      source: "estimate",
+      observedOn: null,
+    };
+  },
+};

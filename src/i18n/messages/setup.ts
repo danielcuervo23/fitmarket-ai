@@ -25,6 +25,9 @@ export const setup = defineMessages({
     "profile.householdUnit": "personas",
     "profile.householdHint":
       "Cuántas personas comen del mismo mercado. Tu presupuesto es para todas.",
+    "profile.city": "¿En qué ciudad haces mercado?",
+    "profile.cityHint": "La usamos para mostrarte precios de tu ciudad.",
+    "profile.cityNone": "Otra o prefiero no decirlo",
 
     "activity.sedentary.label": "Sedentario",
     "activity.sedentary.desc": "Poco o nada de ejercicio",
@@ -195,6 +198,9 @@ export const setup = defineMessages({
     "profile.householdUnit": "people",
     "profile.householdHint":
       "How many people eat from the same shopping. Your budget covers all of them.",
+    "profile.city": "Which city do you shop in?",
+    "profile.cityHint": "We use it to show prices for your city.",
+    "profile.cityNone": "Other or prefer not to say",
 
     "activity.sedentary.label": "Sedentary",
     "activity.sedentary.desc": "Little or no exercise",

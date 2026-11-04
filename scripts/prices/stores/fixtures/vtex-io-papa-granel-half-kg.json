@@ -1,0 +1,35 @@
+{
+  "Product:papa-parda-pastusa-granel-x-500-g": {
+    "productName": "Papa parda pastusa x500gr",
+    "items": [
+      {
+        "type": "id",
+        "id": "Product:papa-parda-pastusa-granel-x-500-g.items.0"
+      }
+    ]
+  },
+  "Product:papa-parda-pastusa-granel-x-500-g.items.0": {
+    "itemId": "24486",
+    "name": "Papa parda pastusa x500gr",
+    "measurementUnit": "kg",
+    "unitMultiplier": 0.5,
+    "sellers": [
+      {
+        "type": "id",
+        "id": "Product:papa-parda-pastusa-granel-x-500-g.items.0.sellers.0"
+      }
+    ]
+  },
+  "Product:papa-parda-pastusa-granel-x-500-g.items.0.sellers.0": {
+    "sellerDefault": true,
+    "commertialOffer": {
+      "type": "id",
+      "id": "$Product:papa-parda-pastusa-granel-x-500-g.items.0.sellers.0.commertialOffer"
+    }
+  },
+  "$Product:papa-parda-pastusa-granel-x-500-g.items.0.sellers.0.commertialOffer": {
+    "Price": 4980,
+    "ListPrice": 4980,
+    "AvailableQuantity": 251
+  }
+}

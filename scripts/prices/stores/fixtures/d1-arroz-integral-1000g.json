@@ -1,0 +1,16 @@
+{
+  "Product:arroz-integral-diana-1000g-12003653": {
+    "productName": "Arroz Integral Diana 1.000 G"
+  },
+  "Product:arroz-integral-diana-1000g-12003653.items.0": {
+    "itemId": "1286",
+    "name": "Arroz Integral Diana 1.000 G",
+    "measurementUnit": "un",
+    "unitMultiplier": 1
+  },
+  "$Product:arroz-integral-diana-1000g-12003653.items.0.sellers.0.commertialOffer": {
+    "Price": 4500,
+    "ListPrice": 4500,
+    "AvailableQuantity": 99999
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "props": {
+    "pageProps": {
+      "data": {
+        "product": {
+          "sku": "445117",
+          "name": "Arroz DIANA blanco vitamor (500  gr)",
+          "offers": {
+            "offers": [
+              {
+                "price": 2500,
+                "listPrice": 2500,
+                "availability": "https://schema.org/InStock",
+                "itemOffered": {
+                  "measurementUnit": "un",
+                  "unitMultiplier": 1,
+                  "properties": [
+                    {
+                      "name": "Factor Neto",
+                      "values": [
+                        "500 G"
+                      ]
+                    }
+                  ],
+                  "sellers": [
+                    {
+                      "commertialOffer": {
+                        "AvailableQuantity": 10000
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "sellers": [
+            {
+              "commertialOffer": {
+                "Price": 2500,
+                "ListPrice": 2500,
+                "AvailableQuantity": 10000
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

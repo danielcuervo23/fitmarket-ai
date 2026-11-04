@@ -1,0 +1,13 @@
+{
+  "code": "7701234500012",
+  "status": 1,
+  "product": {
+    "product_name": "No sodium (test fixture)",
+    "nutriments": {
+      "fiber_100g": 3.5,
+      "sugars_100g": 4.2,
+      "saturated-fat_100g": 0.9,
+      "iron_100g": 0.0027
+    }
+  }
+}

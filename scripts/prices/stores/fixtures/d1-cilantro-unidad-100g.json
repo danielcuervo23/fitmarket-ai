@@ -1,0 +1,16 @@
+{
+  "Product:cilantro-unidad-100g-12007450": {
+    "productName": "Cilantro Unidad 100 G"
+  },
+  "Product:cilantro-unidad-100g-12007450.items.0": {
+    "itemId": "1443",
+    "name": "Cilantro Unidad 100 G",
+    "measurementUnit": "un",
+    "unitMultiplier": 1
+  },
+  "$Product:cilantro-unidad-100g-12007450.items.0.sellers.0.commertialOffer": {
+    "Price": 2350,
+    "ListPrice": 2350,
+    "AvailableQuantity": 100
+  }
+}

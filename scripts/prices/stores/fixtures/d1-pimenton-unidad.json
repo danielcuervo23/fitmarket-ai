@@ -1,0 +1,16 @@
+{
+  "Product:pimenton-unidad-12005183": {
+    "productName": "Pimentón Unidad"
+  },
+  "Product:pimenton-unidad-12005183.items.0": {
+    "itemId": "157",
+    "name": "Pimentón Unidad",
+    "measurementUnit": "un",
+    "unitMultiplier": 1
+  },
+  "$Product:pimenton-unidad-12005183.items.0.sellers.0.commertialOffer": {
+    "Price": 1600,
+    "ListPrice": 1600,
+    "AvailableQuantity": 100
+  }
+}

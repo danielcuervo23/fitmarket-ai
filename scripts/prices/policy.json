@@ -1,0 +1,157 @@
+{
+  "checkedOn": "2026-11-04",
+  "userAgent": "FitMarketPriceBot/1.0 (+https://fitmarket-ai.vercel.app)",
+  "ownerAuthorization": {
+    "date": "2026-11-04",
+    "by": "owner",
+    "note": "El dueno autorizo leer Exito, Carulla, D1 y Jumbo bajo las precauciones de este archivo. Se le recomendo una revision legal antes del lanzamiento publico.",
+    "legalReviewBeforePublicLaunch": "pending"
+  },
+  "precautions": {
+    "cadence": "weekly",
+    "minDelayMs": 5000,
+    "stopOnStatus": [
+      429
+    ],
+    "stopOnBlock": true,
+    "onlyPages": "individual product pages (/<slug>/p) not blocked by robots.txt",
+    "neverRequest": [
+      "/api/",
+      "/s?",
+      "/busca*",
+      "any path or parameter blocked by robots.txt"
+    ],
+    "storeOnly": [
+      "regularPrice",
+      "packageSize"
+    ],
+    "neverStore": [
+      "images",
+      "descriptions",
+      "logos"
+    ],
+    "onStoreRequestToStop": "Stop immediately and set the store to allowed: false"
+  },
+  "stores": {
+    "D1": {
+      "allowed": true,
+      "reason": "Autorizado por el dueno el 2026-11-04 (leyo los terminos de D1 y los autorizo bajo las precauciones). Solo paginas de producto que robots.txt no bloquea. Host cambiado el 2026-11-04: domicilios.tiendasd1.com redirige a www.d1.com.co, donde estan las paginas /<slug>/p y su robots.txt.",
+      "robotsUrl": "https://www.d1.com.co/robots.txt",
+      "disallowedPaths": [
+        "/account/*",
+        "/login/*",
+        "/checkout/*",
+        "/busca/*",
+        "/quick-view/*",
+        "/espiar/*",
+        "/buscapagina/*"
+      ],
+      "termsUrl": "https://www.d1.com.co/",
+      "termsSummary": "Terminos leidos por el dueno, no verificados por el equipo; autorizo la lectura bajo las precauciones de este archivo.",
+      "method": "vtex_io_state",
+      "bucaramanga": {
+        "available": true,
+        "how": "El robot NO puede elegir Bucaramanga (2026-11-04): la pagina de producto trae el precio de la region por defecto (un vendedor, canal 1, sin region en la consulta; sc= bloqueado por robots.txt; una cookie con codigo postal 680001 no cambio nada). Los precios de D1 SI cambian por region: comprobado a mano el 2026-11-04 con Bucaramanga elegida en el selector de D1 frente al precio por defecto (arroz Albar 500 g 1750 vs 1750, huevo AA x30 13990 vs 14650, tomate chonto 1 kg 5300 vs 5100). Por eso stores/d1.ts sigue en verified:false y los precios de Bucaramanga de D1 se anotan con el marcador manual (manual_browser). Solo documentacion; el codigo no lo interpreta."
+      },
+      "minDelayMs": 5000,
+      "readOnly": "product_pages",
+      "productPathPattern": "/<slug>/p"
+    },
+    "Ara": {
+      "allowed": false,
+      "reason": "Los terminos de uso prohiben expresamente spiders y cualquier metodo automatico para acceder, copiar o monitorear el contenido. Sigue en false por decision del dueno (2026-11-04).",
+      "robotsUrl": "https://aratiendas.com/robots.txt",
+      "disallowedPaths": [
+        "/wp-admin/",
+        "/productos_polulares/",
+        "/productos_nuevos/",
+        "/productos_contenido/",
+        "/productos_rebajon/"
+      ],
+      "termsUrl": "https://aratiendas.com/terminos-y-condiciones/",
+      "termsSummary": "Usos no permitidos: utilizar spiders, site copiers o cualquier otro programa o metodo para acceder, adquirir, copiar o monitorear el contenido de las paginas web de Jeronimo Martins (Tiendas Ara). Prohibida la copia y reproduccion sin permiso escrito.",
+      "method": "none",
+      "bucaramanga": {
+        "available": false,
+        "how": "No aplica. Solo documentacion, el codigo no lo interpreta."
+      },
+      "minDelayMs": 5000
+    },
+    "Exito": {
+      "allowed": true,
+      "reason": "Autorizado por el dueno el 2026-11-04 bajo las precauciones. Terminos sin clausula explicita contra acceso automatico; solo paginas de producto.",
+      "robotsUrl": "https://www.exito.com/robots.txt",
+      "disallowedPaths": [
+        "/account/",
+        "/login",
+        "/checkout/",
+        "/quick-view/",
+        "/espiar/",
+        "/s?",
+        "/api/",
+        "/coleccion/"
+      ],
+      "termsUrl": "https://www.exito.com/terminos-condiciones",
+      "termsSummary": "Terminos del Vendedor: la plataforma permite al Vendedor cancelar cuentas o prohibir acceso por conductas violatorias; imagenes, marcas y demas elementos son propiedad intelectual protegida. No hay clausula explicita sobre scraping.",
+      "method": "next_data",
+      "bucaramanga": {
+        "available": true,
+        "how": "Por confirmar en el modulo de cada tienda (documentacion solamente; el codigo no lo interpreta)."
+      },
+      "minDelayMs": 5000,
+      "readOnly": "product_pages",
+      "productPathPattern": "/<slug>/p"
+    },
+    "Carulla": {
+      "allowed": true,
+      "reason": "Autorizado por el dueno el 2026-11-04 bajo las precauciones. Misma plataforma que Exito; solo paginas de producto.",
+      "robotsUrl": "https://www.carulla.com/robots.txt",
+      "disallowedPaths": [
+        "/account/",
+        "/login",
+        "/checkout/",
+        "/quick-view/",
+        "/espiar/",
+        "/s?",
+        "/api/",
+        "/coleccion/"
+      ],
+      "termsUrl": "https://www.carulla.com/terminos-condiciones",
+      "termsSummary": "Terminos del Vendedor (Grupo Exito): no hay clausula explicita sobre scraping; se reserva el derecho de prohibir el acceso a quien incumpla los terminos y se abstiene de conductas que afecten el funcionamiento de la plataforma.",
+      "method": "next_data",
+      "bucaramanga": {
+        "available": true,
+        "how": "Por confirmar en el modulo de cada tienda (documentacion solamente; el codigo no lo interpreta)."
+      },
+      "minDelayMs": 5000,
+      "readOnly": "product_pages",
+      "productPathPattern": "/<slug>/p"
+    },
+    "Jumbo": {
+      "allowed": true,
+      "reason": "Autorizado por el dueno el 2026-11-04 (leyo los terminos de Jumbo y los autorizo bajo las precauciones). Solo paginas de producto que robots.txt no bloquea.",
+      "robotsUrl": "https://www.jumbocolombia.com/robots.txt",
+      "disallowedPaths": [
+        "/Account*",
+        "/account*",
+        "/busca*",
+        "/checkout/",
+        "/login*",
+        "/cart",
+        "/?*ciudad",
+        "/?*map",
+        "/?*page"
+      ],
+      "termsUrl": "https://www.jumbocolombia.com/terminos-y-condiciones",
+      "termsSummary": "Terminos leidos por el dueno, no verificados por el equipo; autorizo la lectura bajo las precauciones de este archivo.",
+      "method": "vtex_io_state",
+      "bucaramanga": {
+        "available": true,
+        "how": "No comprobado (2026-11-04). La pagina de producto siempre trae el canal nacional por defecto (segmentToken channel 1, regionId null); la ciudad se elige en un modal con JavaScript que usa /api/ (prohibido). ?sc= en la pagina se ignora. Sigue verified:false en stores/jumbo.ts (documentacion solamente; el codigo no lo interpreta)."
+      },
+      "minDelayMs": 5000,
+      "readOnly": "product_pages",
+      "productPathPattern": "/<slug>/p"
+    }
+  }
+}

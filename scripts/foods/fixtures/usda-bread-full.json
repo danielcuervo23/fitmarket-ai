@@ -1,0 +1,55 @@
+{
+  "fdcId": 999001,
+  "description": "Bread, sliced (test shape of full FDC format)",
+  "dataType": "Foundation",
+  "foodNutrients": [
+    {
+      "nutrient": {
+        "number": "1079",
+        "name": "Fiber, total dietary",
+        "unitName": "g"
+      },
+      "amount": 2.7
+    },
+    {
+      "nutrient": {
+        "number": "2000",
+        "name": "Total Sugars",
+        "unitName": "g"
+      },
+      "amount": 5
+    },
+    {
+      "nutrient": {
+        "number": "1235",
+        "name": "Sugars, added",
+        "unitName": "g"
+      },
+      "amount": 3.1
+    },
+    {
+      "nutrient": {
+        "number": "1258",
+        "name": "Fatty acids, total saturated",
+        "unitName": "g"
+      },
+      "amount": 0.7
+    },
+    {
+      "nutrient": {
+        "number": "1093",
+        "name": "Sodium, Na",
+        "unitName": "mg"
+      },
+      "amount": 491
+    },
+    {
+      "nutrient": {
+        "number": "1089",
+        "name": "Iron, Fe",
+        "unitName": "mg"
+      },
+      "amount": 3.6
+    }
+  ]
+}

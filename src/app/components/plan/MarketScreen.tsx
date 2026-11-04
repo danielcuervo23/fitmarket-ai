@@ -5,6 +5,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { useShoppingChecklist } from "@/hooks/useShoppingChecklist";
 import type { WeeklyPlan } from "@/lib/ai/types";
 import type { DashboardData } from "@/lib/dashboard";
+import { hasApproximatePrices } from "@/lib/priceLabel";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   Button,
@@ -139,6 +140,10 @@ export function MarketView({
             supermarkets={data.supermarkets}
             checklist={checklist}
           />
+        )}
+
+        {plan && itemCount > 0 && hasApproximatePrices(plan.shopping_list) && (
+          <p className="px-1 text-xs text-ink-500">{t("market.approxNote")}</p>
         )}
 
         <BudgetRecommendationsSection

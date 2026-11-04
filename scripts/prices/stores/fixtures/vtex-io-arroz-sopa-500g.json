@@ -1,0 +1,35 @@
+{
+  "Product:arroz-para-sopa-cerearroz-x-500-g": {
+    "productName": "Arroz Cerearroz para sopa x500g",
+    "items": [
+      {
+        "type": "id",
+        "id": "Product:arroz-para-sopa-cerearroz-x-500-g.items.0"
+      }
+    ]
+  },
+  "Product:arroz-para-sopa-cerearroz-x-500-g.items.0": {
+    "itemId": "13391",
+    "name": "Arroz Cerearroz para sopa x500g",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "sellers": [
+      {
+        "type": "id",
+        "id": "Product:arroz-para-sopa-cerearroz-x-500-g.items.0.sellers.0"
+      }
+    ]
+  },
+  "Product:arroz-para-sopa-cerearroz-x-500-g.items.0.sellers.0": {
+    "sellerDefault": true,
+    "commertialOffer": {
+      "type": "id",
+      "id": "$Product:arroz-para-sopa-cerearroz-x-500-g.items.0.sellers.0.commertialOffer"
+    }
+  },
+  "$Product:arroz-para-sopa-cerearroz-x-500-g.items.0.sellers.0.commertialOffer": {
+    "Price": 2100,
+    "ListPrice": 2100,
+    "AvailableQuantity": 239
+  }
+}

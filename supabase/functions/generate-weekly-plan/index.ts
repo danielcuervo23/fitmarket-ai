@@ -1,5 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildGenerationInputFromDb } from "../_shared/buildGenerationInput.ts";
+import {
+  loadPlannerData,
+  plannerDeps,
+  resolveCacheTtlMs,
+  type CatalogClient,
+} from "../_shared/catalogLoader.ts";
 import { getCorsHeaders, jsonResponse } from "../_shared/cors.ts";
 import { logEvent, logUnexpected } from "../_shared/log.ts";
 import { callOpenAI } from "../_shared/openai.ts";
@@ -153,6 +159,13 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Catalog and city prices, read with the caller's own client (never the
+    // service role). Any problem falls back to the built-in data.
+    const plannerData = await loadPlannerData(supabase as unknown as CatalogClient, input.city, {
+      ttlMs: resolveCacheTtlMs(Deno.env.get("CATALOG_CACHE_TTL_MS")),
+    });
+    logEvent("catalog_origin", { origin: plannerData.origin });
+
     const outcome = await generatePlan(input, callOpenAI, {
       maxModelCalls: positiveIntOr(
         Deno.env.get("GENERATION_MAX_MODEL_CALLS"),
@@ -166,7 +179,7 @@ Deno.serve(async (req: Request) => {
           DEFAULT_TIME_BUDGET_MS,
           MAX_TIME_BUDGET_MS,
         ),
-    });
+    }, plannerDeps(plannerData));
 
     // Service role client, or null when the key is not configured. Used for
     // writes the user must not control: the refund below and saving the plan.

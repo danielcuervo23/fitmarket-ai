@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 import type { GroupedShoppingItem } from "@/lib/shoppingListGroups";
 import { cn } from "@/lib/cn";
+import { priceLabel } from "@/lib/priceLabel";
 import { useI18n } from "@/i18n/I18nProvider";
 
 interface Props {
@@ -10,8 +11,14 @@ interface Props {
 }
 
 export function ShoppingChecklistItem({ item, checked, onToggle }: Props) {
-  const { formatCurrency, language } = useI18n();
+  const { t, formatCurrency, formatDate, language } = useI18n();
   const name = language === "en" && item.name_en ? item.name_en : item.name;
+
+  const label = priceLabel(item);
+  const priceNote =
+    label.kind === "updated"
+      ? t("market.priceUpdated", { date: formatDate(label.date) })
+      : t("market.priceApprox");
 
   return (
     <button
@@ -45,13 +52,18 @@ export function ShoppingChecklistItem({ item, checked, onToggle }: Props) {
         )}
       </span>
 
-      <span
-        className={cn(
-          "shrink-0 text-[13px] font-bold tabular-nums",
-          checked ? "text-ink-400 line-through" : "text-ink-700",
-        )}
-      >
-        {formatCurrency(item.estimated_price_cop)}
+      <span className="flex shrink-0 flex-col items-end gap-0.5">
+        <span
+          className={cn(
+            "text-[13px] font-bold tabular-nums",
+            checked ? "text-ink-400 line-through" : "text-ink-700",
+          )}
+        >
+          {formatCurrency(item.estimated_price_cop)}
+        </span>
+        <span className="text-[11px] leading-tight text-ink-500">
+          {priceNote}
+        </span>
       </span>
     </button>
   );

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Armchair,
   Bike,
@@ -6,6 +7,8 @@ import {
   Trophy,
 } from "lucide-react";
 import type { ActivityLevel, ProfileInput } from "@/lib/profile";
+import { FALLBACK_CITIES, fetchCities, type City } from "@/lib/cities";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/i18n/I18nProvider";
 import { ChoiceCard, NumberStepper } from "@/app/ui";
@@ -33,6 +36,18 @@ interface Props {
  */
 export function BodyDataFields({ value, onChange, disabled }: Props) {
   const { t } = useI18n();
+  const [cities, setCities] = useState<readonly City[]>(FALLBACK_CITIES);
+
+  useEffect(() => {
+    let active = true;
+    void fetchCities(supabase).then((list) => {
+      if (active) setCities(list);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const agePercent = ((value.age - AGE_MIN) / (AGE_MAX - AGE_MIN)) * 100;
 
   return (
@@ -145,6 +160,35 @@ export function BodyDataFields({ value, onChange, disabled }: Props) {
           disabled={disabled}
         />
         <p className="text-xs text-ink-400">{t("profile.householdHint")}</p>
+      </section>
+
+      <section className="flex flex-col gap-2.5">
+        <div>
+          <label
+            htmlFor="body-city"
+            className="text-[13px] font-semibold text-ink-500"
+          >
+            {t("profile.city")}
+          </label>
+          <p id="body-city-hint" className="text-xs text-ink-400">
+            {t("profile.cityHint")}
+          </p>
+        </div>
+        <select
+          id="body-city"
+          aria-describedby="body-city-hint"
+          value={value.city ?? ""}
+          disabled={disabled}
+          onChange={(event) => onChange({ city: event.target.value || null })}
+          className="w-full rounded-control border border-ink-200 bg-white px-3 py-3 text-[15px] text-ink-900 focus-visible:outline-2 focus-visible:outline-brand-600 disabled:opacity-60"
+        >
+          {cities.map((city) => (
+            <option key={city.slug} value={city.slug}>
+              {city.name}
+            </option>
+          ))}
+          <option value="">{t("profile.cityNone")}</option>
+        </select>
       </section>
 
       <section

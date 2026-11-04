@@ -6,7 +6,7 @@ interface Props {
   onBack: () => void;
 }
 
-const UPDATED_AT = "2026-10-23";
+const UPDATED_AT = "2026-11-04";
 
 const SECTIONS: { title: MessageKey; body: MessageKey }[] = [
   { title: "privacy.s1.title", body: "privacy.s1.body" },
@@ -15,6 +15,7 @@ const SECTIONS: { title: MessageKey; body: MessageKey }[] = [
   { title: "privacy.s4.title", body: "privacy.s4.body" },
   { title: "privacy.s5.title", body: "privacy.s5.body" },
   { title: "privacy.s6.title", body: "privacy.s6.body" },
+  { title: "privacy.s7.title", body: "privacy.s7.body" },
 ];
 
 export function PrivacyScreen({ onBack }: Props) {

@@ -1,0 +1,49 @@
+{
+  "props": {
+    "pageProps": {
+      "data": {
+        "product": {
+          "sku": "1544",
+          "name": "Papa Pastusa Granel",
+          "offers": {
+            "offers": [
+              {
+                "price": 5320,
+                "listPrice": 7600,
+                "availability": "https://schema.org/InStock",
+                "itemOffered": {
+                  "measurementUnit": "kg",
+                  "unitMultiplier": 1,
+                  "properties": [
+                    {
+                      "name": "Factor Neto",
+                      "values": [
+                        "1 KG"
+                      ]
+                    }
+                  ],
+                  "sellers": [
+                    {
+                      "commertialOffer": {
+                        "AvailableQuantity": 10000
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "sellers": [
+            {
+              "commertialOffer": {
+                "Price": 5320,
+                "ListPrice": 7600,
+                "AvailableQuantity": 10000
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

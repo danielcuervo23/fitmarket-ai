@@ -62,6 +62,11 @@ const shoppingItemSchema = z.object({
   estimated_price_cop: z.number().int().nonnegative(),
   category: shoppingCategorySchema,
   store_id: z.string().min(1),
+  price_source: z.enum(["official", "user", "estimate"]).optional(),
+  price_updated_at: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 });
 
 const planSummarySchema = z.object({

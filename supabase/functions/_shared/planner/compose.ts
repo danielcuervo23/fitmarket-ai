@@ -1,4 +1,9 @@
-import { getIngredient, nutritionOf, type Ingredient } from "../catalog.ts";
+import {
+  STATIC_CATALOG,
+  nutritionOf,
+  type Catalog,
+  type Ingredient,
+} from "../catalog.ts";
 import type { NutritionTargets } from "../nutrition.ts";
 import {
   DAYS,
@@ -127,6 +132,7 @@ export type ComposeIssue =
  */
 export function cleanItems(
   items: { id: string; qty: number }[],
+  catalog: Catalog = STATIC_CATALOG,
 ): { id: string; qty: number }[] {
   const merged = new Map<string, number>();
 
@@ -143,7 +149,7 @@ export function cleanItems(
   }
 
   const weight = (line: { id: string; qty: number }) => {
-    const ingredient = getIngredient(line.id);
+    const ingredient = catalog.get(line.id);
 
     return ingredient ? nutritionOf(ingredient, line.qty).kcal : 0;
   };
@@ -157,6 +163,7 @@ export function cleanItems(
 export function parseComposition(
   raw: unknown,
   allowedIds: ReadonlySet<string>,
+  catalog: Catalog = STATIC_CATALOG,
 ): { week: ComposedWeek | null; issue: ComposeIssue | null } {
   if (!isRecord(raw)) {
     return { week: null, issue: { code: "invalid_format" } };
@@ -217,7 +224,7 @@ export function parseComposition(
         };
       }
 
-      const items = cleanItems(meal.items);
+      const items = cleanItems(meal.items, catalog);
 
       if (items.length < ITEMS_PER_MEAL.min) {
         continue;

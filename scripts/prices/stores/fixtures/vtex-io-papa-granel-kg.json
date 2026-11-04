@@ -1,0 +1,35 @@
+{
+  "Product:papa-sin-lavar-a-granel-x-kg": {
+    "productName": "Papa sin lavar a granel x kg",
+    "items": [
+      {
+        "type": "id",
+        "id": "Product:papa-sin-lavar-a-granel-x-kg.items.0"
+      }
+    ]
+  },
+  "Product:papa-sin-lavar-a-granel-x-kg.items.0": {
+    "itemId": "52169",
+    "name": "Papa sin lavar a granel x kg",
+    "measurementUnit": "kg",
+    "unitMultiplier": 1,
+    "sellers": [
+      {
+        "type": "id",
+        "id": "Product:papa-sin-lavar-a-granel-x-kg.items.0.sellers.0"
+      }
+    ]
+  },
+  "Product:papa-sin-lavar-a-granel-x-kg.items.0.sellers.0": {
+    "sellerDefault": true,
+    "commertialOffer": {
+      "type": "id",
+      "id": "$Product:papa-sin-lavar-a-granel-x-kg.items.0.sellers.0.commertialOffer"
+    }
+  },
+  "$Product:papa-sin-lavar-a-granel-x-kg.items.0.sellers.0.commertialOffer": {
+    "Price": 3980,
+    "ListPrice": 3980,
+    "AvailableQuantity": 1037
+  }
+}

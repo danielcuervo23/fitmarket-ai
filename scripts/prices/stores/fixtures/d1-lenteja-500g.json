@@ -1,0 +1,16 @@
+{
+  "Product:lenteja-el-estio-500g-12000042": {
+    "productName": "Lenteja el Estío 500 Grs"
+  },
+  "Product:lenteja-el-estio-500g-12000042.items.0": {
+    "itemId": "1381",
+    "name": "Lenteja el Estío 500 Grs",
+    "measurementUnit": "un",
+    "unitMultiplier": 1
+  },
+  "$Product:lenteja-el-estio-500g-12000042.items.0.sellers.0.commertialOffer": {
+    "Price": 1590,
+    "ListPrice": 1590,
+    "AvailableQuantity": 99999
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "code": "7701234500011",
+  "status": 1,
+  "product": {
+    "product_name": "Pan tajado (test fixture)",
+    "nutriments": {
+      "fiber_100g": 3.5,
+      "sugars_100g": 4.2,
+      "saturated-fat_100g": 0.9,
+      "sodium_100g": 0.4,
+      "iron_100g": 0.0027
+    }
+  }
+}

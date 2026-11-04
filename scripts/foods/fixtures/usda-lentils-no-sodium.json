@@ -1,0 +1,55 @@
+{
+  "fdcId": 172420,
+  "description": "Lentils, raw",
+  "dataType": "SR Legacy",
+  "foodNutrients": [
+    {
+      "number": "269",
+      "name": "Total Sugars",
+      "amount": 2.03,
+      "unitName": "G"
+    },
+    {
+      "number": "204",
+      "name": "Total lipid (fat)",
+      "amount": 1.06,
+      "unitName": "G"
+    },
+    {
+      "number": "291",
+      "name": "Fiber, total dietary",
+      "amount": 10.7,
+      "unitName": "G"
+    },
+    {
+      "number": "303",
+      "name": "Iron, Fe",
+      "amount": 6.51,
+      "unitName": "MG"
+    },
+    {
+      "number": "203",
+      "name": "Protein",
+      "amount": 24.6,
+      "unitName": "G"
+    },
+    {
+      "number": "606",
+      "name": "Fatty acids, total saturated",
+      "amount": 0.154,
+      "unitName": "G"
+    },
+    {
+      "number": "205",
+      "name": "Carbohydrate, by difference",
+      "amount": 63.4,
+      "unitName": "G"
+    },
+    {
+      "number": "208",
+      "name": "Energy",
+      "amount": 352,
+      "unitName": "KCAL"
+    }
+  ]
+}

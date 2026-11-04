@@ -15,6 +15,15 @@ const GOAL_TYPES = new Set([
   "energy",
 ]);
 
+/** The generation input plus the profile city (null when unset or invalid). */
+export type GenerationRequest = GenerateInput & { city: string | null };
+
+const CITY_SLUG = /^[a-z_]{2,40}$/;
+
+function normalizeCity(raw: unknown): string | null {
+  return typeof raw === "string" && CITY_SLUG.test(raw) ? raw : null;
+}
+
 const SUPERMARKET_IDS = new Set(["D1", "Ara", "Exito", "Jumbo", "Carulla"]);
 
 /** Ids the app offers as tiles; anything else is free text. */
@@ -74,10 +83,10 @@ export async function buildGenerationInputFromDb(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<{
-  data: GenerateInput | null;
+  data: GenerationRequest | null;
   error: GenerationInputError | null;
 }> {
-  const [profileResult, goalsResult, supermarketsResult] = await Promise.all([
+  const [profileResult, goalsResult, supermarketsResult, cityResult] = await Promise.all([
     supabase
       .from("profiles")
       .select(
@@ -90,6 +99,9 @@ export async function buildGenerationInputFromDb(
       .from("user_supermarkets")
       .select("supermarket_id")
       .eq("user_id", userId),
+    // Separate on purpose: if migration 010 (profiles.city) is not applied yet, this
+    // read fails and generation continues without a city instead of failing.
+    supabase.from("profiles").select("city").eq("id", userId).maybeSingle(),
   ]);
 
   if (profileResult.error) {
@@ -175,6 +187,7 @@ export async function buildGenerationInputFromDb(
       goals,
       stores,
       restrictions: normalizeRestrictions(profile?.dietary_restrictions),
+      city: normalizeCity(cityResult.error ? null : cityResult.data?.city),
       householdSize:
         Number.isInteger(household) && household >= 1 && household <= 8
           ? household

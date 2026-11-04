@@ -1,4 +1,4 @@
-import { getIngredient, nutritionOf } from "../catalog.ts";
+import { STATIC_CATALOG, nutritionOf, type Catalog } from "../catalog.ts";
 import type { ModelCall } from "../openai.ts";
 import {
   DAYS,
@@ -75,9 +75,12 @@ function sentence(parts: string[], and: string): string {
 }
 
 /** "Lentejas, arroz blanco y aguacate": the three biggest components. */
-export function fallbackName(meal: ComposedMeal): { es: string; en: string } {
+export function fallbackName(
+  meal: ComposedMeal,
+  catalog: Catalog = STATIC_CATALOG,
+): { es: string; en: string } {
   const main = meal.items
-    .map((item) => ({ ingredient: getIngredient(item.id), qty: item.qty }))
+    .map((item) => ({ ingredient: catalog.get(item.id), qty: item.qty }))
     .filter(
       (entry) =>
         entry.ingredient !== undefined &&
@@ -142,7 +145,11 @@ export function namingResponseFormat(keys: string[]) {
   };
 }
 
-export function buildNamingPrompt(week: ComposedWeek, keys: string[]): string {
+export function buildNamingPrompt(
+  week: ComposedWeek,
+  keys: string[],
+  catalog: Catalog = STATIC_CATALOG,
+): string {
   const entries = keys.map((key) => {
     const [day, slot] = key.split(".") as [Day, Slot];
     const meal = week[day][slot];
@@ -151,7 +158,7 @@ export function buildNamingPrompt(week: ComposedWeek, keys: string[]): string {
       key,
       meal: slot,
       ingredients: meal.items
-        .map((item) => getIngredient(item.id)?.name.es)
+        .map((item) => catalog.get(item.id)?.name.es)
         .filter(Boolean),
     };
   });
@@ -208,7 +215,10 @@ export async function renameMeals(
   week: ComposedWeek,
   keys: string[],
   callModel: ModelCall,
+  options: { catalog?: Catalog } = {},
 ): Promise<ComposedWeek> {
+  const catalog = options.catalog ?? STATIC_CATALOG;
+
   if (keys.length === 0) {
     return week;
   }
@@ -217,7 +227,7 @@ export async function renameMeals(
 
   const response = await callModel({
     system: NAMING_SYSTEM_PROMPT,
-    user: buildNamingPrompt(week, keys),
+    user: buildNamingPrompt(week, keys, catalog),
     responseFormat: namingResponseFormat(keys),
   });
 
@@ -235,7 +245,7 @@ export async function renameMeals(
     const [day, slot] = key.split(".") as [Day, Slot];
     const meal = renamed[day][slot];
 
-    meal.name = fromModel.get(key) ?? fallbackName(meal);
+    meal.name = fromModel.get(key) ?? fallbackName(meal, catalog);
   }
 
   return renamed;
