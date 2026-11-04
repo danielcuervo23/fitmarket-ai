@@ -8,7 +8,12 @@ import {
   type ShoppingCategory,
 } from "./catalog.ts";
 import { logEvent } from "./log.ts";
-import { createCityPriceBook, type PriceBook, type PriceOffer } from "./planner/priceBook.ts";
+import {
+  createCityPriceBook,
+  type CityReferencePrice,
+  type PriceBook,
+  type PriceOffer,
+} from "./planner/priceBook.ts";
 import { STATIC_PRICE_BOOK } from "./planner/stores.ts";
 
 export interface PlannerData {
@@ -203,6 +208,25 @@ function priceRowToOffer(row: unknown): PriceOffer | null {
   };
 }
 
+function referenceRowToPrice(row: unknown): CityReferencePrice | null {
+  if (!isRow(row)) {
+    return null;
+  }
+
+  const price = num(row.price_cop_per_unit);
+
+  if (
+    typeof row.food_id !== "string" || !ID_PATTERN.test(row.food_id) ||
+    price === null || price <= 0 ||
+    row.source !== "dane_sipsa" ||
+    typeof row.observed_on !== "string" || !DATE_PATTERN.test(row.observed_on)
+  ) {
+    return null;
+  }
+
+  return { foodId: row.food_id, pricePerUnit: price, observedOn: row.observed_on };
+}
+
 function inactiveRow(row: unknown): { storeId: string; foodId: string } | null {
   if (
     !isRow(row) ||
@@ -286,6 +310,9 @@ interface Entry<T> {
   expiresAt: number;
 }
 
+/** Per-city cache entries (offers, reference prices): each family is capped on its own. */
+const CITY_KEY_PREFIXES = ["prices:", "cityref:"];
+
 const cache = new Map<string, Entry<unknown>>();
 const inflight = new Map<string, Promise<unknown>>();
 
@@ -321,8 +348,10 @@ async function cached<T>(
       if (options.ttlMs > 0) {
         // Only per-city entries are capped (oldest first); the global
         // foods and inactive entries are never evicted.
-        if (key.startsWith("prices:") && !cache.has(key)) {
-          const cityKeys = [...cache.keys()].filter((k) => k.startsWith("prices:"));
+        const family = CITY_KEY_PREFIXES.find((prefix) => key.startsWith(prefix));
+
+        if (family && !cache.has(key)) {
+          const cityKeys = [...cache.keys()].filter((k) => k.startsWith(family));
 
           if (cityKeys.length >= MAX_CITY_ENTRIES) {
             cache.delete(cityKeys[0]);
@@ -415,6 +444,40 @@ async function loadCityOffers(client: CatalogClient, city: string): Promise<Pric
   return offers;
 }
 
+/**
+ * DANE SIPSA reference prices of a city. Optional extra: any problem (missing
+ * table, error, timeout) is logged with a short code and means "no reference",
+ * so estimates stay exactly as before.
+ */
+async function loadCityReference(
+  client: CatalogClient,
+  city: string,
+  options: Required<LoadOptions>,
+): Promise<CityReferencePrice[]> {
+  try {
+    return await cached(`cityref:${city}`, options, async () => {
+      const rows = await readAll(() =>
+        client
+          .from("city_reference_prices")
+          .select("food_id, price_cop_per_unit, observed_on, source")
+          .eq("city", city)
+          .order("food_id")
+      );
+      const prices = rows.map(referenceRowToPrice).filter((row): row is CityReferencePrice => row !== null);
+
+      if (prices.length < rows.length) {
+        logEvent("reference_rows_skipped", { reason: "invalid_row", count: rows.length - prices.length });
+      }
+
+      return prices;
+    });
+  } catch (error) {
+    logEvent("reference_skipped", { reason: failureCode(error) });
+
+    return [];
+  }
+}
+
 const STATIC_DATA: PlannerData = {
   catalog: STATIC_CATALOG,
   prices: STATIC_PRICE_BOOK,
@@ -439,7 +502,7 @@ export async function loadPlannerData(
   };
   const safeCity = city !== null && CITY_PATTERN.test(city) ? city : null;
 
-  const [catalogResult, pricesResult] = await Promise.allSettled([
+  const [catalogResult, pricesResult, referenceResult] = await Promise.allSettled([
     cached("foods", resolved, () => loadFoods(client)),
     safeCity === null
       ? Promise.resolve(null)
@@ -447,6 +510,7 @@ export async function loadPlannerData(
           cached(`prices:${safeCity}`, resolved, () => loadCityOffers(client, safeCity)),
           cached("inactive", resolved, () => loadInactive(client)),
         ]),
+    safeCity === null ? Promise.resolve([]) : loadCityReference(client, safeCity, resolved),
   ]);
 
   if (catalogResult.status === "rejected") {
@@ -460,6 +524,8 @@ export async function loadPlannerData(
   }
 
   const cityPrices = pricesResult.value;
+  // loadCityReference never rejects; the guard keeps the types honest.
+  const cityReference = referenceResult.status === "fulfilled" ? referenceResult.value : [];
 
   return {
     catalog: catalogResult.value,
@@ -467,6 +533,7 @@ export async function loadPlannerData(
       ? createCityPriceBook(cityPrices[0], {
           today: bogotaToday(resolved.now()),
           inactive: cityPrices[1],
+          cityReference,
         })
       : STATIC_PRICE_BOOK,
     origin: "db",

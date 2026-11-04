@@ -496,3 +496,121 @@ test("generate-weekly-plan passes the planner data to generatePlan", () => {
 
   assert.match(call, /plannerDeps\(plannerData\)\s*,?\s*\)/, "4th argument of generatePlan");
 });
+
+// ---- city reference prices (DANE SIPSA base for estimates) ----
+
+const papaItem = getIngredient("papa");
+const refRow = (over = {}) => ({
+  food_id: "papa",
+  price_cop_per_unit: papaItem.price * 1.5,
+  observed_on: "2026-10-24",
+  source: "dane_sipsa",
+  ...over,
+});
+const staticEstimate = createCityPriceBook([], { today: "2026-11-04" }).quote(papaItem, 1000, ["D1"]);
+const refClient = (handlers) =>
+  fakeClient({ foods: page(allRows()), store_products: page([]), current_prices: page([]), ...handlers });
+
+test("city reference prices are read with city filter, stable order and pages", async () => {
+  const rows = Array.from({ length: 1003 }, (_, i) => refRow({ food_id: `food_${i}` }));
+  const client = refClient({ city_reference_prices: page(rows) });
+  await loadPlannerData(client, "bucaramanga", { now: () => NOW });
+  const calls = callsTo(client, "city_reference_prices");
+
+  assert.deepEqual(calls.map((call) => call.range), [[0, 999], [1000, 1999]]);
+  assert.deepEqual(calls[0].filters, [["city", "bucaramanga"]]);
+  assert.deepEqual(calls[0].orders, ["food_id"]);
+  assert.match(calls[0].columns, /food_id.*price_cop_per_unit.*observed_on/);
+});
+
+test("a fresh city reference price becomes the base of the estimate", async () => {
+  const client = refClient({ city_reference_prices: page([refRow()]) });
+  const data = await loadPlannerData(client, "bucaramanga", { now: () => NOW });
+  const quote = data.prices.quote(papaItem, 1000, ["D1"]);
+  const expected = createCityPriceBook([], {
+    today: "2026-11-04",
+    cityReference: [{ foodId: "papa", pricePerUnit: papaItem.price * 1.5, observedOn: "2026-10-24" }],
+  }).quote(papaItem, 1000, ["D1"]);
+
+  assert.deepEqual(quote, expected);
+  assert.notDeepEqual(quote, staticEstimate);
+  assert.equal(quote.source, "estimate");
+});
+
+test("a missing table, a query error or a throwing client keep the static estimates", async () => {
+  const cases = [
+    { city_reference_prices: () => ({ data: null, error: { code: "PGRST205" } }) },
+    { city_reference_prices: () => ({ data: null, error: { code: "42P01" } }) },
+    {
+      city_reference_prices: () => {
+        throw new Error("boom");
+      },
+    },
+    {},
+  ];
+
+  for (const handlers of cases) {
+    resetPlannerDataCache();
+    const data = await loadPlannerData(refClient(handlers), "bucaramanga", { now: () => NOW });
+
+    assert.equal(data.origin, "db");
+    assert.deepEqual(data.prices.quote(papaItem, 1000, ["D1"]), staticEstimate);
+  }
+});
+
+test("a reference failure does not drop the official offers", async () => {
+  const offer = {
+    city: "bucaramanga", store_id: "D1", food_id: "huevo", store_product_id: 7, pack_size: 30,
+    regular_price_cop: 16900, source: "official", observed_on: "2026-11-02",
+  };
+  const client = refClient({
+    current_prices: page([offer]),
+    city_reference_prices: () => ({ data: null, error: { code: "42P01" } }),
+  });
+  const data = await loadPlannerData(client, "bucaramanga", { now: () => NOW });
+
+  assert.equal(data.prices.quote(huevo, 12, ["D1"]).source, "official");
+});
+
+test("invalid reference rows are skipped, valid ones kept", async () => {
+  const bad = [
+    refRow({ price_cop_per_unit: 0 }),
+    refRow({ price_cop_per_unit: "abc" }),
+    refRow({ food_id: "Bad Id!" }),
+    refRow({ observed_on: "ayer" }),
+    refRow({ source: "other" }),
+    null,
+  ];
+  const client = refClient({ city_reference_prices: page([...bad, refRow({ food_id: "yuca", price_cop_per_unit: getIngredient("yuca").price * 1.2 })]) });
+  const data = await loadPlannerData(client, "bucaramanga", { now: () => NOW });
+
+  assert.deepEqual(data.prices.quote(papaItem, 1000, ["D1"]), staticEstimate);
+  assert.notDeepEqual(
+    data.prices.quote(getIngredient("yuca"), 1000, ["D1"]),
+    createCityPriceBook([], { today: "2026-11-04" }).quote(getIngredient("yuca"), 1000, ["D1"]),
+  );
+});
+
+test("no city means no reference query; reference rows are cached with the same ttl", async () => {
+  const none = refClient({ city_reference_prices: page([refRow()]) });
+  await loadPlannerData(none, null, { now: () => NOW });
+  assert.equal(callsTo(none, "city_reference_prices").length, 0);
+
+  resetPlannerDataCache();
+  const client = refClient({ city_reference_prices: page([refRow()]) });
+  await loadPlannerData(client, "bucaramanga", { now: () => NOW, ttlMs: 60_000 });
+  await loadPlannerData(client, "bucaramanga", { now: () => NOW + 1000, ttlMs: 60_000 });
+  assert.equal(callsTo(client, "city_reference_prices").length, 1);
+  await loadPlannerData(client, "bucaramanga", { now: () => NOW + 61_000, ttlMs: 60_000 });
+  assert.equal(callsTo(client, "city_reference_prices").length, 2);
+});
+
+test("many cities never evict the global foods entry (reference entries are capped too)", async () => {
+  const client = refClient({ city_reference_prices: page([refRow()]) });
+  for (let i = 0; i < 60; i += 1) {
+    await loadPlannerData(client, `ciudad_${String.fromCharCode(97 + (i % 26))}${String.fromCharCode(97 + Math.floor(i / 26))}`, { now: () => NOW });
+  }
+  const before = callsTo(client, "foods").length;
+  await loadPlannerData(client, "bucaramanga", { now: () => NOW });
+  assert.equal(callsTo(client, "foods").length, before);
+});

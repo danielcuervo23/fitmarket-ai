@@ -3,6 +3,13 @@ import { carries, priceFactor } from "./stores.ts";
 
 export type PriceSource = "official" | "user" | "estimate";
 
+/**
+ * A city reference price (DANE SIPSA) is trusted only between these multiples
+ * of the food's static reference price (same rule the SIPSA reader applies).
+ */
+export const REFERENCE_MIN_RATIO = 0.33;
+export const REFERENCE_MAX_RATIO = 3;
+
 /** A price older than this many days is ignored and the estimate applies. */
 export const MAX_PRICE_AGE_DAYS = 45;
 
@@ -29,6 +36,14 @@ export interface Quote {
   observedOn: string | null;
 }
 
+/** A city's reference price for one food (DANE SIPSA), per g, ml or unit. */
+export interface CityReferencePrice {
+  foodId: string;
+  pricePerUnit: number;
+  /** YYYY-MM-DD */
+  observedOn: string;
+}
+
 export interface PriceBook {
   carries(storeId: string, foodId: string): boolean;
   quote(ingredient: Ingredient, qty: number, stores: string[]): Quote;
@@ -52,16 +67,23 @@ function plausiblePack(ingredient: Ingredient, packSize: number): boolean {
 const packsFor = (qty: number, packSize: number): number =>
   qty <= 0 ? 0 : Math.ceil(qty / packSize - 1e-9);
 
-/** Today's estimate for one store: whole packs at the national reference, times the store's price level. */
+/**
+ * Today's estimate for one store: whole packs at the reference price (the
+ * city's SIPSA-based price when given, else the national one), times the
+ * store's price level.
+ */
 function estimateQuote(
   ingredient: Ingredient,
   qty: number,
   store: string,
   factor: number = priceFactor(store, ingredient),
+  referencePrice?: number,
 ): Quote {
+  const priced = referencePrice === undefined ? ingredient : { ...ingredient, price: referencePrice };
+
   return {
     store,
-    costCop: Math.round(costOf(ingredient, qty) * factor),
+    costCop: Math.round(costOf(priced, qty) * factor),
     packs: packsFor(qty, ingredient.pack),
     packSize: ingredient.pack,
     source: "estimate",
@@ -81,6 +103,8 @@ export function createCityPriceBook(
     today: string;
     inactive?: ReadonlyArray<{ storeId: string; foodId: string }>;
     maxAgeDays?: number;
+    /** City reference prices: the base of estimates when fresh and plausible. */
+    cityReference?: readonly CityReferencePrice[];
   },
 ): PriceBook {
   const today = dayNumber(options.today);
@@ -92,6 +116,27 @@ export function createCityPriceBook(
   const maxAge = options.maxAgeDays ?? MAX_PRICE_AGE_DAYS;
   const all = new Map<string, PriceOffer[]>();
   const fresh = new Map<string, PriceOffer[]>();
+  const references = new Map<string, number>();
+
+  for (const row of options.cityReference ?? []) {
+    const age = today - dayNumber(row.observedOn);
+
+    if (Number.isFinite(row.pricePerUnit) && row.pricePerUnit > 0 && age >= 0 && age <= maxAge) {
+      references.set(row.foodId, row.pricePerUnit);
+    }
+  }
+
+  /** The reference for this food, only when within x0.33..x3 of its static price. */
+  const referenceFor = (ingredient: Ingredient): number | undefined => {
+    const value = references.get(ingredient.id);
+
+    return value !== undefined &&
+        value >= ingredient.price * REFERENCE_MIN_RATIO &&
+        value <= ingredient.price * REFERENCE_MAX_RATIO
+      ? value
+      : undefined;
+  };
+
   const inactive = new Set((options.inactive ?? []).map((row) => keyOf(row.storeId, row.foodId)));
 
   for (const offer of offers) {
@@ -130,7 +175,7 @@ export function createCityPriceBook(
       ?.filter((offer) => plausiblePack(ingredient, offer.packSize));
 
     if (!options?.length || qty <= 0) {
-      return estimateQuote(ingredient, qty, store);
+      return estimateQuote(ingredient, qty, store, undefined, referenceFor(ingredient));
     }
 
     let best: Quote | null = null;
@@ -172,7 +217,7 @@ export function createCityPriceBook(
       }
 
       // No store carries it: same fallback as cheapestStore (reference price).
-      return best ?? estimateQuote(ingredient, qty, stores[0] ?? "", 1);
+      return best ?? estimateQuote(ingredient, qty, stores[0] ?? "", 1, referenceFor(ingredient));
     },
   };
 }
