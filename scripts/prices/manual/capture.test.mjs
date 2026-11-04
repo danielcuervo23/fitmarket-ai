@@ -142,3 +142,16 @@ test("nothing to export when no entry was saved", () => {
 test("the local day is written as YYYY-MM-DD", () => {
   assert.equal(localDay(new Date(2026, 0, 5, 23, 59)), "2026-01-05");
 });
+
+test("the food search ignores accents and case and keeps the list order", async () => {
+  const { filterFoods } = await import("./capture.ts");
+  assert.deepEqual(
+    filterFoods("PIMENTON", foods).map((f) => f.id),
+    ["pimenton"],
+  );
+  assert.deepEqual(
+    filterFoods("arroz", foods).map((f) => f.id),
+    ["arroz_blanco", "arroz_integral"],
+  );
+  assert.equal(filterFoods("  ", foods).length, 70);
+});

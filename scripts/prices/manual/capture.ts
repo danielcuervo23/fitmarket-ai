@@ -157,11 +157,13 @@ export function buildExport(state: CaptureState, today: string): { fileName: str
 
 // ---------- food suggestion ----------
 
+/** Lower case without accents (combining marks U+0300-U+036F removed). */
+function fold(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 function words(text: string): string[] {
-  return text
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
+  return fold(text)
     .split(/[^a-z0-9]+/)
     .filter((w) => w.length >= 3 && !STOPWORDS.has(w));
 }
@@ -203,4 +205,10 @@ export function suggestFood(productName: string, foods: readonly SlimFood[]): st
 export function localDay(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** Foods whose Spanish name contains the typed text (accents and case ignored). */
+export function filterFoods(query: string, foods: readonly SlimFood[]): SlimFood[] {
+  const q = fold(query.trim());
+  return q === "" ? [...foods] : foods.filter((f) => fold(f.nameEs).includes(q));
 }
