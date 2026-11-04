@@ -1,0 +1,60 @@
+name: Manual prices import
+
+# Imports the price files a person captured with the "Anotar precio" bookmarklet
+# (data/manual-prices/*.json, committed). Started by hand only. Re-running is
+# safe: prices are upserted on (store_product_id, city, source, observed_on).
+# Files older than 45 days are skipped. Mapping file changes made on the runner
+# are discarded: commit them locally with `npm run prices:import -- --mappings-only`.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Check the files (and the prices against the database) but write nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prices-manual
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Protected GitHub environment: holds the two secrets below.
+    environment: prices
+    steps:
+      # actions/checkout v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      # actions/setup-node v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Import manual prices
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          shopt -s nullglob
+          files=(data/manual-prices/*.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No files in data/manual-prices; nothing to import."
+            exit 0
+          fi
+          if [ "$DRY_RUN" = "false" ]; then
+            node scripts/prices/manual/import.ts --write --skip-stale "${files[@]}"
+          else
+            node scripts/prices/manual/import.ts --skip-stale "${files[@]}"
+          fi

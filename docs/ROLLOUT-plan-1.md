@@ -29,6 +29,16 @@ Quien: **Dueno** = tu. **Desarrollador** = el equipo/agentes.
 - **Comprobar:** las pruebas de mapeos pasan y una corrida en dry-run no trae errores.
 - **Deshacer:** revertir el commit del mapeo.
 
+### 4b. Anotar precios a mano (Carulla y Exito)
+Carulla y Exito bloquean al robot, asi que los precios los anota una persona con un boton del navegador. Es como ir al supermercado con una libreta, pero la libreta copia el precio sola.
+1. **Instala el boton.** Abre el archivo `tools/anotador/index.html` en Chrome y arrastra el boton verde **"Anotar precio"** a la barra de marcadores (si no la ves: `Ctrl` + `Shift` + `B`).
+2. **Elige Bucaramanga en la tienda.** En carulla.com (o exito.com) usa el selector de ciudad o direccion de la propia tienda y elige Bucaramanga.
+3. **Abre cada producto y toca el boton.** Por ejemplo "Arroz Diana 500 g". El recuadro muestra el nombre, el precio normal y el tamano; sugiere el alimento (puedes cambiarlo). Marca "Tengo Bucaramanga seleccionada en esta tienda" y toca **Guardar**. Ves cuantos llevas ("12 de 70 anotados") y cuales faltan. Si te pide recargar, presiona `F5` y vuelve a tocar el boton.
+4. **Exporta y entrega.** Toca **Exportar**: se descarga `precios-carulla-AAAA-MM-DD.json`. Entregaselo al desarrollador o ponlo en la carpeta `data/manual-prices`.
+- **Desarrollador:** guarda el archivo en `data/manual-prices/`, corre `npm run prices:import -- <archivo>` (prueba, no cambia nada), luego `npm run prices:import -- --mappings-only <archivo>` y hace commit de los mapeos. Para escribir los precios, con OK del dueno: workflow **Manual prices import** con `dry_run=true` y luego `dry_run=false` (o `--write` en local con las variables de entorno).
+- **Comprobar:** `select count(*) from current_prices cp join store_products sp on sp.id = cp.store_product_id where sp.store_id = 'Carulla' and cp.city = 'bucaramanga'`.
+- **Deshacer:** borrar las filas de `prices` de ese dia y tienda; revertir el commit de los mapeos. Los precios de mas de 45 dias no se importan.
+
 ## 5. Revisiones del dueno
 - **Dueno:** revisar los precios de referencia estaticos de `cebolla_junca` y `cilantro` (parecen muy altos frente al DANE).
 - **Dueno:** aprobar los recargos sobre los precios del DANE (fresco 1.35, proteina 1.20, abarrotes 1.15) y el texto de atribucion al DANE.

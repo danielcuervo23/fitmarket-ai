@@ -62,6 +62,19 @@ Lo que sigue es la revision tecnica original del 2026-11-04, previa a la decisio
 - Ara (tarea 12 original) no se lee. En su lugar, los precios de referencia de Bucaramanga vienen del DANE (SIPSA, mayoristas) y se muestran como "Aproximado"; los precios de Ara llegaran con los reportes de usuarios (plan 5).
 - El campo `method` de `policy.json` dice lo que cada lector realmente lee de la pagina de producto: Exito y Carulla usan `next_data` (el JSON `__NEXT_DATA__`, via `extractFastStoreProduct`); Jumbo y D1 usan `vtex_io_state` (el `__STATE__` de VTEX IO, via `extractVtexIoProduct`). Ninguna usa ya `jsonld_html`.
 
+## Metodo `manual_browser` (anotacion a mano en el navegador)
+
+Desde el 2026-11-04 Carulla y Exito bloquean a cualquier cliente que se identifique como robot (HTTP 429, `rate-limit-reason: bot`). **No disfrazamos el robot.** En su lugar:
+
+- Una persona (el dueno) navega la pagina publica de la tienda en Chrome, como cualquier comprador, con **Bucaramanga elegida en el selector de la propia tienda**, y abre la pagina de cada producto.
+- Al tocar el marcador **"Anotar precio"** (`tools/anotador/index.html`), una herramienta pequena lee el precio normal y el tamano **de la pagina que esa persona esta viendo** (su `__NEXT_DATA__` o `__STATE__`, con el mismo codigo de lectura que el trabajo semanal). No navega sola, no hace peticiones a la tienda, no hace nada en segundo plano y no habla con Supabase.
+- La persona elige el alimento, confirma el tamano y marca "Tengo Bucaramanga seleccionada en esta tienda". Al final exporta un archivo `precios-<tienda>-<fecha>.json` que se guarda en `data/manual-prices/` (registro de auditoria).
+- El importador (`scripts/prices/manual/import.ts`, o el workflow manual `prices-manual.yml`) valida todo y escribe los precios como `source = 'official'` para Bucaramanga: es un precio leido por una persona en la pagina oficial de la tienda. Pasa por los mismos controles de rango y de saltos que el trabajo semanal.
+- Se guarda lo mismo que antes: precio regular y tamano (mas nombre, codigo y direccion del producto). Nunca fotos, descripciones ni logos.
+
+Carulla y Exito usan este metodo. Jumbo y D1 tambien pueden usarlo (por ejemplo, mientras su selector de Bucaramanga siga sin verificar para el robot). Ara sigue en no: sus terminos prohiben copiar el contenido, se haga como se haga.
+
 ## Pendiente
 - Revision legal antes del lanzamiento publico (recomendada al dueno, pendiente).
-- Confirmar como se elige Bucaramanga en cada tienda (en cada modulo).
+- Confirmar como se elige Bucaramanga en cada tienda (en cada modulo). Con `manual_browser` la persona lo elige en la tienda y lo confirma en cada anotacion.
+- Que la revision legal cubra tambien la anotacion manual (`manual_browser`).

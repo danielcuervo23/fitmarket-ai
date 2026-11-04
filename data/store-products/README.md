@@ -30,3 +30,7 @@ Unknown fields are rejected. The loader (`scripts/prices/mappings.ts`) lists
 every invalid entry by index and stops the run before any request is made.
 Only the regular price and the pack size are stored; never images, descriptions
 or logos.
+
+Entries can also come from prices a person captured with the "Anotar precio"
+bookmarklet: `npm run prices:import -- --mappings-only data/manual-prices/<file>.json`
+adds or updates them here (sorted by `foodId`). See `data/manual-prices/README.md`.
