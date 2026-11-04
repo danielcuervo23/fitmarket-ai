@@ -60,11 +60,17 @@ const MarketScreen = lazy(() =>
     default: module.MarketScreen,
   })),
 );
-const ChatScreen = lazy(() =>
-  import("./components/plan/ChatScreen").then((module) => ({
-    default: module.ChatScreen,
-  })),
-);
+// The AI chat is not built yet. Its "coming soon" screen stays out of the
+// app (and out of the bundle) unless VITE_FEATURE_CHAT=true, so store
+// reviewers and users never land on an unfinished feature.
+const ChatScreen =
+  import.meta.env.VITE_FEATURE_CHAT === "true"
+    ? lazy(() =>
+        import("./components/plan/ChatScreen").then((module) => ({
+          default: module.ChatScreen,
+        })),
+      )
+    : null;
 const ProfileSettingsScreen = lazy(() =>
   import("./components/account/ProfileSettingsScreen").then((module) => ({
     default: module.ProfileSettingsScreen,
@@ -299,11 +305,13 @@ export function AppRoutes() {
             </Protected>
           </Route>
 
-          <Route path={ROUTES.app.chat}>
-            <Protected>
-              <ChatScreen onTabChange={goToTab} />
-            </Protected>
-          </Route>
+          {ChatScreen && (
+            <Route path={ROUTES.app.chat}>
+              <Protected>
+                <ChatScreen onTabChange={goToTab} />
+              </Protected>
+            </Route>
+          )}
 
           <Route path={ROUTES.app.settings}>
             <Protected>
