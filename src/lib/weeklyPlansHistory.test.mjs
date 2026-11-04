@@ -3,7 +3,6 @@ import {
   appendUnique,
   HISTORY_PAGE_SIZE,
   historyPageRange,
-  isMissingColumnError,
   mapHistoryRows,
 } from "./weeklyPlansHistory.ts";
 
@@ -66,7 +65,7 @@ assert.deepEqual(historyPageRange(2), { from: 40, to: 60 });
 }
 
 {
-  // Rows without valid data are skipped (like buildHistorySummary did).
+  // Rows without valid data are skipped.
   const rows = [
     row(9),
     row(8, { estimated_total_cop: undefined }),
@@ -110,17 +109,6 @@ assert.deepEqual(historyPageRange(2), { from: 40, to: 60 });
   assert.deepEqual(mapHistoryRows([], 0), { items: [], hasMore: false });
   assert.deepEqual(mapHistoryRows(null, 0), { items: [], hasMore: false });
 }
-
-// --- Detectar que la migración 009 aún no está aplicada ---
-assert.equal(
-  isMissingColumnError({ code: "42703", message: "column weekly_plans.shopping_item_count does not exist" }),
-  true,
-);
-assert.equal(isMissingColumnError({ code: "PGRST204", message: "Could not find the column" }), true);
-assert.equal(isMissingColumnError({ message: "column shopping_item_count does not exist" }), true);
-assert.equal(isMissingColumnError({ code: "42501", message: "permission denied" }), false);
-assert.equal(isMissingColumnError({ message: "Failed to fetch" }), false);
-assert.equal(isMissingColumnError(null), false);
 
 // --- Añadir la página siguiente sin repetir planes ya mostrados ---
 {
