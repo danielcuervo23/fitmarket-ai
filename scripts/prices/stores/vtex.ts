@@ -187,6 +187,7 @@ export function createVtexReader(
 ): StoreReader {
   return {
     storeId,
+    cityVerified: selector.verified,
     async read(product: MappedProduct, ctx: ReaderContext): Promise<ReadResult> {
       const res = await ctx.fetchText(product.url, { headers: { ...selector.headers } });
       if (res.status === 404) return { ok: false, reason: "not_found" };

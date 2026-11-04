@@ -59,6 +59,7 @@ function isProductPage(url: string): boolean {
 
 export const reader: StoreReader = {
   storeId: "D1",
+  cityVerified: BUCARAMANGA_SELECTOR.verified,
   async read(product: MappedProduct, ctx: ReaderContext): Promise<ReadResult> {
     if (!isProductPage(product.url)) return { ok: false, reason: "blocked" };
     const res = await ctx.fetchText(product.url, { headers: { ...BUCARAMANGA_SELECTOR.headers } });

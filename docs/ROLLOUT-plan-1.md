@@ -24,6 +24,7 @@ Quien: **Dueno** = tu. **Desarrollador** = el equipo/agentes.
 - **Desarrollador:** mapear los alimentos que faltan en Carulla, Jumbo, Exito y D1 usando el sitemap de cada tienda.
 - **Verificar la papa de Carulla:** el nombre del producto dice x180gr pero esta mapeada como 1 kg.
 - **Averiguar como cada tienda elige Bucaramanga:** hoy todos los selectores estan en `verified:false`.
+- **Los precios solo se escriben cuando el selector de ciudad esta verificado.** Mientras una tienda siga en `verified:false`, el trabajo semanal NO guarda sus precios (los cuenta como `city_unverified` en el resumen) y el dry-run solo informa que leeria. Para escribir de todos modos hay que poner `PRICES_ALLOW_UNVERIFIED_CITY=1` a proposito; no esta en el workflow y no debe ponerse en produccion.
 - **Exito** respondio 429 (demasiadas peticiones) en la prueba real: si se repite, se para y se avisa al dueno (no se insiste).
 - **Comprobar:** las pruebas de mapeos pasan y una corrida en dry-run no trae errores.
 - **Deshacer:** revertir el commit del mapeo.

@@ -110,6 +110,7 @@ test("reader requests the product page with the selector headers and parses it",
   assert.deepEqual(r.calls[0].init?.headers ?? {}, d1.BUCARAMANGA_SELECTOR.headers);
   assert.equal(d1.reader.storeId, "D1");
   assert.equal(d1.BUCARAMANGA_SELECTOR.verified, false);
+  assert.equal(d1.reader.cityVerified, false);
 });
 
 test("reader never requests a URL that is not a D1 product page (defence in depth)", async () => {

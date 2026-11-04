@@ -140,12 +140,16 @@ test("carulla reader requests the product page with the store selector headers a
   assert.equal(r.calls[0].url, CARULLA_URL);
   assert.deepEqual(r.calls[0].init?.headers ?? {}, carulla.BUCARAMANGA_SELECTOR.headers);
   assert.equal(carulla.reader.storeId, "Carulla");
+  assert.equal(carulla.reader.cityVerified, carulla.BUCARAMANGA_SELECTOR.verified);
 });
 
 test("exito and jumbo readers expose their store id and an explicit unverified Bucaramanga status", async () => {
   assert.equal(exito.reader.storeId, "Exito");
   assert.equal(jumbo.reader.storeId, "Jumbo");
-  for (const m of [exito, carulla, jumbo]) assert.equal(m.BUCARAMANGA_SELECTOR.verified, false);
+  for (const m of [exito, carulla, jumbo]) {
+    assert.equal(m.BUCARAMANGA_SELECTOR.verified, false);
+    assert.equal(m.reader.cityVerified, false);
+  }
   const r = recorder({ status: 200, body: ioHtml(fx("vtex-io-arroz-sopa-500g")) });
   const res = await jumbo.reader.read(
     PRODUCT("https://www.jumbocolombia.com/arroz-para-sopa-cerearroz-x-500-g/p", { storeId: "Jumbo", externalId: "13391" }),

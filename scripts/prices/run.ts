@@ -31,6 +31,11 @@ export interface RunOptions {
   sleep?: (ms: number) => Promise<void>;
   now?: () => number;
   dryRun?: boolean;
+  /**
+   * Explicit opt-in: write prices even when the store city selector is unverified (the readers
+   * then read the store default region but the rows are stored under `city`). Off by default.
+   */
+  allowUnverifiedCity?: boolean;
 }
 
 const MIN_SAVED_RATIO = 0.5;
@@ -67,6 +72,13 @@ export async function runWeekly(opts: RunOptions): Promise<RunSummary> {
       continue;
     }
     if (products.length === 0) continue;
+    // Prices read with an unverified selector may belong to another region: never write them
+    // as `city` unless the operator opted in. A dry run still reads and reports.
+    const cityUnverified = reader.cityVerified !== true && opts.allowUnverifiedCity !== true;
+    if (cityUnverified && !opts.dryRun) {
+      count(entry.skipped, "city_unverified", products.length);
+      continue;
+    }
 
     try {
       const fetcher = createStoreFetcher({
@@ -118,6 +130,7 @@ export async function runWeekly(opts: RunOptions): Promise<RunSummary> {
         }
       }
 
+      if (cityUnverified) count(entry.skipped, "city_unverified", products.length); // dry run: would be blocked
       if (!opts.dryRun && rows.length > 0) await opts.sink.upsertPrices(rows);
       if (fetcher.stoppedBy() !== null || entry.saved / products.length < MIN_SAVED_RATIO) {
         summary.failedStores.push(name);

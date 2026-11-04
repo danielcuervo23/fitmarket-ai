@@ -47,5 +47,7 @@ export interface ReaderContext {
  */
 export interface StoreReader {
   storeId: StoreId;
+  /** true only when the store city selector was confirmed to give Bucaramanga prices. Missing means unverified. */
+  cityVerified?: boolean;
   read(product: MappedProduct, ctx: ReaderContext): Promise<ReadResult>;
 }

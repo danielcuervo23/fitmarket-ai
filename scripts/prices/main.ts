@@ -69,6 +69,7 @@ const summary = await runWeekly({
   today,
   city: CITY,
   dryRun,
+  allowUnverifiedCity: process.env.PRICES_ALLOW_UNVERIFIED_CITY === "1",
 });
 
 console.log(`Price run ${today} (${CITY})${dryRun ? " [dry run, nothing written]" : ""}`);

@@ -82,7 +82,7 @@ function base(overrides = {}) {
   };
 }
 
-const okReader = (storeId, result) => ({ storeId, read: async () => result });
+const okReader = (storeId, result, cityVerified = true) => ({ storeId, cityVerified, read: async () => result });
 
 test("a store with allowed: false is never read, even with a reader and mappings", async () => {
   let called = 0;
@@ -132,7 +132,7 @@ test("not_found, pack_mismatch and parse failures save nothing and are counted b
   const sink = fakeSink();
   const summary = await runWeekly(
     base({
-      readers: [{ storeId: "Exito", read: async () => results[i++] }],
+      readers: [{ storeId: "Exito", cityVerified: true, read: async () => results[i++] }],
       mappings: { Exito: [1, 2, 3].map((n) => product("Exito", n)) },
       sink,
     }),
@@ -193,7 +193,7 @@ test("a store where fewer than half of the products were saved is a failed store
   ];
   const summary = await runWeekly(
     base({
-      readers: [{ storeId: "Exito", read: async () => results[i++] }],
+      readers: [{ storeId: "Exito", cityVerified: true, read: async () => results[i++] }],
       mappings: { Exito: [1, 2, 3].map((n) => product("Exito", n)) },
     }),
   );
@@ -208,7 +208,7 @@ test("exactly half saved is not a failure", async () => {
   ];
   const summary = await runWeekly(
     base({
-      readers: [{ storeId: "Exito", read: async () => results[i++] }],
+      readers: [{ storeId: "Exito", cityVerified: true, read: async () => results[i++] }],
       mappings: { Exito: [1, 2].map((n) => product("Exito", n)) },
     }),
   );
@@ -230,6 +230,7 @@ test("a reader that throws is counted and does not stop the run", async () => {
       readers: [
         {
           storeId: "Exito",
+          cityVerified: true,
           read: async () => {
             if (i++ === 0) throw new Error("boom");
             return { ok: true, regularPriceCop: 5000, promoPriceCop: null };
@@ -247,6 +248,7 @@ test("readers fetch through the policy-enforcing context: a blocked url never hi
   const fetch = fakeFetch();
   const reader = {
     storeId: "Exito",
+    cityVerified: true,
     read: async (p, ctx) => {
       const res = await ctx.fetchText("https://www.exito.com/api/catalog_system/pub/products/search");
       return res.status === 403 ? { ok: false, reason: "blocked" } : { ok: false, reason: "parse_error" };
@@ -263,6 +265,7 @@ test("a 429 stops the store: remaining products are not read and the store fails
   let reads = 0;
   const reader = {
     storeId: "Exito",
+    cityVerified: true,
     read: async (p, ctx) => {
       reads++;
       const res = await ctx.fetchText(p.url);
@@ -326,4 +329,80 @@ test("loadReaders rejects a malformed reader, a duplicate store and a missing fo
   await assert.rejects(loadReaders(dup), /duplicate/i);
   assert.deepEqual(await loadReaders(path.join(dup, "missing")), []);
   mkdirSync(path.join(dup, "sub"));
+});
+
+test("a store whose city selector is not verified writes nothing and is counted as city_unverified", async () => {
+  let called = 0;
+  const sink = fakeSink();
+  const summary = await runWeekly(
+    base({
+      readers: [{ storeId: "Exito", cityVerified: false, read: async () => (called++, { ok: true, regularPriceCop: 5000, promoPriceCop: null }) }],
+      mappings: { Exito: [1, 2].map((n) => product("Exito", n)) },
+      sink,
+    }),
+  );
+  assert.equal(called, 0);
+  assert.equal(sink.calls.upsertProducts, 0);
+  assert.equal(sink.calls.upsertPrices.length, 0);
+  assert.equal(summary.perStore.Exito.saved, 0);
+  assert.equal(summary.perStore.Exito.skipped.city_unverified, 2);
+  assert.deepEqual(summary.failedStores, []);
+});
+
+test("a reader that does not declare cityVerified is treated as unverified", async () => {
+  const sink = fakeSink();
+  const summary = await runWeekly(
+    base({
+      readers: [{ storeId: "Exito", read: async () => ({ ok: true, regularPriceCop: 5000, promoPriceCop: null }) }],
+      mappings: { Exito: [product("Exito", 1)] },
+      sink,
+    }),
+  );
+  assert.equal(sink.calls.upsertPrices.length, 0);
+  assert.equal(summary.perStore.Exito.skipped.city_unverified, 1);
+});
+
+test("a verified store writes its prices", async () => {
+  const sink = fakeSink();
+  const summary = await runWeekly(
+    base({
+      readers: [okReader("Exito", { ok: true, regularPriceCop: 5000, promoPriceCop: null }, true)],
+      mappings: { Exito: [product("Exito", 1)] },
+      sink,
+    }),
+  );
+  assert.equal(sink.calls.upsertPrices.length, 1);
+  assert.equal(summary.perStore.Exito.skipped.city_unverified, undefined);
+});
+
+test("allowUnverifiedCity is an explicit opt-in that lets an unverified store write", async () => {
+  const sink = fakeSink();
+  const summary = await runWeekly(
+    base({
+      readers: [okReader("Exito", { ok: true, regularPriceCop: 5000, promoPriceCop: null }, false)],
+      mappings: { Exito: [product("Exito", 1)] },
+      sink,
+      allowUnverifiedCity: true,
+    }),
+  );
+  assert.equal(sink.calls.upsertPrices.length, 1);
+  assert.equal(summary.perStore.Exito.saved, 1);
+  assert.equal(summary.perStore.Exito.skipped.city_unverified, undefined);
+});
+
+test("a dry run of an unverified store still reads and reports, and writes nothing", async () => {
+  let called = 0;
+  const sink = fakeSink();
+  const summary = await runWeekly(
+    base({
+      readers: [{ storeId: "Exito", cityVerified: false, read: async () => (called++, { ok: true, regularPriceCop: 5000, promoPriceCop: null }) }],
+      mappings: { Exito: [product("Exito", 1)] },
+      sink,
+      dryRun: true,
+    }),
+  );
+  assert.equal(called, 1);
+  assert.equal(summary.perStore.Exito.read, 1);
+  assert.equal(summary.perStore.Exito.skipped.city_unverified, 1);
+  assert.equal(sink.calls.upsertPrices.length, 0);
 });
