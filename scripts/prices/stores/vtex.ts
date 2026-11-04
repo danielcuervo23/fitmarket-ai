@@ -74,17 +74,9 @@ export function extractFastStoreProduct(html: string): VtexRaw | null {
 
 /** Jumbo: reads the product out of the VTEX IO __STATE__ cache. */
 export function extractVtexIoProduct(html: string): VtexRaw | null {
-  const m = /data-varname="__STATE__">\s*<script>([\s\S]*?)<\/script>/.exec(html);
-  if (!m?.[1]) return null;
-  let state: unknown;
-  try {
-    state = JSON.parse(m[1]);
-  } catch {
-    return null;
-  }
-  if (!isObj(state)) return null;
-  const productKey = Object.keys(state).find((k) => /^Product:[^.]+$/.test(k));
-  if (!productKey) return null;
+  const found = readIoState(html);
+  if (!found) return null;
+  const { state, productKey } = found;
   const item = state[`${productKey}.items.0`];
   const offer = state[`$${productKey}.items.0.sellers.0.commertialOffer`];
   if (!isObj(item) || !isObj(offer)) return null;
@@ -99,6 +91,26 @@ export function extractVtexIoProduct(html: string): VtexRaw | null {
     availableQuantity: offer.AvailableQuantity,
   };
   return raw as unknown as VtexRaw;
+}
+
+/** The __STATE__ cache and the key of the product it is read for (the first `Product:<slug>`). */
+function readIoState(html: string): { state: Obj; productKey: string } | null {
+  const m = /data-varname="__STATE__">\s*<script>([\s\S]*?)<\/script>/.exec(html);
+  if (!m?.[1]) return null;
+  let state: unknown;
+  try {
+    state = JSON.parse(m[1]);
+  } catch {
+    return null;
+  }
+  if (!isObj(state)) return null;
+  const productKey = Object.keys(state).find((k) => /^Product:[^.]+$/.test(k));
+  return productKey ? { state, productKey } : null;
+}
+
+/** Slug of the product `extractVtexIoProduct` reads, so a caller can check it is the page's own product. */
+export function vtexIoProductSlug(html: string): string | null {
+  return readIoState(html)?.productKey.slice("Product:".length) ?? null;
 }
 
 function pick(root: unknown, ...path: (string | number)[]): unknown {
@@ -134,7 +146,7 @@ export function parseSizes(text: string): number[] {
 }
 
 /** The content of one sold unit in base units, or null when it cannot be known with certainty. */
-function packContent(raw: VtexRaw): number | null {
+export function packContent(raw: VtexRaw): number | null {
   const base = MEASURE_BASE[raw.measurementUnit];
   if (base !== undefined) {
     // Sold by weight/volume: only a multiplier of 1 is understood.
@@ -172,10 +184,15 @@ export function parseVtexProduct(json: unknown, externalId: string, packSize: nu
   const content = packContent(r as VtexRaw);
   if (content === null || Math.abs(content - packSize) > 1e-6) return { ok: false, reason: "pack_mismatch" };
 
+  return { ok: true, ...regularAndPromo(price, list) };
+}
+
+/** Regular price = list price; the selling price is the promo when lower. List below price: odd data, never the lower one. */
+export function regularAndPromo(price: number, list: number): { regularPriceCop: number; promoPriceCop: number | null } {
   if (list >= price) {
-    return { ok: true, regularPriceCop: Math.round(list), promoPriceCop: price < list ? Math.round(price) : null };
+    return { regularPriceCop: Math.round(list), promoPriceCop: price < list ? Math.round(price) : null };
   }
-  return { ok: true, regularPriceCop: Math.round(price), promoPriceCop: null }; // list below price: odd data, never the lower one
+  return { regularPriceCop: Math.round(price), promoPriceCop: null };
 }
 
 // ---------- reader ----------
