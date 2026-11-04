@@ -108,6 +108,8 @@ npm run dev              # http://localhost:5173
    supabase secrets set OPENAI_API_KEY=sk-...        # required
    supabase secrets set OPENAI_MODEL=gpt-4o          # optional (default gpt-4o)
    supabase secrets set GENERATION_DAILY_LIMIT=10    # optional (default 10)
+   supabase secrets set GENERATION_MAX_MODEL_CALLS=12      # optional: AI calls per plan (default 12)
+   supabase secrets set GENERATION_TIME_BUDGET_MS=120000   # optional: max time per plan (default 120 s)
    supabase secrets set ALLOWED_ORIGINS=https://your-domain.app,http://localhost:5173
    supabase functions deploy generate-weekly-plan
    supabase functions deploy delete-account
