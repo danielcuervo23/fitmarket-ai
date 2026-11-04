@@ -5,7 +5,8 @@ import { STORE_IDS, type StoreId } from "../types.ts";
 // importer reads (data/manual-prices/). Shared by both sides, so it has no
 // Node or zod imports: it is bundled into the bookmarklet.
 
-export const SCHEMA_VERSION = 1;
+/** 2 added `packConfirmed`; the importer still reads version 1 files, with every pack unconfirmed. */
+export const SCHEMA_VERSION = 2;
 export const CITY = "bucaramanga";
 /** An entry older than this is not imported (prices go stale). */
 export const MAX_AGE_DAYS = 45;
@@ -43,6 +44,8 @@ export interface ManualEntry {
   url: string;
   regularPriceCop: number;
   observedOn: string;
+  /** true when the store's own rules read this pack on the page; false when the person typed it. */
+  packConfirmed: boolean;
 }
 
 export interface ManualExport {

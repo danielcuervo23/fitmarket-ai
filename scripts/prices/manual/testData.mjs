@@ -8,7 +8,7 @@ export const root = path.resolve(here, "../../..");
 
 export const policy = JSON.parse(readFileSync(path.join(root, "scripts/prices/policy.json"), "utf8"));
 export const fullFoods = JSON.parse(readFileSync(path.join(root, "data/foods/foods.json"), "utf8"));
-export const foods = fullFoods.map((f) => ({ id: f.id, nameEs: f.nameEs, unit: f.unit, defaultPack: f.defaultPack }));
+export const foods = fullFoods.map((f) => ({ id: f.id, nameEs: f.nameEs, unit: f.unit, defaultPack: f.defaultPack, refPriceCop: f.refPriceCop }));
 
 export const fixture = (name) =>
   JSON.parse(readFileSync(path.join(root, "scripts/prices/stores/fixtures", `${name}.json`), "utf8"));

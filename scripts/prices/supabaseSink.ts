@@ -10,6 +10,19 @@ const CHUNK = 200;
 
 const productRowSchema = z.object({ id: z.number().int(), store_id: z.string(), external_id: z.string() });
 const lastRowSchema = z.object({ store_product_id: z.number().int(), regular_price_cop: z.number().int() });
+const priceDayRowSchema = z.object({
+  store_product_id: z.number().int(),
+  observed_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  regular_price_cop: z.number().int(),
+});
+
+/** The weekly sink plus what the manual importer (scripts/prices/manual) needs. */
+export interface SupabaseSink extends PriceSink {
+  /** Official prices stored since `since` (YYYY-MM-DD), keyed `${storeProductId}:${observedOn}`. */
+  existingPrices(ids: number[], city: string, since: string): Promise<Map<string, number>>;
+  /** Marks store products inactive (they lost their food). */
+  deactivateProducts(ids: number[]): Promise<void>;
+}
 
 interface Failure {
   message: string;
@@ -33,7 +46,7 @@ function chunks<T>(items: T[], size: number): T[][] {
 
 const key = (storeId: string, externalId: string) => `${storeId}:${externalId}`;
 
-export function createSinkFromClient(client: SinkClient): PriceSink {
+export function createSinkFromClient(client: SinkClient): SupabaseSink {
   async function findProductIds(products: MappedProduct[]): Promise<Map<string, number>> {
     const out = new Map<string, number>();
     const byStore = new Map<string, string[]>();
@@ -101,10 +114,36 @@ export function createSinkFromClient(client: SinkClient): PriceSink {
         );
       }
     },
+
+    async existingPrices(ids, city, since) {
+      const out = new Map<string, number>();
+      for (const part of chunks(ids, CHUNK)) {
+        const data = ok(
+          await client
+            .from("prices")
+            .select("store_product_id,observed_on,regular_price_cop")
+            .eq("city", city)
+            .eq("source", "official")
+            .gte("observed_on", since)
+            .in("store_product_id", part),
+          "reading prices",
+        );
+        for (const row of z.array(priceDayRowSchema).parse(data)) {
+          out.set(`${row.store_product_id}:${row.observed_on}`, row.regular_price_cop);
+        }
+      }
+      return out;
+    },
+
+    async deactivateProducts(ids) {
+      for (const part of chunks(ids, CHUNK)) {
+        ok(await client.from("store_products").update({ is_active: false }).in("id", part), "retiring store_products");
+      }
+    },
   };
 }
 
-export function createSupabaseSink(url: string, serviceRoleKey: string): PriceSink {
+export function createSupabaseSink(url: string, serviceRoleKey: string): SupabaseSink {
   const client = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
   return createSinkFromClient(client);
 }

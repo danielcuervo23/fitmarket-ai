@@ -202,17 +202,24 @@ function main(): void {
     if (product.packSize !== null) pack.value = String(product.packSize);
     const unit = el("span");
     const packNote = el("p", { className: "muted" });
+    // Shown only when the page does not confirm the pack: the person must say they checked it by hand.
+    const reviewed = el("input", { type: "checkbox" });
+    const reviewedRow = el("label", { className: "check" }, [reviewed, document.createTextNode("Revisé el tamaño a mano")]);
+    let packConfirmed = false;
     const refreshPack = () => {
       unit.textContent = unitLabel(foods.find((f) => f.id === chosen));
       const n = Number(pack.value);
+      packConfirmed = pack.value !== "" && n > 0 && confirmsPack(current.storeId, html, n);
+      reviewedRow.hidden = packConfirmed;
+      if (packConfirmed) reviewed.checked = false;
       if (pack.value === "" || !(n > 0)) {
         packNote.textContent = "Escribe el tamaño que dice la página (por ejemplo 500 g o 12 unidades).";
         packNote.className = "muted";
-      } else if (confirmsPack(current.storeId, html, n)) {
+      } else if (packConfirmed) {
         packNote.textContent = "✓ Coincide con la página.";
         packNote.className = "ok";
       } else {
-        packNote.textContent = "⚠ No pude confirmarlo en la página: revisa que sea el tamaño correcto.";
+        packNote.textContent = "⚠ No pude confirmarlo en la página: revisa el tamaño en la página y marca la casilla de abajo.";
         packNote.className = "error";
       }
     };
@@ -222,14 +229,17 @@ function main(): void {
       refreshPack();
     });
 
+    // Always starts unticked: the person confirms Bucaramanga on every product page.
     const attest = el("input", { type: "checkbox" });
-    attest.checked = state.attested;
+    attest.checked = false;
     const save = el("button", { className: "primary", textContent: "Guardar" });
     save.addEventListener("click", () => {
       const result = saveEntry(state, {
         product,
         foodId: chosen,
         packSize: Number(pack.value),
+        packConfirmed,
+        packReviewed: reviewed.checked,
         attested: attest.checked,
         today: localDay(new Date()),
         foods,
@@ -250,6 +260,7 @@ function main(): void {
       el("label", { textContent: "Tamaño del paquete" }),
       el("div", { className: "pack" }, [pack, unit]),
       packNote,
+      reviewedRow,
       el("label", { className: "check" }, [attest, document.createTextNode("Tengo Bucaramanga seleccionada en esta tienda")]),
       el("div", { className: "row" }, [save]),
     );

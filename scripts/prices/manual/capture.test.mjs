@@ -18,6 +18,8 @@ const save = (state, over = {}) =>
     product,
     foodId: "arroz_blanco",
     packSize: 500,
+    packConfirmed: true,
+    packReviewed: false,
     attested: true,
     today: "2026-11-04",
     foods,
@@ -55,9 +57,9 @@ test("saving stores the entry with the day it was seen", () => {
       url: "https://www.carulla.com/arroz-diana-500-gr-479512/p",
       regularPriceCop: 2500,
       observedOn: "2026-11-04",
+      packConfirmed: true,
     },
   ]);
-  assert.equal(r.state.attested, true);
 });
 
 test("saving again for the same food replaces the old entry", () => {
@@ -126,7 +128,7 @@ test("the export has exactly the agreed fields and nothing else", () => {
   const r = buildExport(state, "2026-11-05");
   assert.equal(r.fileName, "precios-carulla-2026-11-05.json");
   assert.deepEqual(r.data, {
-    schemaVersion: 1,
+    schemaVersion: 2,
     store: "Carulla",
     city: "bucaramanga",
     capturedOn: "2026-11-05",
@@ -154,4 +156,26 @@ test("the food search ignores accents and case and keeps the list order", async 
     ["arroz_blanco", "arroz_integral"],
   );
   assert.equal(filterFoods("  ", foods).length, 70);
+});
+
+test("a pack the page did not confirm needs the 'Revisé el tamaño a mano' box", () => {
+  const r = save(emptyState("Carulla"), { packConfirmed: false });
+  assert.equal(r.ok, false);
+  assert.match(r.message, /Revisé el tamaño a mano/);
+  const reviewed = save(emptyState("Carulla"), { packConfirmed: false, packReviewed: true });
+  assert.equal(reviewed.ok, true);
+  assert.equal(reviewed.state.entries[0].packConfirmed, false);
+});
+
+test("the Bucaramanga attestation is never remembered between pages", () => {
+  const state = save(emptyState("Carulla")).state;
+  assert.ok(!("attested" in state));
+  assert.ok(!JSON.stringify(state).includes("attested"));
+});
+
+test("a stored entry without packConfirmed is dropped", () => {
+  const state = save(emptyState("Carulla")).state;
+  const old = JSON.parse(JSON.stringify(state));
+  delete old.entries[0].packConfirmed;
+  assert.deepEqual(parseState(JSON.stringify(old), "Carulla", foods, site).entries, []);
 });

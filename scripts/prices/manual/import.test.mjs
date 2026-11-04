@@ -29,7 +29,7 @@ function run(args, dir, extraEnv = {}) {
 }
 
 const valid = () => ({
-  schemaVersion: 1,
+  schemaVersion: 2,
   store: "Carulla",
   city: "bucaramanga",
   capturedOn: today,
@@ -43,6 +43,7 @@ const valid = () => ({
       url: "https://www.carulla.com/pasta-doria-spaghetti-500-g/p",
       regularPriceCop: 3900,
       observedOn: today,
+      packConfirmed: true,
     },
   ],
 });
@@ -100,4 +101,38 @@ test("the service role key is never printed", () => {
   const r = run(["--write", file], dir, { SUPABASE_URL: "https://example.invalid", SUPABASE_SERVICE_ROLE_KEY: "sekret-123" });
   assert.equal(r.status, 1);
   assert.ok(!`${r.stdout}${r.stderr}`.includes("sekret-123"));
+});
+
+test("a pack typed by hand is refused unless --allow-unconfirmed-pack is given", () => {
+  const typed = valid();
+  typed.entries[0].packConfirmed = false;
+  const { dir, file } = setup(typed);
+  const r = run(["--mappings-only", file], dir);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /--allow-unconfirmed-pack/);
+  assert.equal(readFileSync(path.join(dir, "Carulla.json"), "utf8"), carulla);
+  assert.equal(run(["--mappings-only", "--allow-unconfirmed-pack", file], dir).status, 0);
+});
+
+test("a pack change is refused unless --allow-pack-change is given", () => {
+  const changed = valid();
+  Object.assign(changed.entries[0], {
+    foodId: "arroz_blanco",
+    externalId: "445117",
+    url: "https://www.carulla.com/arroz-diana-500-gr-479512/p",
+    packSize: 1000,
+    regularPriceCop: 5000,
+  });
+  const { dir, file } = setup(changed);
+  const r = run(["--mappings-only", file], dir);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /--allow-pack-change/);
+  const ok = run(["--mappings-only", "--allow-pack-change", file], dir);
+  assert.equal(ok.status, 0, ok.stderr);
+  assert.match(ok.stdout, /pack size changed/);
+});
+
+test("--allow-price-outlier is an accepted option", () => {
+  const { dir, file } = setup(valid());
+  assert.equal(run(["--allow-price-outlier", file], dir).status, 0);
 });

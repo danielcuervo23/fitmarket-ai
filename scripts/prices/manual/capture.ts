@@ -19,10 +19,8 @@ import type { PageProduct } from "./pageReader.ts";
 // and the export built from it. Pure functions: the DOM layer only renders them.
 
 export interface CaptureState {
-  version: 1;
+  version: 2;
   store: StoreId;
-  /** The person last confirmed Bucaramanga is selected in this store. */
-  attested: boolean;
   entries: ManualEntry[];
 }
 
@@ -32,6 +30,11 @@ export interface SaveInput {
   product: PageProduct;
   foodId: string;
   packSize: number;
+  /** The page confirmed `packSize` with the store's rules. */
+  packConfirmed: boolean;
+  /** The person ticked "Revisé el tamaño a mano" (needed when the page did not confirm the pack). */
+  packReviewed: boolean;
+  /** "Tengo Bucaramanga seleccionada" ticked on this page; never remembered. */
   attested: boolean;
   today: string;
   foods: readonly SlimFood[];
@@ -42,7 +45,7 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const STOPWORDS = new Set(["de", "del", "la", "las", "los", "el", "con", "para", "en", "y"]);
 
 export function emptyState(store: StoreId): CaptureState {
-  return { version: 1, store, attested: false, entries: [] };
+  return { version: 2, store, entries: [] };
 }
 
 /** Why an entry is not acceptable, or null when it is. */
@@ -60,6 +63,7 @@ function entryProblem(e: ManualEntry, foods: readonly SlimFood[], site: StoreSit
     return "El precio no parece real.";
   }
   if (typeof e.observedOn !== "string" || !ISO_DAY.test(e.observedOn)) return "La fecha no es válida.";
+  if (typeof e.packConfirmed !== "boolean") return "Falta saber si el tamaño se confirmó en la página.";
   return null;
 }
 
@@ -75,13 +79,20 @@ export function saveEntry(state: CaptureState, input: SaveInput): SaveResult {
     url: input.product.url,
     regularPriceCop: input.product.regularPriceCop,
     observedOn: input.today,
+    packConfirmed: input.packConfirmed === true,
   };
+  if (!entry.packConfirmed && input.packReviewed !== true) {
+    return {
+      ok: false,
+      message: 'La página no confirma este tamaño. Revísalo en la página y marca "Revisé el tamaño a mano".',
+    };
+  }
   const problem = entryProblem(entry, input.foods, input.site);
   if (problem !== null) return { ok: false, message: problem };
   // One food has one product and one product belongs to one food: the newest choice wins.
   const rest = state.entries.filter((e) => e.foodId !== entry.foodId && e.externalId !== entry.externalId);
   const entries = [...rest, entry].sort((a, b) => a.foodId.localeCompare(b.foodId));
-  return { ok: true, state: { ...state, attested: true, entries } };
+  return { ok: true, state: { ...state, entries } };
 }
 
 export function progress(
@@ -113,9 +124,8 @@ export function parseState(
     return state;
   }
   if (typeof data !== "object" || data === null) return state;
-  const d = data as { version?: unknown; store?: unknown; attested?: unknown; entries?: unknown };
-  if (d.version !== 1 || d.store !== store || !Array.isArray(d.entries)) return state;
-  state.attested = d.attested === true;
+  const d = data as { version?: unknown; store?: unknown; entries?: unknown };
+  if (d.version !== 2 || d.store !== store || !Array.isArray(d.entries)) return state;
   const seenFoods = new Set<string>();
   const seenIds = new Set<string>();
   for (const item of d.entries) {
@@ -129,6 +139,7 @@ export function parseState(
       url: e.url,
       regularPriceCop: e.regularPriceCop,
       observedOn: e.observedOn,
+      packConfirmed: e.packConfirmed,
     } as ManualEntry;
     if (entryProblem(entry, foods, site) !== null) continue;
     if (seenFoods.has(entry.foodId) || seenIds.has(entry.externalId)) continue;
