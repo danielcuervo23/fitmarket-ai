@@ -1,6 +1,5 @@
 import {
   STATIC_CATALOG,
-  costOf,
   gramsOf,
   nutritionOf,
   type Catalog,
@@ -9,7 +8,8 @@ import {
   type ShoppingCategory,
 } from "../catalog.ts";
 import type { NutritionTargets } from "../nutrition.ts";
-import { cheapestStore } from "./stores.ts";
+import type { PriceBook, PriceSource } from "./priceBook.ts";
+import { STATIC_PRICE_BOOK } from "./stores.ts";
 import { SWAP_RULES } from "./swaps.ts";
 import {
   DAYS,
@@ -190,10 +190,9 @@ export function costAt(
   ingredient: Ingredient,
   qty: number,
   stores: string[],
+  prices: PriceBook = STATIC_PRICE_BOOK,
 ): number {
-  const { factor } = cheapestStore(ingredient, stores);
-
-  return Math.round(costOf(ingredient, qty) * factor);
+  return prices.quote(ingredient, qty, stores).costCop;
 }
 
 export function weekCost(
@@ -201,6 +200,7 @@ export function weekCost(
   householdSize: number,
   stores: string[],
   catalog: Catalog = STATIC_CATALOG,
+  prices: PriceBook = STATIC_PRICE_BOOK,
 ): number {
   let total = 0;
 
@@ -208,7 +208,7 @@ export function weekCost(
     const ingredient = catalog.get(id);
 
     if (ingredient) {
-      total += costAt(ingredient, qty, stores);
+      total += costAt(ingredient, qty, stores, prices);
     }
   }
 
@@ -330,12 +330,14 @@ export function fitToBudget(
     allowedIds: ReadonlySet<string>;
     stores: string[];
     catalog?: Catalog;
+    prices?: PriceBook;
   },
 ): FitResult {
   const { budgetCop, householdSize, targetKcal, allowedIds, stores } = options;
   const catalog = options.catalog ?? STATIC_CATALOG;
+  const prices = options.prices ?? STATIC_PRICE_BOOK;
   let current = normalizeWeek(week, targetKcal, catalog);
-  let cost = weekCost(current, householdSize, stores, catalog);
+  let cost = weekCost(current, householdSize, stores, catalog, prices);
   let swaps = 0;
 
   // Each swap removes an ingredient from the plan, so this always terminates.
@@ -353,7 +355,13 @@ export function fitToBudget(
         targetKcal,
         catalog,
       );
-      const candidateCost = weekCost(candidate, householdSize, stores, catalog);
+      const candidateCost = weekCost(
+        candidate,
+        householdSize,
+        stores,
+        catalog,
+        prices,
+      );
 
       if (candidateCost < cost && (!best || candidateCost < best.cost)) {
         best = { week: candidate, cost: candidateCost };
@@ -429,6 +437,9 @@ export interface PlanShoppingItem {
   estimated_price_cop: number;
   category: ShoppingCategory;
   store_id: string;
+  price_source?: PriceSource;
+  /** YYYY-MM-DD; only when the price is not an estimate. */
+  price_updated_at?: string;
 }
 
 export interface BuiltPlan {
@@ -452,10 +463,12 @@ export function assemblePlan(
     stores: string[];
     targets: NutritionTargets;
     catalog?: Catalog;
+    prices?: PriceBook;
   },
 ): BuiltPlan {
   const { householdSize, stores, targets } = options;
   const catalog = options.catalog ?? STATIC_CATALOG;
+  const prices = options.prices ?? STATIC_PRICE_BOOK;
   const stats = weekStats(week, catalog);
 
   const weekly_menu = {} as BuiltPlan["weekly_menu"];
@@ -496,18 +509,18 @@ export function assemblePlan(
       continue;
     }
 
-    const packs = Math.ceil(qty / ingredient.pack - 1e-9);
-    const { store } = cheapestStore(ingredient, stores);
-    const cost = costAt(ingredient, qty, stores);
-    total += cost;
+    const quote = prices.quote(ingredient, qty, stores);
+    total += quote.costCop;
 
     shopping_list.push({
       name: ingredient.name.es,
       name_en: ingredient.name.en,
-      quantity: formatPurchase(ingredient, packs * ingredient.pack),
-      estimated_price_cop: cost,
+      quantity: formatPurchase(ingredient, quote.packs * quote.packSize),
+      estimated_price_cop: quote.costCop,
       category: ingredient.category,
-      store_id: store,
+      store_id: quote.store,
+      price_source: quote.source,
+      ...(quote.observedOn ? { price_updated_at: quote.observedOn } : {}),
     });
   }
 

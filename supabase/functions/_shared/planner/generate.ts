@@ -29,7 +29,8 @@ import {
 import { changedMeals, renameMeals, unnamedMeals } from "./naming.ts";
 import { STATIC_CATALOG, type Catalog } from "../catalog.ts";
 import { allowedCatalog, buildRestrictionRules } from "./restrictions.ts";
-import { carriedByAny } from "./stores.ts";
+import type { PriceBook } from "./priceBook.ts";
+import { STATIC_PRICE_BOOK } from "./stores.ts";
 import { DAYS, SLOTS } from "./types.ts";
 
 export interface GenerateInput {
@@ -219,16 +220,17 @@ function issueFeedback(issue: ComposeIssue): string {
   }
 }
 
+/** What the planner reads from outside; each field falls back to the built-in data. */
+export interface PlannerDeps {
+  catalog?: Catalog;
+  prices?: PriceBook;
+}
+
 /**
  * Generates a weekly plan. The model is injected so the whole pipeline can be
  * tested without calling OpenAI. `limits` caps the number of model calls and
  * the total time (defaults: 12 calls, 120 s from now).
  */
-/** What the planner reads from outside; each field falls back to the built-in data. */
-export interface PlannerDeps {
-  catalog?: Catalog;
-}
-
 export async function generatePlan(
   input: GenerateInput,
   rawCallModel: ModelCall,
@@ -252,10 +254,13 @@ export async function generatePlan(
   }
 
   const catalog = deps.catalog ?? STATIC_CATALOG;
+  const prices = deps.prices ?? STATIC_PRICE_BOOK;
   const rules = buildRestrictionRules(input.restrictions, catalog);
   // Only offer foods the user's own supermarkets sell.
-  const allowed = allowedCatalog(rules, catalog).filter((ingredient) =>
-    carriedByAny(input.stores, ingredient.id),
+  const allowed = allowedCatalog(rules, catalog).filter(
+    (ingredient) =>
+      input.stores.length === 0 ||
+      input.stores.some((store) => prices.carries(store, ingredient.id)),
   );
 
   if (allowed.length < MIN_ALLOWED_INGREDIENTS) {
@@ -281,7 +286,7 @@ export async function generatePlan(
   });
 
   return withUsage(
-    await composeWithinBudget(input, rules, allowed, budget, catalog),
+    await composeWithinBudget(input, rules, allowed, budget, catalog, prices),
     budget.usage,
   );
 }
@@ -306,6 +311,7 @@ async function composeWithinBudget(
   allowed: ReturnType<typeof allowedCatalog>,
   budget: CallBudget,
   catalog: Catalog,
+  prices: PriceBook,
 ): Promise<GenerateOutcome> {
   const { callModel, canStart } = budget;
   const allowedIds = new Set(allowed.map((ingredient) => ingredient.id));
@@ -458,6 +464,7 @@ async function composeWithinBudget(
       allowedIds,
       stores: input.stores,
       catalog,
+      prices,
     });
 
     if (fitted.cost > input.weeklyBudgetCop) {
@@ -500,6 +507,7 @@ async function composeWithinBudget(
         stores: input.stores,
         targets,
         catalog,
+        prices,
       }),
     };
   }
