@@ -108,7 +108,12 @@ test("every food cites its source", () => {
 });
 
 test("seed migration is generated from foods.json", () => {
-  assert.equal(buildSeedSql(foods), read("../../supabase/migrations/012_seed_foods.sql"));
+  assert.equal(
+    buildSeedSql(foods),
+    read("../../supabase/migrations/012_seed_foods.sql").replaceAll("
+", "
+"),
+  );
 });
 
 test("the seed builder clamps extended values that would break the table checks", () => {
