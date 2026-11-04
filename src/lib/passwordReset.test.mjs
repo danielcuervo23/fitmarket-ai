@@ -2,14 +2,18 @@ import assert from "node:assert/strict";
 import {
   MIN_PASSWORD_LENGTH,
   buildPasswordResetRedirect,
+  RECOVERY_FLAG_KEY,
   hasAuthLinkError,
+  initialRecoveryFlag,
   isRecoveryCallback,
   nextRecoveryFlag,
+  readRecoveryFlag,
   recoveryRedirect,
   resetRequestErrorKey,
   updatePasswordErrorKey,
   validateNewPassword,
   validateResetEmail,
+  writeRecoveryFlag,
 } from "./passwordReset.ts";
 
 // --- The e-mail the user types on "Forgot your password?" -----------------
@@ -165,6 +169,63 @@ assert.equal(nextRecoveryFlag(true, "SIGNED_OUT"), false);
 assert.equal(nextRecoveryFlag(true, "TOKEN_REFRESHED"), true, "a token refresh does not end recovery");
 assert.equal(nextRecoveryFlag(true, "INITIAL_SESSION"), true);
 assert.equal(nextRecoveryFlag(false, "SIGNED_IN"), false);
+assert.equal(
+  nextRecoveryFlag(true, "INITIAL_SESSION", false),
+  false,
+  "without a session a leftover flag is dropped, so it can never force anything",
+);
+assert.equal(nextRecoveryFlag(true, "TOKEN_REFRESHED", true), true);
+
+// --- Surviving a page reload ----------------------------------------------
+// Supabase removes the hash after reading it, but keeps the session. The
+// flag is kept in sessionStorage so a reload on /reset-password cannot skip
+// the new-password step.
+function fakeStorage() {
+  const data = new Map();
+  return {
+    data,
+    getItem: (key) => (data.has(key) ? data.get(key) : null),
+    setItem: (key, value) => data.set(key, String(value)),
+    removeItem: (key) => data.delete(key),
+  };
+}
+const RECOVERY_HASH = "#access_token=abc&refresh_token=r&type=recovery";
+
+{
+  const storage = fakeStorage();
+  assert.equal(readRecoveryFlag(storage), false, "nothing stored yet");
+  assert.equal(initialRecoveryFlag("", storage), false);
+  assert.equal(initialRecoveryFlag(RECOVERY_HASH, storage), true, "a valid recovery hash starts recovery");
+
+  writeRecoveryFlag(storage, true);
+  assert.equal(readRecoveryFlag(storage), true);
+  assert.equal(initialRecoveryFlag("", storage), true, "after a reload (hash gone) recovery is still on");
+
+  writeRecoveryFlag(storage, nextRecoveryFlag(true, "USER_UPDATED"));
+  assert.equal(storage.data.has(RECOVERY_FLAG_KEY), false, "saving the password removes the stored flag");
+  assert.equal(initialRecoveryFlag("", storage), false);
+
+  writeRecoveryFlag(storage, true);
+  writeRecoveryFlag(storage, nextRecoveryFlag(true, "SIGNED_OUT"));
+  assert.equal(initialRecoveryFlag("", storage), false, "signing out removes the stored flag");
+
+  storage.setItem(RECOVERY_FLAG_KEY, "yes");
+  assert.equal(readRecoveryFlag(storage), false, "only the exact value we write counts");
+}
+{
+  // Storage missing (old browser) or blocked (privacy mode): never crash.
+  const throwing = {
+    getItem() { throw new Error("SecurityError"); },
+    setItem() { throw new Error("QuotaExceededError"); },
+    removeItem() { throw new Error("SecurityError"); },
+  };
+  assert.equal(readRecoveryFlag(throwing), false);
+  assert.doesNotThrow(() => writeRecoveryFlag(throwing, true));
+  assert.doesNotThrow(() => writeRecoveryFlag(throwing, false));
+  assert.equal(readRecoveryFlag(null), false);
+  assert.doesNotThrow(() => writeRecoveryFlag(null, true));
+  assert.equal(initialRecoveryFlag(RECOVERY_HASH, throwing), true, "the hash alone still works");
+}
 
 // --- Keeping the user on the new-password screen --------------------------
 const RESET = "/reset-password";

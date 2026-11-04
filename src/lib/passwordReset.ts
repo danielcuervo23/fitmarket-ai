@@ -149,12 +149,68 @@ export function isRecoveryCallback(hash: string): boolean {
 /**
  * Whether the current session came from a recovery link and the password
  * has not been changed yet. Set by PASSWORD_RECOVERY; cleared once the
- * password is saved (USER_UPDATED) or the user signs out.
+ * password is saved (USER_UPDATED), the user signs out, or there is no
+ * session at all (a leftover flag must not force anything).
  */
-export function nextRecoveryFlag(current: boolean, event: string): boolean {
+export function nextRecoveryFlag(
+  current: boolean,
+  event: string,
+  hasSession = true,
+): boolean {
   if (event === "PASSWORD_RECOVERY") return true;
   if (event === "USER_UPDATED" || event === "SIGNED_OUT") return false;
+  if (!hasSession) return false;
   return current;
+}
+
+/**
+ * sessionStorage key for the recovery flag. Supabase drops the hash after
+ * reading it but keeps the session, so without this a reload on the
+ * new-password screen would forget that the password still has to be set.
+ * sessionStorage (not localStorage) keeps it to this tab.
+ */
+export const RECOVERY_FLAG_KEY = "fitmarket.passwordRecovery";
+
+/** The subset of the Web Storage API used here. */
+export type FlagStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+/** The browser's sessionStorage, or null when it is missing or blocked. */
+export function browserSessionStorage(): FlagStorage | null {
+  try {
+    return globalThis.sessionStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Reads the stored flag; any storage problem counts as "not recovering". */
+export function readRecoveryFlag(storage: FlagStorage | null): boolean {
+  try {
+    return storage?.getItem(RECOVERY_FLAG_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** Stores the flag (or removes it). Storage problems are ignored. */
+export function writeRecoveryFlag(
+  storage: FlagStorage | null,
+  isRecovering: boolean,
+): void {
+  try {
+    if (isRecovering) storage?.setItem(RECOVERY_FLAG_KEY, "1");
+    else storage?.removeItem(RECOVERY_FLAG_KEY);
+  } catch {
+    // Unavailable storage only loses the reload protection.
+  }
+}
+
+/** The flag at start-up: a valid recovery hash, or one stored before a reload. */
+export function initialRecoveryFlag(
+  hash: string,
+  storage: FlagStorage | null,
+): boolean {
+  return isRecoveryCallback(hash) || readRecoveryFlag(storage);
 }
 
 /**

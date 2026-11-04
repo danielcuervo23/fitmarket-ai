@@ -10,7 +10,12 @@ import {
 import type { Session, User } from "@supabase/supabase-js";
 import { signOut as authSignOut } from "@/lib/auth";
 import type { ErrorKey } from "@/lib/errors";
-import { isRecoveryCallback, nextRecoveryFlag } from "@/lib/passwordReset";
+import {
+  browserSessionStorage,
+  initialRecoveryFlag,
+  nextRecoveryFlag,
+  writeRecoveryFlag,
+} from "@/lib/passwordReset";
 import { supabase } from "@/lib/supabase";
 
 interface AuthContextValue {
@@ -34,16 +39,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   // Read the link synchronously too: Supabase only fires PASSWORD_RECOVERY
   // after the session is restored, and by then the splash could already be
-  // sending the user to the dashboard.
+  // sending the user to the dashboard. The flag is also kept in
+  // sessionStorage, because after a reload the hash is gone but the recovery
+  // session is still there.
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(() =>
-    isRecoveryCallback(window.location.hash),
+    initialRecoveryFlag(window.location.hash, browserSessionStorage()),
   );
+
+  useEffect(() => {
+    writeRecoveryFlag(browserSessionStorage(), isPasswordRecovery);
+  }, [isPasswordRecovery]);
 
   useEffect(() => {
     let isMounted = true;
 
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       if (!isMounted) return;
+      if (!initialSession) setIsPasswordRecovery(false);
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
       setIsLoading(false);
@@ -53,7 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!isMounted) return;
-      setIsPasswordRecovery((current) => nextRecoveryFlag(current, event));
+      setIsPasswordRecovery((current) =>
+        nextRecoveryFlag(current, event, nextSession !== null),
+      );
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       setIsLoading(false);
