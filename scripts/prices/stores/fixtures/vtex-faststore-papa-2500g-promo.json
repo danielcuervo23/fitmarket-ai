@@ -1,0 +1,49 @@
+{
+  "props": {
+    "pageProps": {
+      "data": {
+        "product": {
+          "sku": "1572",
+          "name": "PAPA PASTUSA CARULLA 2500  gr",
+          "offers": {
+            "offers": [
+              {
+                "price": 14672,
+                "listPrice": 20960,
+                "availability": "https://schema.org/InStock",
+                "itemOffered": {
+                  "measurementUnit": "un",
+                  "unitMultiplier": 1,
+                  "properties": [
+                    {
+                      "name": "Factor Neto",
+                      "values": [
+                        "2500 G"
+                      ]
+                    }
+                  ],
+                  "sellers": [
+                    {
+                      "commertialOffer": {
+                        "AvailableQuantity": 10000
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "sellers": [
+            {
+              "commertialOffer": {
+                "Price": 14672,
+                "ListPrice": 20960,
+                "AvailableQuantity": 10000
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
