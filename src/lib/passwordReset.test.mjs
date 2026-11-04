@@ -50,8 +50,9 @@ assert.equal(
 );
 
 // --- Never reveal whether an account exists -------------------------------
-// Anything that is not a network or rate-limit problem shows the same
-// "if there is an account, we sent a link" message (null = that message).
+// Anything that is not a network problem or the per-IP request limit shows
+// the same "if there is an account, we sent a link" message (null = that
+// message).
 assert.equal(resetRequestErrorKey(null), null);
 assert.equal(resetRequestErrorKey({ message: "User not found", status: 400 }), null);
 assert.equal(

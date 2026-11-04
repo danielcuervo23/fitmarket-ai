@@ -14,11 +14,6 @@ export function validateResetEmail(email: string): ErrorKey | null {
   return null;
 }
 
-/**
- * The URL written into the reset e-mail. `configuredBase` is
- * VITE_AUTH_REDIRECT_URL (so the native app can use its own link later);
- * without it, or if it is malformed, the current site is used.
- */
 function canParseUrl(value: string): boolean {
   try {
     new URL(value);
@@ -28,6 +23,12 @@ function canParseUrl(value: string): boolean {
   }
 }
 
+/**
+ * The URL written into the reset e-mail. `configuredBase` is
+ * VITE_AUTH_REDIRECT_URL (so the native app can use its own link later);
+ * without it, or if it cannot be parsed as a URL, the current site is used.
+ * Supabase only honours it if it is in the project's redirect allow-list.
+ */
 export function buildPasswordResetRedirect(
   path: string,
   configuredBase: string | undefined,
@@ -228,10 +229,12 @@ export function initialRecoveryFlag(
 }
 
 /**
- * While a recovery session is active, every route leads to the new-password
- * screen, so no automatic redirect (splash -> dashboard) can take the user
- * into the app before the password is set. Returns the path to go to, or
- * null to stay. Without a session (bad link) the user is never trapped.
+ * While the recovery flag is on and there is a session, every route leads to
+ * the new-password screen, so an automatic redirect (splash -> dashboard)
+ * cannot take the user into the app before the password is set. Returns the
+ * path to go to, or null to stay. Without a session it never redirects; a
+ * session the server no longer accepts is ended with `leaveRecoverySession`
+ * before leaving the screen.
  */
 export function recoveryRedirect(state: {
   location: string;
