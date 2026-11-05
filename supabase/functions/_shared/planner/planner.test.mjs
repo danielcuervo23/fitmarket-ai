@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import test from "node:test";
 import { CATALOG, getIngredient } from "../catalog.ts";
 import { calcTargets } from "../nutrition.ts";
 import {
@@ -7,7 +8,10 @@ import {
   dayNutrition,
   fitToBudget,
   mealLine,
+  complianceFromShortfalls,
   normalizeWeek,
+  roundQty,
+  totalsByIngredient,
   weekCost,
   weekStats,
 } from "./build.ts";
@@ -17,6 +21,7 @@ import { changedMeals, fallbackName, parseNaming, renameMeals, unnamedMeals } fr
 import { cheapestStore, carriedByAny } from "./stores.ts";
 import { allowedCatalog, buildRestrictionRules } from "./restrictions.ts";
 import { DAYS, SLOTS } from "./types.ts";
+import { parseWeeklyPlanJson } from "../weeklyPlanSchema.ts";
 
 const meal = (name, ...items) => ({
   name: { es: name, en: name },
@@ -417,5 +422,141 @@ const STORES = ["Exito", "D1"];
   assert.ok(viaFallback.mar.cena.name.es.length > 0);
   assert.notEqual(viaFallback.mar.cena.name.es, before.mar.cena.name.es);
 }
+
+// ---------------------------------------------------------------- plan output (recipes, notices, compliance)
+const recipeOf = (id, es) => ({
+  id,
+  status: "pending_owner_ok",
+  source: "ai_draft",
+  name: { es, en: `${es} (en)` },
+  slots: ["desayuno", "almuerzo", "cena", "snacks"],
+  minutes: 15,
+  level: "basic",
+  appliances: ["estufa"],
+  batch: { ok: true, keepsDays: 3 },
+  lines: [{ food: "huevo", qty: 2, role: "protein" }],
+  steps: { es: ["Paso uno."], en: ["Step one."] },
+  weekendOnly: false,
+});
+
+const RECIPE_IDS = { desayuno: "avena_banano", almuerzo: "arroz_pollo", cena: "huevos_arepa", snacks: "fruta_mani" };
+const LIBRARY = new Map(
+  [...Object.values(RECIPE_IDS), "receta_no_usada"].map((id) => [id, recipeOf(id, `Receta ${id}`)]),
+);
+
+function recipeWeek() {
+  const week = normalizeWeek(sampleWeek(), targets.kcal);
+  for (const day of DAYS) for (const slot of SLOTS) week[day][slot].recipeId = RECIPE_IDS[slot];
+  return week;
+}
+
+test("roundQty is exported and rounds like the plan does", () => {
+  assert.equal(roundQty(getIngredient("huevo"), 1.4), 1);
+  assert.equal(roundQty(getIngredient("arroz_blanco"), 87), 85);
+});
+
+test("an assembled plan without recipe options has none of the new fields", () => {
+  const plan = assemblePlan(recipeWeek(), { householdSize: 1, stores: STORES, targets });
+  for (const key of ["meal_recipes", "recipes", "notices", "compliance"]) assert.ok(!(key in plan), key);
+  assert.ok(!("recipe_library_version" in plan.summary));
+});
+
+test("assemblePlan embeds only the recipes used and their names", () => {
+  const plan = assemblePlan(recipeWeek(), { householdSize: 1, stores: STORES, targets, recipes: LIBRARY });
+  assert.deepEqual(Object.keys(plan.recipes).sort(), Object.values(RECIPE_IDS).sort());
+  assert.equal(plan.meal_recipes.vie.almuerzo, "arroz_pollo");
+  assert.deepEqual(plan.recipes.arroz_pollo, {
+    name: { es: "Receta arroz_pollo", en: "Receta arroz_pollo (en)" },
+    minutes: 15,
+    level: "basic",
+    appliances: ["estufa"],
+    batch: true,
+    steps: { es: ["Paso uno."], en: ["Step one."] },
+  });
+  assert.match(plan.summary.recipe_library_version, /^[0-9a-f]{12}$/);
+});
+
+test("recipe details are copies: changing the plan never touches the library", () => {
+  const plan = assemblePlan(recipeWeek(), { householdSize: 1, stores: STORES, targets, recipes: LIBRARY });
+  plan.recipes.arroz_pollo.steps.es.push("x");
+  plan.recipes.arroz_pollo.appliances.push("horno");
+  assert.deepEqual(LIBRARY.get("arroz_pollo").steps.es, ["Paso uno."]);
+  assert.deepEqual(LIBRARY.get("arroz_pollo").appliances, ["estufa"]);
+});
+
+test("a week with a meal outside the recipe map carries no recipe fields", () => {
+  const week = recipeWeek();
+  delete week.mar.cena.recipeId;
+  const plan = assemblePlan(week, { householdSize: 1, stores: STORES, targets, recipes: LIBRARY });
+  assert.ok(!("meal_recipes" in plan) && !("recipes" in plan));
+});
+
+test("notices and compliance are passed into the plan", () => {
+  const compliance = { status: "full", unmet: [] };
+  const plan = assemblePlan(recipeWeek(), {
+    householdSize: 1, stores: STORES, targets, notices: ["fat_blocked_minor"], compliance,
+  });
+  assert.deepEqual(plan.notices, ["fat_blocked_minor"]);
+  assert.deepEqual(plan.compliance, compliance);
+});
+
+test("a compliance marked full but with unmet rules is reported as partial", () => {
+  const unmet = [{ rule: "iodine_min", target: 150, achieved: 60, unit: "ug", unmeasurable: true }];
+  const plan = assemblePlan(recipeWeek(), { householdSize: 1, stores: STORES, targets, compliance: { status: "full", unmet } });
+  assert.equal(plan.compliance.status, "partial");
+  assert.deepEqual(plan.compliance.unmet, unmet);
+});
+
+test("complianceFromShortfalls: no shortfalls is full", () => {
+  assert.deepEqual(complianceFromShortfalls([]), { status: "full", unmet: [] });
+});
+
+test("complianceFromShortfalls: unmeasurable rules are unmet and flagged, never met", () => {
+  const compliance = complianceFromShortfalls([
+    { rule: "protein_min", level: 3, unit: "g", target: 90, achieved: 77 },
+    { rule: "fiber_min", level: 5, unit: "g", target: 25, achieved: 20, unmeasurable: true },
+  ]);
+  assert.deepEqual(compliance, {
+    status: "partial",
+    unmet: [
+      { rule: "protein_min", target: 90, achieved: 77, unit: "g" },
+      { rule: "fiber_min", target: 25, achieved: 20, unit: "g", unmeasurable: true },
+    ],
+  });
+});
+
+test("shopping quantities use the household factor", () => {
+  const week = recipeWeek();
+  const asked = new Map();
+  const prices = {
+    carries: () => true,
+    quote(ingredient, qty, stores) {
+      asked.set(ingredient.id, qty);
+      return { store: stores[0], packs: Math.ceil(qty / ingredient.pack), packSize: ingredient.pack, costCop: 1000, source: "estimate" };
+    },
+  };
+  const plan = assemblePlan(week, { householdSize: 2, householdFactor: 1.8, stores: STORES, targets, prices });
+  const perPerson = totalsByIngredient(week, 1);
+  for (const [id, qty] of perPerson) assert.ok(Math.abs(asked.get(id) - qty * 1.8) < 1e-9, id);
+  assert.equal(plan.summary.household_size, 2, "the summary keeps the number of people");
+});
+
+test("without a household factor, shopping is for householdSize portions", () => {
+  const week = recipeWeek();
+  const plan = assemblePlan(week, { householdSize: 3, stores: STORES, targets });
+  assert.equal(plan.summary.estimated_total_cop, weekCost(week, 3, STORES));
+});
+
+test("an assembled plan with recipes, notices and compliance passes the shared schema", () => {
+  const plan = assemblePlan(recipeWeek(), {
+    householdSize: 2, householdFactor: 1.8, stores: STORES, targets, recipes: LIBRARY,
+    notices: ["see_professional"],
+    compliance: complianceFromShortfalls([{ rule: "fiber_min", level: 5, unit: "g", target: 25, achieved: 20, unmeasurable: true }]),
+  });
+  const { data, error } = parseWeeklyPlanJson(JSON.parse(JSON.stringify(plan)));
+  assert.equal(error, null);
+  assert.equal(data.compliance.unmet[0].unmeasurable, true);
+  assert.equal(Object.keys(data.recipes).length, 4);
+});
 
 console.log("planner: all checks passed");

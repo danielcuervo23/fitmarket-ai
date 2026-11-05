@@ -8,7 +8,12 @@ import {
   type ShoppingCategory,
 } from "../catalog.ts";
 import type { NutritionTargets } from "../nutrition.ts";
+import type { ResolvedRecipe } from "../recipes/eligibility.ts";
+import { RECIPE_LIBRARY_VERSION } from "../recipes/library.generated.ts";
+import type { Appliance, CookingLevel } from "../recipes/types.ts";
 import type { PriceBook, PriceSource } from "./priceBook.ts";
+import type { Shortfall } from "./rules/ruleSet.ts";
+import type { NoticeCode } from "./rules/targets.ts";
 import { STATIC_PRICE_BOOK } from "./stores.ts";
 import { SWAP_RULES } from "./swaps.ts";
 import {
@@ -29,7 +34,7 @@ import {
 
 // ------------------------------------------------------------------ quantities
 
-function roundQty(ingredient: Ingredient, qty: number): number {
+export function roundQty(ingredient: Ingredient, qty: number): number {
   if (ingredient.unit === "unit") {
     // Eggs and fruit come whole; avocados and peppers may be halved.
     return ingredient.wholeUnits
@@ -161,10 +166,14 @@ export function normalizeWeek(
 
 // ------------------------------------------------------------------ aggregation
 
-/** Total quantity per ingredient across the week, for the whole household. */
+/**
+ * Total quantity per ingredient across the week, for the whole household.
+ * `householdFactor` is the number of adult portions bought per menu portion;
+ * it may be fractional (a child or a smaller eater counts as part of one).
+ */
 export function totalsByIngredient(
   week: ComposedWeek,
-  householdSize: number,
+  householdFactor: number,
 ): Map<string, number> {
   const totals = new Map<string, number>();
 
@@ -173,7 +182,7 @@ export function totalsByIngredient(
       for (const item of week[day][slot].items) {
         totals.set(
           item.id,
-          (totals.get(item.id) ?? 0) + item.qty * householdSize,
+          (totals.get(item.id) ?? 0) + item.qty * householdFactor,
         );
       }
     }
@@ -442,6 +451,51 @@ export interface PlanShoppingItem {
   price_updated_at?: string;
 }
 
+/** What the plan shows about one recipe used this week. */
+export interface PlanRecipeInfo {
+  name: { es: string; en: string };
+  minutes: number;
+  level: CookingLevel;
+  appliances: Appliance[];
+  batch: boolean;
+  steps: { es: string[]; en: string[] };
+}
+
+/**
+ * A rule the plan does not meet. `unmeasurable: true` marks a rule that could
+ * not be checked because some food has no nutrient data: it is listed as
+ * unmet (never as met) and `achieved` is only the measured part.
+ */
+export interface PlanUnmetRule {
+  rule: string;
+  target: number;
+  achieved: number;
+  unit: string;
+  unmeasurable?: true;
+}
+
+export interface PlanCompliance {
+  status: "full" | "partial";
+  unmet: PlanUnmetRule[];
+}
+
+/** Every shortfall (also unmeasurable and elastic ones) is unmet; none means full. */
+export function complianceFromShortfalls(shortfalls: readonly Shortfall[]): PlanCompliance {
+  const unmet = shortfalls.map((s): PlanUnmetRule => {
+    const entry: PlanUnmetRule = { rule: s.rule, target: s.target, achieved: s.achieved, unit: s.unit };
+    return s.unmeasurable ? { ...entry, unmeasurable: true } : entry;
+  });
+  return { status: unmet.length > 0 ? "partial" : "full", unmet };
+}
+
+/** A copy that can never claim "full" while it lists unmet rules. */
+function consistentCompliance(compliance: PlanCompliance): PlanCompliance {
+  return {
+    status: compliance.unmet.length > 0 ? "partial" : compliance.status,
+    unmet: compliance.unmet.map((entry) => ({ ...entry })),
+  };
+}
+
 export interface BuiltPlan {
   summary: {
     estimated_total_cop: number;
@@ -449,11 +503,59 @@ export interface BuiltPlan {
     estimated_daily_protein_g: number;
     target_kcal: number;
     household_size: number;
+    recipe_library_version?: string;
   };
   weekly_menu: Record<Day, Record<Slot, string[]>>;
   weekly_menu_en: Record<Day, Record<Slot, string[]>>;
   dish_names: Record<Day, Record<Slot, { es: string; en: string }>>;
   shopping_list: PlanShoppingItem[];
+  /** Recipe id per meal (plans from recipes only). */
+  meal_recipes?: Record<Day, Record<Slot, string>>;
+  /** Details of the recipes used this week, by id. */
+  recipes?: Record<string, PlanRecipeInfo>;
+  notices?: string[];
+  compliance?: PlanCompliance;
+}
+
+function recipeInfo(recipe: ResolvedRecipe): PlanRecipeInfo {
+  return {
+    name: { ...recipe.name },
+    minutes: recipe.minutes,
+    level: recipe.level,
+    appliances: [...recipe.appliances],
+    batch: recipe.batch.ok,
+    steps: { es: [...recipe.steps.es], en: [...recipe.steps.en] },
+  };
+}
+
+/**
+ * Recipe per meal and the details of each recipe used, or null when any meal
+ * does not come from a known recipe (then the plan carries no recipe fields).
+ */
+function recipeFields(
+  week: ComposedWeek,
+  library: ReadonlyMap<string, ResolvedRecipe>,
+): Required<Pick<BuiltPlan, "meal_recipes" | "recipes">> | null {
+  const meal_recipes = {} as Record<Day, Record<Slot, string>>;
+  const recipes: Record<string, PlanRecipeInfo> = {};
+
+  for (const day of DAYS) {
+    meal_recipes[day] = {} as Record<Slot, string>;
+
+    for (const slot of SLOTS) {
+      const id = week[day][slot].recipeId;
+      const recipe = id === undefined ? undefined : library.get(id);
+
+      if (id === undefined || !recipe) {
+        return null;
+      }
+
+      meal_recipes[day][slot] = id;
+      recipes[id] ??= recipeInfo(recipe);
+    }
+  }
+
+  return { meal_recipes, recipes };
 }
 
 export function assemblePlan(
@@ -464,9 +566,16 @@ export function assemblePlan(
     targets: NutritionTargets;
     catalog?: Catalog;
     prices?: PriceBook;
+    /** Library recipes by id; meals point to them with `recipeId`. */
+    recipes?: ReadonlyMap<string, ResolvedRecipe>;
+    notices?: NoticeCode[];
+    compliance?: PlanCompliance;
+    /** Adult portions bought per menu portion (default householdSize). */
+    householdFactor?: number;
   },
 ): BuiltPlan {
   const { householdSize, stores, targets } = options;
+  const householdFactor = options.householdFactor ?? householdSize;
   const catalog = options.catalog ?? STATIC_CATALOG;
   const prices = options.prices ?? STATIC_PRICE_BOOK;
   const stats = weekStats(week, catalog);
@@ -502,7 +611,7 @@ export function assemblePlan(
   const shopping_list: PlanShoppingItem[] = [];
   let total = 0;
 
-  for (const [id, qty] of totalsByIngredient(week, householdSize)) {
+  for (const [id, qty] of totalsByIngredient(week, householdFactor)) {
     const ingredient = catalog.get(id);
 
     if (!ingredient) {
@@ -524,6 +633,8 @@ export function assemblePlan(
     });
   }
 
+  const fromRecipes = options.recipes ? recipeFields(week, options.recipes) : null;
+
   return {
     summary: {
       estimated_total_cop: total,
@@ -531,11 +642,15 @@ export function assemblePlan(
       estimated_daily_protein_g: stats.avgProtein,
       target_kcal: targets.kcal,
       household_size: householdSize,
+      ...(fromRecipes ? { recipe_library_version: RECIPE_LIBRARY_VERSION } : {}),
     },
     weekly_menu,
     weekly_menu_en,
     dish_names,
     shopping_list,
+    ...(fromRecipes ?? {}),
+    ...(options.notices ? { notices: [...options.notices] } : {}),
+    ...(options.compliance ? { compliance: consistentCompliance(options.compliance) } : {}),
   };
 }
 
