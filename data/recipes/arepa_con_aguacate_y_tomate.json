@@ -1,0 +1,60 @@
+{
+  "id": "arepa_con_aguacate_y_tomate",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Arepa con aguacate y tomate",
+    "en": "Arepa with avocado and tomato"
+  },
+  "slots": [
+    "desayuno",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "harina_maiz",
+      "qty": 60,
+      "role": "carb"
+    },
+    {
+      "food": "aguacate",
+      "qty": 0.5,
+      "role": "fat"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Mezcla la harina con la sal y agua tibia, poco a poco, hasta tener una masa suave.",
+      "Haz una bola y aplástala con las manos hasta que quede como un disco.",
+      "Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
+      "Mientras tanto, aplasta el aguacate con un tenedor y pica el tomate.",
+      "Abre la arepa y rellénala con el aguacate y el tomate."
+    ],
+    "en": [
+      "Mix the flour with the salt and warm water, bit by bit, until you get a soft dough.",
+      "Make a ball and press it with your hands into a disc.",
+      "Cook it in a dry pan over medium heat, 5 minutes on each side.",
+      "Meanwhile, mash the avocado with a fork and chop the tomato.",
+      "Open the arepa and fill it with the avocado and tomato."
+    ]
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "id": "frijoles_en_olla_a_presion",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Fríjoles con plátano en olla a presión",
+    "en": "Pressure-cooker beans with plantain"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 55,
+  "level": "comfortable",
+  "appliances": [
+    "estufa",
+    "olla_presion"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 4
+  },
+  "lines": [
+    {
+      "food": "frijol",
+      "qty": 70,
+      "role": "protein"
+    },
+    {
+      "food": "platano",
+      "qty": 80,
+      "role": "carb"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_junca",
+      "qty": 25,
+      "role": "veg"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 3,
+      "role": "fat"
+    },
+    {
+      "food": "sal",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "arroz_blanco",
+      "qty": 60,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "La noche anterior, deja los fríjoles en un recipiente con bastante agua (el doble de lo que ocupan).",
+      "Bota esa agua y pon los fríjoles en la olla a presión con agua nueva que los cubra 3 dedos y el plátano verde en trocitos.",
+      "Tapa bien la olla y ponla a fuego medio. Cuando empiece a pitar, baja el fuego y cuenta 30 minutos.",
+      "Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).",
+      "Haz un hogao (salsa casera): cocina en una sartén con el aceite el tomate, la cebolla, el ajo y la zanahoria picados, 5 minutos.",
+      "Échalo a los fríjoles con la sal, hierve 5 minutos sin tapa y sirve, si quieres, con arroz."
+    ],
+    "en": [
+      "The night before, soak the beans in a bowl with plenty of water (twice their volume).",
+      "Pour off that water and put the beans in the pressure cooker with fresh water three fingers above them and the green plantain in small pieces.",
+      "Close the lid well and put it over medium heat. When it starts to whistle, lower the heat and count 30 minutes.",
+      "Turn it off and wait until no more steam comes out before opening it (never open it under pressure).",
+      "Make a hogao (homemade sauce): in a pan with the oil, cook the chopped tomato, onion, garlic and carrot for 5 minutes.",
+      "Add it to the beans with the salt, boil 5 minutes uncovered and serve, if you like, with rice."
+    ]
+  }
+}

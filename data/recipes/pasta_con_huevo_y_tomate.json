@@ -1,0 +1,75 @@
+{
+  "id": "pasta_con_huevo_y_tomate",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Pasta con huevo, tomate y habichuela",
+    "en": "Pasta with egg, tomato and green beans"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "pasta",
+      "qty": 80,
+      "role": "carb"
+    },
+    {
+      "food": "huevo",
+      "qty": 2,
+      "role": "protein"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 100,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_junca",
+      "qty": 20,
+      "role": "veg"
+    },
+    {
+      "food": "habichuela",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "fat"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pon a hervir agua con sal y cocina la pasta el tiempo que diga el paquete.",
+      "Corta la habichuela en trocitos y échala a la olla de la pasta los últimos 5 minutos.",
+      "Pica el tomate y la cebolla larga, y cocínalos en una sartén con el aceite 5 minutos.",
+      "Bate los huevos, échalos a la sartén y revuelve hasta que no estén líquidos.",
+      "Escurre la pasta con la habichuela y mézclala con el huevo y el tomate."
+    ],
+    "en": [
+      "Boil salted water and cook the pasta for the time on the package.",
+      "Cut the green beans into small pieces and add them to the pasta pot for the last 5 minutes.",
+      "Chop the tomato and spring onion, and cook them in a pan with the oil for 5 minutes.",
+      "Beat the eggs, pour them into the pan and stir until they are no longer runny.",
+      "Drain the pasta and green beans and mix them with the egg and tomato."
+    ]
+  }
+}

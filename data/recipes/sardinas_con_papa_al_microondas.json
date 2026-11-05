@@ -1,0 +1,70 @@
+{
+  "id": "sardinas_con_papa_al_microondas",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Sardinas con papa al microondas y ensalada",
+    "en": "Sardines with microwave potato and salad"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [
+    "microondas"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "sardina_lata",
+      "qty": 90,
+      "role": "protein"
+    },
+    {
+      "food": "papa",
+      "qty": 180,
+      "role": "carb"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "lechuga",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 20,
+      "role": "veg"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la papa, pínchala con un tenedor y caliéntala 7 minutos en el microondas, volteándola a la mitad.",
+      "Mientras tanto, lava la lechuga y pica el tomate y la cebolla.",
+      "Abre la lata de sardinas y pásalas a un plato.",
+      "Calienta las sardinas 1 minuto en el microondas, tapadas.",
+      "Parte la papa y sírvela con las sardinas y la ensalada."
+    ],
+    "en": [
+      "Wash the potato, prick it with a fork and microwave it 7 minutes, turning it halfway.",
+      "Meanwhile, wash the lettuce and chop the tomato and onion.",
+      "Open the can of sardines and put them on a plate.",
+      "Microwave the sardines for 1 minute, covered.",
+      "Cut the potato and serve it with the sardines and the salad."
+    ]
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "id": "pasta_con_tomate_y_espinaca",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Pasta con tomate y espinaca",
+    "en": "Pasta with tomato and spinach"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 2
+  },
+  "lines": [
+    {
+      "food": "pasta",
+      "qty": 80,
+      "role": "carb"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 120,
+      "role": "veg"
+    },
+    {
+      "food": "espinaca",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_oliva",
+      "qty": 7,
+      "role": "fat",
+      "alternatives": [
+        {
+          "food": "aceite_vegetal",
+          "qty": 7
+        }
+      ]
+    },
+    {
+      "food": "ajo",
+      "qty": 3,
+      "role": "fixed"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    },
+    {
+      "food": "queso_campesino",
+      "qty": 20,
+      "role": "protein",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pon a hervir agua con sal y cocina la pasta el tiempo que diga el paquete.",
+      "Mientras tanto, pica el tomate, la cebolla y el ajo; lava la espinaca.",
+      "En una sartén con el aceite, cocina la cebolla y el ajo 2 minutos a fuego medio.",
+      "Agrega el tomate y cocina 5 minutos, revolviendo, hasta que se deshaga como salsa.",
+      "Echa la espinaca y revuelve 1 minuto, hasta que se encoja.",
+      "Escurre la pasta, mézclala con la salsa y, si quieres, pon queso desmoronado encima."
+    ],
+    "en": [
+      "Boil salted water and cook the pasta for the time on the package.",
+      "Meanwhile, chop the tomato, onion and garlic; wash the spinach.",
+      "In a pan with the oil, cook the onion and garlic for 2 minutes over medium heat.",
+      "Add the tomato and cook 5 minutes, stirring, until it breaks down into a sauce.",
+      "Add the spinach and stir for 1 minute, until it shrinks.",
+      "Drain the pasta, mix it with the sauce and, if you like, crumble cheese on top."
+    ]
+  }
+}

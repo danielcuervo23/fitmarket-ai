@@ -1,0 +1,73 @@
+{
+  "id": "huevos_revueltos_en_microondas",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Huevos revueltos en el microondas",
+    "en": "Microwave scrambled eggs"
+  },
+  "slots": [
+    "desayuno",
+    "cena"
+  ],
+  "minutes": 5,
+  "level": "basic",
+  "appliances": [
+    "microondas"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "huevo",
+      "qty": 2,
+      "role": "protein"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_junca",
+      "qty": 15,
+      "role": "veg"
+    },
+    {
+      "food": "espinaca",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    },
+    {
+      "food": "pan_tajado",
+      "qty": 50,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pica el tomate, la cebolla y la espinaca bien pequeñitos.",
+      "En una taza grande que sirva para microondas, bate los huevos con la sal.",
+      "Agrega los picados y revuelve.",
+      "Calienta 1 minuto en el microondas, saca y revuelve con un tenedor.",
+      "Calienta 30 segundos más, hasta que el huevo esté firme (que no quede líquido).",
+      "Cómelos con el pan, si quieres."
+    ],
+    "en": [
+      "Chop the tomato, onion and spinach very small.",
+      "In a large microwave-safe mug, beat the eggs with the salt.",
+      "Add the chopped vegetables and stir.",
+      "Microwave for 1 minute, take it out and stir with a fork.",
+      "Microwave 30 seconds more, until the egg is set (nothing runny left).",
+      "Eat them with the bread, if you like."
+    ]
+  }
+}

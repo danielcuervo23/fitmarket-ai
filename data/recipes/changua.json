@@ -1,0 +1,76 @@
+{
+  "id": "changua",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Changua (caldo de leche con huevo)",
+    "en": "Changua (milk broth with egg)"
+  },
+  "slots": [
+    "desayuno"
+  ],
+  "minutes": 15,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "leche_entera",
+      "qty": 200,
+      "role": "protein",
+      "alternatives": [
+        {
+          "food": "leche_deslactosada",
+          "qty": 200
+        }
+      ]
+    },
+    {
+      "food": "huevo",
+      "qty": 2,
+      "role": "protein"
+    },
+    {
+      "food": "cebolla_junca",
+      "qty": 15,
+      "role": "veg"
+    },
+    {
+      "food": "cilantro",
+      "qty": 5,
+      "role": "fixed"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    },
+    {
+      "food": "pan_tajado",
+      "qty": 25,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pica la cebolla larga y el cilantro bien finitos.",
+      "Pon en una olla la leche, media taza de agua, la cebolla y la sal, a fuego medio.",
+      "Cuando empiece a hervir (a hacer burbujas), baja el fuego.",
+      "Rompe los huevos uno por uno dentro de la leche, sin revolver, y déjalos 3 minutos hasta que la clara esté blanca.",
+      "Sirve en un plato hondo con el cilantro encima y, si quieres, el pan en trocitos."
+    ],
+    "en": [
+      "Finely chop the spring onion and the cilantro.",
+      "Put the milk, half a cup of water, the onion and the salt in a pot over medium heat.",
+      "When it starts to boil (to bubble), lower the heat.",
+      "Crack the eggs one by one into the milk, without stirring, and leave them 3 minutes until the whites are white.",
+      "Serve in a bowl with the cilantro on top and, if you like, the bread in small pieces."
+    ]
+  }
+}

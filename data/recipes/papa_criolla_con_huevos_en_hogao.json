@@ -1,0 +1,70 @@
+{
+  "id": "papa_criolla_con_huevos_en_hogao",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Papa criolla con huevos en hogao",
+    "en": "Small yellow potatoes with eggs in tomato sauce"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "papa_criolla",
+      "qty": 180,
+      "role": "carb"
+    },
+    {
+      "food": "huevo",
+      "qty": 2,
+      "role": "protein"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_junca",
+      "qty": 25,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "fat"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava las papas criollas y cocínalas enteras en agua con sal, 15 minutos, hasta que un tenedor entre fácil.",
+      "Mientras tanto, pica el tomate y la cebolla larga en cuadritos.",
+      "Haz el hogao (salsa casera): cocina el tomate y la cebolla en el aceite, 5 minutos a fuego medio, revolviendo.",
+      "Bate los huevos, échalos al hogao y revuelve hasta que no estén líquidos.",
+      "Escurre las papas y sírvelas con los huevos."
+    ],
+    "en": [
+      "Wash the small potatoes and boil them whole in salted water for 15 minutes, until a fork goes in easily.",
+      "Meanwhile, dice the tomato and the spring onion.",
+      "Make the hogao (homemade sauce): cook the tomato and onion in the oil, 5 minutes over medium heat, stirring.",
+      "Beat the eggs, pour them into the sauce and stir until they are no longer runny.",
+      "Drain the potatoes and serve them with the eggs."
+    ]
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "id": "quinua_con_verduras",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Quinua con verduras",
+    "en": "Quinoa with vegetables"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 3
+  },
+  "lines": [
+    {
+      "food": "quinua",
+      "qty": 60,
+      "role": "carb"
+    },
+    {
+      "food": "espinaca",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "calabacin",
+      "qty": 60,
+      "role": "veg",
+      "alternatives": [
+        {
+          "food": "habichuela",
+          "qty": 60
+        }
+      ]
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "fat"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    },
+    {
+      "food": "mani",
+      "qty": 15,
+      "role": "protein",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la quinua en un colador con agua, frotándola con la mano (así no queda amarga).",
+      "Cocínala en una olla con el doble de agua y un poco de sal, tapada, 15 minutos a fuego bajo.",
+      "Mientras tanto, pica la zanahoria, el calabacín y la cebolla en cuadritos.",
+      "En una sartén con el aceite, cocina esas verduras 5 minutos, revolviendo.",
+      "Agrega la espinaca y revuelve 1 minuto, hasta que se encoja.",
+      "Mezcla las verduras con la quinua y, si quieres, pon maní encima."
+    ],
+    "en": [
+      "Rinse the quinoa in a sieve under water, rubbing it with your hand (so it is not bitter).",
+      "Cook it in a pot with twice as much water and a little salt, covered, 15 minutes over low heat.",
+      "Meanwhile, dice the carrot, zucchini and onion.",
+      "In a pan with the oil, cook those vegetables for 5 minutes, stirring.",
+      "Add the spinach and stir for 1 minute, until it shrinks.",
+      "Mix the vegetables with the quinoa and, if you like, add peanuts on top."
+    ]
+  }
+}

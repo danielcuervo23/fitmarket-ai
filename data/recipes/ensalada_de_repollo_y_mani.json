@@ -1,0 +1,73 @@
+{
+  "id": "ensalada_de_repollo_y_mani",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Ensalada de repollo, zanahoria y maní con pan",
+    "en": "Cabbage, carrot and peanut salad with bread"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "repollo",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "mani",
+      "qty": 25,
+      "role": "protein"
+    },
+    {
+      "food": "pan_tajado",
+      "qty": 50,
+      "role": "carb"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "fat"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava el repollo y córtalo en tiras muy delgadas.",
+      "Pela la zanahoria y rállala (pásala por el rallador).",
+      "Pica el tomate y mezcla todo en un plato hondo.",
+      "Agrega el aceite, la sal y el maní, y revuelve.",
+      "Cómela con el pan."
+    ],
+    "en": [
+      "Wash the cabbage and cut it into very thin strips.",
+      "Peel the carrot and grate it.",
+      "Chop the tomato and mix everything in a bowl.",
+      "Add the oil, salt and peanuts, and stir.",
+      "Eat it with the bread."
+    ]
+  }
+}

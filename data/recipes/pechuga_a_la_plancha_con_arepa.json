@@ -1,0 +1,88 @@
+{
+  "id": "pechuga_a_la_plancha_con_arepa",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Pechuga a la plancha con arepa y ensalada",
+    "en": "Pan-grilled chicken breast with arepa and salad"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "pechuga_pollo",
+      "qty": 130,
+      "role": "protein",
+      "inName": true,
+      "alternatives": [
+        {
+          "food": "lomo_cerdo",
+          "qty": 130,
+          "name": {
+            "es": "Lomo de cerdo a la plancha con arepa y ensalada",
+            "en": "Pan-grilled pork loin with arepa and salad"
+          }
+        }
+      ]
+    },
+    {
+      "food": "harina_maiz",
+      "qty": 60,
+      "role": "carb"
+    },
+    {
+      "food": "lechuga",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "pepino",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "fat"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Prepara la masa: mezcla la harina con sal y agua tibia, haz una bola y aplástala como un disco.",
+      "Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
+      "Corta la carne en filetes delgados y échales sal.",
+      "Cocínala a la plancha: en otra sartén con muy poco aceite, 4 minutos por cada lado, hasta que por dentro no esté rosada.",
+      "Lava y pica la lechuga, el tomate y el pepino para la ensalada.",
+      "Sirve la carne con la arepa y la ensalada."
+    ],
+    "en": [
+      "Make the dough: mix the flour with salt and warm water, make a ball and press it into a disc.",
+      "Cook the arepa in a dry pan over medium heat, 5 minutes on each side.",
+      "Cut the meat into thin fillets and salt them.",
+      "Pan-grill it: in another pan with very little oil, 4 minutes on each side, until it is no longer pink inside.",
+      "Wash and chop the lettuce, tomato and cucumber for the salad.",
+      "Serve the meat with the arepa and the salad."
+    ]
+  }
+}

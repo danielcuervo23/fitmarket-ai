@@ -1,0 +1,83 @@
+{
+  "id": "sopa_de_arveja_seca",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Sopa de arveja seca",
+    "en": "Dried pea soup"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 60,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 3
+  },
+  "lines": [
+    {
+      "food": "arveja_seca",
+      "qty": 60,
+      "role": "protein"
+    },
+    {
+      "food": "papa",
+      "qty": 100,
+      "role": "carb"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "ahuyama",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_junca",
+      "qty": 20,
+      "role": "veg"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "sal",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "cilantro",
+      "qty": 5,
+      "role": "fixed",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "La noche anterior, deja la arveja seca en un recipiente con bastante agua.",
+      "Bota esa agua y cocina la arveja en una olla con 5 tazas de agua nueva, a fuego medio, 35 minutos.",
+      "Mientras tanto, pela y pica en cuadritos la papa, la zanahoria y la ahuyama.",
+      "Échalas a la olla con la cebolla, el ajo picado y la sal, y cocina 20 minutos más.",
+      "Está lista cuando la arveja y la papa se aplastan fácil con una cuchara.",
+      "Sirve con cilantro. Lo que sobre dura hasta 3 días en la nevera."
+    ],
+    "en": [
+      "The night before, soak the dried peas in a bowl with plenty of water.",
+      "Pour off that water and cook the peas in a pot with 5 cups of fresh water, over medium heat, 35 minutes.",
+      "Meanwhile, peel and dice the potato, carrot and pumpkin.",
+      "Add them to the pot with the onion, chopped garlic and salt, and cook 20 more minutes.",
+      "It is ready when the peas and potato mash easily with a spoon.",
+      "Serve with cilantro. Leftovers keep up to 3 days in the fridge."
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "id": "pollo_salteado_con_quinua",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Pollo salteado con verduras y quinua",
+    "en": "Stir-fried chicken with vegetables and quinoa"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 3
+  },
+  "lines": [
+    {
+      "food": "pechuga_pollo",
+      "qty": 120,
+      "role": "protein"
+    },
+    {
+      "food": "quinua",
+      "qty": 50,
+      "role": "carb"
+    },
+    {
+      "food": "pimenton",
+      "qty": 0.5,
+      "role": "veg"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "fat"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la quinua en un colador y cocínala con el doble de agua y sal, tapada, 15 minutos a fuego bajo.",
+      "Mientras tanto, corta el pollo en tiritas y échale sal.",
+      "Corta el pimentón, la zanahoria y la cebolla en tiras delgadas, y pica el ajo.",
+      "Saltea el pollo: en una sartén con el aceite a fuego alto, revuélvelo 6 minutos, hasta que por dentro esté blanco.",
+      "Agrega las verduras y revuelve 4 minutos más; deben quedar un poco crocantes (que suenen al morderlas).",
+      "Sirve con la quinua."
+    ],
+    "en": [
+      "Rinse the quinoa in a sieve and cook it with twice as much water and salt, covered, 15 minutes over low heat.",
+      "Meanwhile, cut the chicken into strips and salt it.",
+      "Cut the bell pepper, carrot and onion into thin strips, and chop the garlic.",
+      "Stir-fry the chicken: in a pan with the oil over high heat, stir it 6 minutes, until it is white inside.",
+      "Add the vegetables and stir 4 more minutes; they should stay a little crunchy.",
+      "Serve with the quinoa."
+    ]
+  }
+}

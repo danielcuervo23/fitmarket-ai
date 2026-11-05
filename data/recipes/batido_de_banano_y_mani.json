@@ -1,0 +1,65 @@
+{
+  "id": "batido_de_banano_y_mani",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Batido de banano y maní",
+    "en": "Banana and peanut smoothie"
+  },
+  "slots": [
+    "desayuno",
+    "snacks"
+  ],
+  "minutes": 5,
+  "level": "basic",
+  "appliances": [
+    "licuadora"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "leche_entera",
+      "qty": 250,
+      "role": "protein",
+      "alternatives": [
+        {
+          "food": "leche_deslactosada",
+          "qty": 250
+        }
+      ]
+    },
+    {
+      "food": "banano",
+      "qty": 1,
+      "role": "veg"
+    },
+    {
+      "food": "mani",
+      "qty": 15,
+      "role": "fat"
+    },
+    {
+      "food": "avena",
+      "qty": 20,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pela el banano y pártelo en trozos.",
+      "Pon en la licuadora la leche, el banano, el maní y, si quieres, la avena.",
+      "Licúa 1 minuto, hasta que no queden pedazos.",
+      "Sírvelo enseguida, sin agregarle azúcar."
+    ],
+    "en": [
+      "Peel the banana and break it into pieces.",
+      "Put the milk, banana, peanuts and, if you like, the oats in the blender.",
+      "Blend for 1 minute, until there are no pieces left.",
+      "Serve it right away, without adding sugar."
+    ]
+  }
+}

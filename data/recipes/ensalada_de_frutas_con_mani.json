@@ -1,0 +1,67 @@
+{
+  "id": "ensalada_de_frutas_con_mani",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Ensalada de frutas con maní",
+    "en": "Fruit salad with peanuts"
+  },
+  "slots": [
+    "desayuno",
+    "snacks"
+  ],
+  "minutes": 5,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "banano",
+      "qty": 1,
+      "role": "veg"
+    },
+    {
+      "food": "papaya",
+      "qty": 100,
+      "role": "veg",
+      "alternatives": [
+        {
+          "food": "mango",
+          "qty": 100
+        },
+        {
+          "food": "pina",
+          "qty": 100
+        }
+      ]
+    },
+    {
+      "food": "mani",
+      "qty": 20,
+      "role": "fat"
+    },
+    {
+      "food": "avena",
+      "qty": 20,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la fruta y pélala.",
+      "Pica el banano y la papaya en cuadritos.",
+      "Ponlos en un plato hondo y échales el maní encima.",
+      "Si quieres algo más llenador, agrega la avena en hojuelas."
+    ],
+    "en": [
+      "Wash and peel the fruit.",
+      "Cut the banana and the papaya into small cubes.",
+      "Put them in a bowl and sprinkle the peanuts on top.",
+      "For something more filling, add the rolled oats."
+    ]
+  }
+}

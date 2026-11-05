@@ -1,0 +1,93 @@
+{
+  "id": "arroz_con_pollo",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Arroz con pollo",
+    "en": "Chicken with rice"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 50,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 3
+  },
+  "lines": [
+    {
+      "food": "pernil_pollo",
+      "qty": 130,
+      "role": "protein",
+      "alternatives": [
+        {
+          "food": "pechuga_pollo",
+          "qty": 110
+        }
+      ]
+    },
+    {
+      "food": "arroz_blanco",
+      "qty": 70,
+      "role": "carb"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "habichuela",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "pimenton",
+      "qty": 0.5,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "fat"
+    },
+    {
+      "food": "sal",
+      "qty": 2,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Cocina el pollo en una olla con agua y sal, 25 minutos. Guarda el caldo (el agua donde se cocinó).",
+      "Saca el pollo, déjalo enfriar un poco, quítale el hueso y la piel, y desmenúzalo con las manos en tiras.",
+      "Pica la zanahoria, la habichuela, el pimentón, la cebolla y el ajo en cuadritos.",
+      "En la olla con el aceite, cocina esas verduras 5 minutos, revolviendo.",
+      "Agrega el arroz, el pollo y caldo (el doble del arroz); cuando hierva, tapa y baja el fuego al mínimo 20 minutos.",
+      "Destapa, revuelve con un tenedor y sirve. Dura hasta 3 días en la nevera."
+    ],
+    "en": [
+      "Boil the chicken in a pot with water and salt for 25 minutes. Keep the broth (the cooking water).",
+      "Take the chicken out, let it cool a little, remove the bone and skin, and shred it into strips with your hands.",
+      "Dice the carrot, green beans, bell pepper, onion and garlic.",
+      "In the pot with the oil, cook those vegetables for 5 minutes, stirring.",
+      "Add the rice, the chicken and broth (twice the rice); when it boils, cover and turn the heat to the minimum for 20 minutes.",
+      "Uncover, fluff with a fork and serve. It keeps up to 3 days in the fridge."
+    ]
+  }
+}
