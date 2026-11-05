@@ -33,7 +33,11 @@ export interface GoalTargets {
   weightKg: number;
   /** Daily target. */
   kcal: number;
-  /** Level 2. */
+  /**
+   * Level 2. May be zero-width (min === max) when the safety floor lies above
+   * the whole goal band, e.g. [1500, 1500]. Consumers (the optimizer) must
+   * treat it as ">= min and <= kcalSafety.max", never as an equality.
+   */
   kcalRange: Range;
   /** Level 1. */
   kcalSafety: Range;
@@ -67,7 +71,15 @@ const SEX_FLOOR_KCAL = { female: 1200, male: 1500, unknown: 1400 } as const;
 const ABSOLUTE_FLOOR_KCAL = 800;
 const SAFETY_MIN_TDEE_FACTOR = 0.75;
 const SAFETY_MAX_TDEE_FACTOR = 1.15;
+/** Hard ceiling: wins over every floor, including 0.75 TDEE and the fat deficit cap. */
 const MAX_KCAL = 4000;
+
+/** Accepted body inputs; anything outside is rejected. */
+const BODY_BOUNDS = {
+  age: { min: 10, max: 120 },
+  weightKg: { min: 25, max: 300 },
+  heightCm: { min: 100, max: 250 },
+} as const;
 
 const KCAL_TOLERANCE = 0.1;
 const KCAL_PER_KG_FAT = 7700;
@@ -138,10 +150,12 @@ const RECOMPOSITION: GoalProfile = {
 const KIDNEY_PROTEIN: ProteinPerKg = { min: 0.8, max: 1.2, target: 1 };
 
 function assertBody(profile: BodyProfile): void {
+  const within = (value: number, bounds: Range): boolean =>
+    Number.isFinite(value) && value >= bounds.min && value <= bounds.max;
   const valid =
-    Number.isFinite(profile.age) && profile.age > 0 &&
-    Number.isFinite(profile.weightKg) && profile.weightKg > 0 &&
-    Number.isFinite(profile.heightCm) && profile.heightCm > 0 &&
+    within(profile.age, BODY_BOUNDS.age) &&
+    within(profile.weightKg, BODY_BOUNDS.weightKg) &&
+    within(profile.heightCm, BODY_BOUNDS.heightCm) &&
     isActivityLevel(profile.activity);
   if (!valid) throw new RangeError("invalid body profile");
 }
@@ -218,7 +232,10 @@ export function buildTargets(
   const weightKg = profile.weightKg;
 
   // Level 1: safety range.
-  const safetyMin = Math.max(safetyFloorKcal(profile, rawBmr), Math.round(SAFETY_MIN_TDEE_FACTOR * tdee));
+  const safetyMin = Math.min(
+    MAX_KCAL,
+    Math.max(safetyFloorKcal(profile, rawBmr), Math.round(SAFETY_MIN_TDEE_FACTOR * tdee)),
+  );
   const kcalSafety: Range = {
     min: safetyMin,
     max: Math.max(safetyMin, Math.round(Math.min(MAX_KCAL, SAFETY_MAX_TDEE_FACTOR * tdee))),

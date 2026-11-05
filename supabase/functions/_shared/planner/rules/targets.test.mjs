@@ -241,3 +241,42 @@ test("householdFactor rejects invalid input", () => {
   assert.throws(() => householdFactor(1.5, 2000), RangeError);
   assert.throws(() => householdFactor(2, 0), RangeError);
 });
+
+// BMR = 2000 + 1187.5 - 150 + 5 = 3042.5; TDEE = 3042.5 * 1.9 = 5781 (0.75 * TDEE = 4336 > 4000)
+const giant = { age: 30, weightKg: 200, heightCm: 190, activity: "very_active", sex: "male" };
+
+test("the 4000 kcal ceiling holds even when 0.75 TDEE is above it", () => {
+  const t = buildTargets(giant, []);
+  assert.deepEqual(t.kcalSafety, { min: 4000, max: 4000 });
+  assert.ok(t.kcalRange.min <= t.kcalRange.max);
+  assert.ok(t.kcalRange.max <= 4000);
+  assert.ok(t.kcal <= 4000);
+});
+
+test("fat on a very high TDEE: the 4000 kcal ceiling wins over the deficit cap", () => {
+  // The deficit cap (1100 kcal/day) would ask for >= 4681 kcal; the hard ceiling of 4000 wins.
+  const t = buildTargets(giant, ["fat"]);
+  assert.equal(t.kcal, 4000);
+  assert.deepEqual(t.kcalRange, { min: 4000, max: 4000 });
+  assert.ok(t.kcalSafety.min <= t.kcalSafety.max);
+});
+
+test("body inputs outside the accepted bounds are rejected", () => {
+  for (const bad of [
+    { weightKg: 24.9 }, { weightKg: 300.1 },
+    { heightCm: 99.9 }, { heightCm: 250.1 },
+    { age: 9 }, { age: 121 },
+  ]) {
+    assert.throws(() => buildTargets({ ...man, ...bad }, []), RangeError, JSON.stringify(bad));
+  }
+});
+
+test("body inputs on the bounds are accepted", () => {
+  for (const edge of [
+    { weightKg: 25 }, { weightKg: 300 },
+    { heightCm: 100 }, { heightCm: 250 },
+    { age: 10 }, { age: 120 },
+  ]) {
+    assert.doesNotThrow(() => buildTargets({ ...man, ...edge }, []), JSON.stringify(edge));
+  }
+});
