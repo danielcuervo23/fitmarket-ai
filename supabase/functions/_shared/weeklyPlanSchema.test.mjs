@@ -128,3 +128,19 @@ test("28 distinct recipes, one per meal, are accepted", () => {
   });
   assert.equal(parseWeeklyPlanJson(plan).error, null);
 });
+
+test("a future compliance status still parses (forward compatible)", () => {
+  const plan = newPlan();
+  plan.compliance.status = "relaxed";
+  const { data, error } = parseWeeklyPlanJson(plan);
+  assert.equal(error, null);
+  assert.equal(data.compliance.status, "relaxed");
+});
+
+test("a compliance status that is empty or longer than 20 chars is rejected", () => {
+  for (const status of ["", "s".repeat(21)]) {
+    const plan = newPlan();
+    plan.compliance.status = status;
+    assert.equal(parseWeeklyPlanJson(plan).data, null, JSON.stringify(status));
+  }
+});

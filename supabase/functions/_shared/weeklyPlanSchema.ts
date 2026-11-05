@@ -139,8 +139,12 @@ const unmetRuleSchema = z.object({
   unmeasurable: z.boolean().optional(),
 });
 
+/**
+ * Producers write "full" or "partial" (PlanCompliance in planner/build.ts);
+ * any short string is accepted so a future status never breaks an older web.
+ */
 const complianceSchema = z.object({
-  status: z.enum(["full", "partial"]),
+  status: z.string().min(1).max(20),
   unmet: z.array(unmetRuleSchema).max(50),
 });
 
