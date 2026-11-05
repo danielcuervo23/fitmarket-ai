@@ -2,9 +2,18 @@
 // Do not edit by hand: fix the recipe file, then run `node scripts/recipes/build-library.ts`.
 import type { Recipe } from "./types.ts";
 
-export const RECIPE_LIBRARY_VERSION = "0a0b2d9c529a";
+// Frozen once at load: every request shares these objects, so nobody may change them.
+function deepFreeze<T>(value: T): T {
+  if (value !== null && typeof value === "object") {
+    for (const child of Object.values(value)) deepFreeze(child);
+    Object.freeze(value);
+  }
+  return value;
+}
 
-export const RECIPES: readonly Recipe[] = [
+export const RECIPE_LIBRARY_VERSION = "634ec86b4f72";
+
+export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   {
     "id": "arroz_con_huevo_y_tomate",
     "status": "pending_owner_ok",
@@ -309,8 +318,7 @@ export const RECIPES: readonly Recipe[] = [
     "steps": {
       "es": [
         "Si usas fríjoles o garbanzos, déjalos en agua desde la noche anterior.",
-        "Lava las lentejas y ponlas en una olla con agua que las cubra bien.",
-        "Cocínalas a fuego medio unos 30 minutos, hasta que estén blandas.",
+        "Lava las lentejas y cocínalas en una olla con bastante agua, a fuego medio, unos 30 minutos, hasta que estén blandas.",
         "Mientras tanto, pica la zanahoria, el tomate, la cebolla y el ajo en cuadritos.",
         "En una sartén con el aceite, cocina esos picados 5 minutos y échalos a la olla con la sal.",
         "Aparte, pon el arroz con el doble de agua y un poquito de sal; tapa y cocina 20 minutos a fuego bajo.",
@@ -318,8 +326,7 @@ export const RECIPES: readonly Recipe[] = [
       ],
       "en": [
         "If you use beans or chickpeas, soak them in water the night before.",
-        "Rinse the lentils and put them in a pot with plenty of water to cover them.",
-        "Cook them over medium heat for about 30 minutes, until soft.",
+        "Rinse the lentils and cook them in a pot with plenty of water, over medium heat, for about 30 minutes, until soft.",
         "Meanwhile, chop the carrot, tomato, onion and garlic into small cubes.",
         "In a pan with the oil, cook the chopped vegetables for 5 minutes and add them to the pot with the salt.",
         "Separately, put the rice with twice as much water and a pinch of salt; cover and cook 20 minutes over low heat.",
@@ -419,8 +426,7 @@ export const RECIPES: readonly Recipe[] = [
         "Pela la papa y la zanahoria y córtalas en trozos medianos.",
         "En una olla con el aceite, cocina el tomate, la cebolla y el ajo 5 minutos, revolviendo.",
         "Agrega el pollo y la sal, y dale vuelta para que se cubra con el tomate.",
-        "Echa la papa, la zanahoria y un vaso de agua; tapa la olla.",
-        "Cocina a fuego bajo 30 minutos, hasta que la papa esté blanda al pincharla con un tenedor.",
+        "Echa la papa, la zanahoria y un vaso de agua, tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda.",
         "Si cocinas para varios días, guarda lo que sobra en la nevera en un recipiente tapado."
       ],
       "en": [
@@ -428,8 +434,7 @@ export const RECIPES: readonly Recipe[] = [
         "Peel the potato and the carrot and cut them into medium pieces.",
         "In a pot with the oil, cook the tomato, onion and garlic for 5 minutes, stirring.",
         "Add the chicken and the salt, and turn it so it gets covered with the tomato.",
-        "Add the potato, the carrot and a glass of water; cover the pot.",
-        "Cook over low heat for 30 minutes, until the potato is soft when you poke it with a fork.",
+        "Add the potato, the carrot and a glass of water, cover the pot and leave it 30 minutes over low heat, until the potato is soft.",
         "If you cook for several days, keep the leftovers in the fridge in a closed container."
       ]
     }
@@ -448,9 +453,7 @@ export const RECIPES: readonly Recipe[] = [
     ],
     "minutes": 5,
     "level": "basic",
-    "appliances": [
-      "estufa"
-    ],
+    "appliances": [],
     "batch": {
       "ok": false,
       "keepsDays": 1
@@ -502,4 +505,4 @@ export const RECIPES: readonly Recipe[] = [
       ]
     }
   }
-];
+]);

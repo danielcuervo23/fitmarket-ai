@@ -6,7 +6,7 @@
   "slots": ["desayuno", "snacks"],
   "minutes": 5,
   "level": "basic",
-  "appliances": ["estufa"],
+  "appliances": [],
   "batch": { "ok": false, "keepsDays": 1 },
   "lines": [
     { "food": "yogur_natural", "qty": 150, "role": "protein" },

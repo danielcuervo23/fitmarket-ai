@@ -57,7 +57,7 @@ export const recipeFileSchema: z.ZodType<Recipe> = z.strictObject({
   slots: z.array(z.enum(SLOTS)).min(1).max(4).refine(distinct, "slots must be distinct"),
   minutes: z.number().int().min(1).max(120),
   level: z.enum(COOKING_LEVELS),
-  appliances: z.array(z.enum(APPLIANCES)).min(1).max(8).refine(distinct, "appliances must be distinct"),
+  appliances: z.array(z.enum(APPLIANCES)).max(8).refine(distinct, "appliances must be distinct"),
   batch: z.strictObject({ ok: z.boolean(), keepsDays: z.number().int().min(1).max(4) }),
   lines: z
     .array(line)

@@ -61,6 +61,7 @@ export interface Recipe {
   slots: Slot[];
   minutes: number;
   level: CookingLevel;
+  /** What the recipe needs (0..8). Empty means no cooking, so it fits every kitchen. */
   appliances: Appliance[];
   /** Can be cooked once for several days; keepsDays is 1..4. */
   batch: { ok: boolean; keepsDays: number };

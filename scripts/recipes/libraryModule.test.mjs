@@ -44,6 +44,17 @@ test("the version changes when a recipe changes", () => {
   assert.notEqual(version(buildLibraryModule(changed)), version(buildLibraryModule(recipes)));
 });
 
+test("RECIPES is deeply frozen: changing a shared recipe throws", () => {
+  const recipe = RECIPES.find((r) => r.id === "lentejas_con_arroz");
+  assert.ok(Object.isFrozen(RECIPES));
+  assert.throws(() => { recipe.minutes = 1; }, TypeError);
+  assert.throws(() => { recipe.name.es = "x"; }, TypeError);
+  assert.throws(() => { recipe.slots.push("snacks"); }, TypeError);
+  assert.throws(() => { recipe.lines[0].alternatives[0].qty = 1; }, TypeError);
+  assert.throws(() => { recipe.steps.es[0] = "x"; }, TypeError);
+  assert.throws(() => { RECIPES.push(recipe); }, TypeError);
+});
+
 test("an invalid recipe folder gives every error and no recipes", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "recipes-"));
   try {

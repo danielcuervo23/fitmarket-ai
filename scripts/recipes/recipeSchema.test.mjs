@@ -115,7 +115,6 @@ test("id, slots, minutes, appliances and batch days are checked", () => {
     (r) => { r.slots = ["onces"]; },
     (r) => { r.minutes = 0; },
     (r) => { r.minutes = 121; },
-    (r) => { r.appliances = []; },
     (r) => { r.appliances = ["estufa", "estufa"]; },
     (r) => { r.appliances = ["fogon"]; },
     (r) => { r.batch = { ok: true, keepsDays: 5 }; },
@@ -128,6 +127,20 @@ test("id, slots, minutes, appliances and batch days are checked", () => {
     change(recipe);
     assert.equal(recipeFileSchema.safeParse(recipe).success, false, change.toString());
   }
+});
+
+test("a recipe that needs no cooking may list no appliances, but never repeat one", () => {
+  const none = base();
+  none.appliances = [];
+  assert.equal(recipeFileSchema.safeParse(none).success, true);
+  const nine = base();
+  nine.appliances = ["estufa", "microondas", "olla_arrocera", "freidora_aire", "licuadora", "horno", "sandwichera", "olla_presion", "estufa"];
+  assert.equal(recipeFileSchema.safeParse(nine).success, false);
+  assert.deepEqual(readRecipe("yogur_con_fruta.json").appliances, []);
+});
+
+test("seed recipes have at most 6 steps", () => {
+  for (const recipe of loadAll()) assert.ok(recipe.steps.es.length <= 6, `${recipe.id}: ${recipe.steps.es.length}`);
 });
 
 test("lines: 1 to 10, at least one scalable, positive quantities", () => {
