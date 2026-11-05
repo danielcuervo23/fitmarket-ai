@@ -60,3 +60,23 @@ test("the staging check script rejects bad values inside a rolled-back transacti
   assert.match(sql, /kitchen_appliances = array\['fogon'\]/);
   assert.match(sql, /set cooking_weekday_minutes = null/);
 });
+
+test("the staging check script lists the expected profiles policies by name", () => {
+  const sql = readFileSync(checksPath, "utf8");
+  for (const name of [
+    "Users can view own profile",
+    "Users can insert own profile",
+    "Users can update own profile",
+    "Users can delete own profile",
+  ]) {
+    assert.ok(sql.includes(name), name);
+  }
+  assert.doesNotMatch(sql, /same own-row policies listed before/);
+});
+
+test("the staging check script says how to run it (savepoints, ON_ERROR_STOP off)", () => {
+  const header = readFileSync(checksPath, "utf8").split(/\r?\n/).slice(0, 15).join("\n");
+  assert.match(header, /ON_ERROR_STOP/);
+  assert.match(header, /statement by statement/i);
+  assert.match(header, /savepoint/i);
+});

@@ -170,3 +170,28 @@ test("the default appliance list is a fresh copy, never the frozen constant", ()
   assert.deepEqual(normalizeCooking(null).appliances, ["estufa", "licuadora"]);
   assert.deepEqual([...DEFAULT_COOKING.appliances], ["estufa", "licuadora"]);
 });
+
+test("a failed cooking query logs one event with the error code only", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(JSON.parse(line)));
+  await buildGenerationInputFromDb(fakeSupabaseNoCooking({ ...baseProfile }, "42703"), "u1");
+  assert.deepEqual(logs, [{ event: "cooking_prefs_default", code: "42703" }]);
+});
+
+test("an unsafe or missing error code is logged as unknown", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(JSON.parse(line)));
+  await buildGenerationInputFromDb(fakeSupabaseNoCooking({ ...baseProfile }, "age=30 weight=70"), "u1");
+  await buildGenerationInputFromDb(fakeSupabaseNoCooking({ ...baseProfile }, undefined), "u1");
+  assert.deepEqual(logs, [
+    { event: "cooking_prefs_default", code: "unknown" },
+    { event: "cooking_prefs_default", code: "unknown" },
+  ]);
+});
+
+test("a successful cooking query logs nothing", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(line));
+  await buildGenerationInputFromDb(fakeSupabase({ ...baseProfile, cooking_level: "enjoys" }), "u1");
+  assert.deepEqual(logs, []);
+});

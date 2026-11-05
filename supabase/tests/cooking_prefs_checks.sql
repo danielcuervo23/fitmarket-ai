@@ -1,11 +1,14 @@
-begin;
-
 -- Manual verification for migration 015 (cooking preferences).
 -- Run on a STAGING / branch database only (never production), after applying
 -- 015 (rollout step 1). Everything runs in one transaction and is rolled back.
--- Needs at least one row in public.profiles. Use psql or the SQL editor; each
--- check states its expected result. Each rejected update runs inside a
--- savepoint so the transaction can continue.
+-- Needs at least one row in public.profiles. Each check states its expected result.
+-- HOW TO RUN: checks 2-5 are EXPECTED to fail and rely on savepoints to keep the
+-- transaction alive. Run it in psql with ON_ERROR_STOP off (the default; do not
+-- pass -v ON_ERROR_STOP=1), e.g. psql -f supabase/tests/cooking_prefs_checks.sql,
+-- or run it statement by statement in the SQL editor. With ON_ERROR_STOP on,
+-- psql stops at the first expected error and the later checks never run.
+
+begin;
 
 -- 1. The four columns exist, are nullable and have no default.
 select column_name, data_type, is_nullable, column_default
@@ -57,9 +60,13 @@ set cooking_weekday_minutes = null, cooking_level = null,
 where id = (select id from public.profiles limit 1);
 -- expected: UPDATE 1
 
--- 8. No new policy on profiles (same policies as before 015).
+-- 8. No new policy on profiles: only the own-row policies of 001 and 007.
 select policyname, cmd from pg_policies
 where schemaname = 'public' and tablename = 'profiles' order by policyname;
--- expected: the same own-row policies listed before applying 015
+-- expected: exactly these 4 rows (001 and 007), no new policy from 015:
+--   Users can delete own profile | DELETE
+--   Users can insert own profile | INSERT
+--   Users can update own profile | UPDATE
+--   Users can view own profile   | SELECT
 
 rollback;

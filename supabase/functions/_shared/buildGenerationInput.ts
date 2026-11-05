@@ -3,6 +3,7 @@ import {
   mapGenerationInputLoadError,
   type GenerationInputError,
 } from "./generationInputErrors.ts";
+import { logEvent } from "./log.ts";
 import { isActivityLevel, type Sex } from "./nutrition.ts";
 import type { GenerateInput } from "./planner/generate.ts";
 import {
@@ -35,6 +36,13 @@ function normalizeAppliances(raw: unknown): Appliance[] {
     : [];
   // Copy: DEFAULT_COOKING.appliances is frozen and shared by every request.
   return valid.length > 0 ? valid : [...DEFAULT_COOKING.appliances];
+}
+
+/** Postgres / PostgREST codes ("42703", "PGRST204"); anything else is logged as unknown. */
+const SAFE_ERROR_CODE = /^[A-Za-z0-9_]{1,16}$/;
+
+function safeErrorCode(error: { code?: unknown }): string {
+  return typeof error.code === "string" && SAFE_ERROR_CODE.test(error.code) ? error.code : "unknown";
 }
 
 /**
@@ -222,6 +230,11 @@ export async function buildGenerationInputFromDb(
       "profile_incomplete",
       "Completa tu perfil (edad, peso, altura y actividad) antes de generar tu plan.",
     );
+  }
+
+  if (cookingResult.error) {
+    // Code only: never profile data. Expected until migration 015 is applied.
+    logEvent("cooking_prefs_default", { code: safeErrorCode(cookingResult.error) });
   }
 
   const sex = profile?.sex;
