@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { parseWeeklyPlanJson } from "./weeklyPlanSchema.ts";
+import { parseWeeklyPlanJson as parseWithV1Schema } from "./weeklyPlanSchema.v1.fixture.ts";
 
 const DAYS = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
 const SLOTS = ["desayuno", "almuerzo", "cena", "snacks"];
@@ -143,4 +144,10 @@ test("a compliance status that is empty or longer than 20 chars is rejected", ()
     plan.compliance.status = status;
     assert.equal(parseWeeklyPlanJson(plan).data, null, JSON.stringify(status));
   }
+});
+
+test("the schema of an already-deployed web (v1, frozen) accepts a full new plan", () => {
+  const { data, error } = parseWithV1Schema(newPlan({ notices: ["some_future_notice_2030"] }));
+  assert.equal(error, null);
+  assert.equal(data.summary.estimated_total_cop, oldPlanFixture.summary.estimated_total_cop);
 });

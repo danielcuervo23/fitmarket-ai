@@ -514,7 +514,7 @@ test("complianceFromShortfalls: no shortfalls is full", () => {
 test("complianceFromShortfalls: unmeasurable rules are unmet and flagged, never met", () => {
   const compliance = complianceFromShortfalls([
     { rule: "protein_min", level: 3, unit: "g", target: 90, achieved: 77 },
-    { rule: "fiber_min", level: 5, unit: "g", target: 25, achieved: 20, unmeasurable: true },
+    { rule: "fiber_min", level: 4, unit: "g", target: 25, achieved: 20, unmeasurable: true },
   ]);
   assert.deepEqual(compliance, {
     status: "partial",
@@ -551,12 +551,37 @@ test("an assembled plan with recipes, notices and compliance passes the shared s
   const plan = assemblePlan(recipeWeek(), {
     householdSize: 2, householdFactor: 1.8, stores: STORES, targets, recipes: LIBRARY,
     notices: ["see_professional"],
-    compliance: complianceFromShortfalls([{ rule: "fiber_min", level: 5, unit: "g", target: 25, achieved: 20, unmeasurable: true }]),
+    compliance: complianceFromShortfalls([{ rule: "fiber_min", level: 4, unit: "g", target: 25, achieved: 20, unmeasurable: true }]),
   });
   const { data, error } = parseWeeklyPlanJson(JSON.parse(JSON.stringify(plan)));
   assert.equal(error, null);
   assert.equal(data.compliance.unmet[0].unmeasurable, true);
   assert.equal(Object.keys(data.recipes).length, 4);
+});
+
+test("complianceFromShortfalls: level 5 is never reported", () => {
+  assert.deepEqual(
+    complianceFromShortfalls([{ rule: "cheap_protein_share", level: 5, unit: "%", target: 50, achieved: 30 }]),
+    { status: "full", unmet: [] },
+  );
+});
+
+test("a plan whose only shortfall is level 5 is full with nothing unmet", () => {
+  const compliance = complianceFromShortfalls([{ rule: "cheap_protein_share", level: 5, unit: "%", target: 50, achieved: 30 }]);
+  const plan = assemblePlan(recipeWeek(), { householdSize: 1, stores: STORES, targets, compliance });
+  assert.deepEqual(plan.compliance, { status: "full", unmet: [] });
+});
+
+test("assemblePlan derives the status from the unmet rules: none left means full", () => {
+  const plan = assemblePlan(recipeWeek(), { householdSize: 1, stores: STORES, targets, compliance: { status: "partial", unmet: [] } });
+  assert.deepEqual(plan.compliance, { status: "full", unmet: [] });
+});
+
+test("weekCost with a household factor equals the assembled shopping total", () => {
+  const week = recipeWeek();
+  const plan = assemblePlan(week, { householdSize: 2, householdFactor: 1.8, stores: STORES, targets });
+  assert.equal(weekCost(week, 1.8, STORES), plan.summary.estimated_total_cop);
+  assert.notEqual(weekCost(week, 1.8, STORES), weekCost(week, 2, STORES), "the factor really matters here");
 });
 
 console.log("planner: all checks passed");

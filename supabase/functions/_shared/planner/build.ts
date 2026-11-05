@@ -204,16 +204,21 @@ export function costAt(
   return prices.quote(ingredient, qty, stores).costCop;
 }
 
+/**
+ * Cost of the week's shopping (whole packs). `householdFactor` is the same
+ * number of adult portions per menu portion that `assemblePlan` uses (it may
+ * be fractional), so the budget check and the plan total never diverge.
+ */
 export function weekCost(
   week: ComposedWeek,
-  householdSize: number,
+  householdFactor: number,
   stores: string[],
   catalog: Catalog = STATIC_CATALOG,
   prices: PriceBook = STATIC_PRICE_BOOK,
 ): number {
   let total = 0;
 
-  for (const [id, qty] of totalsByIngredient(week, householdSize)) {
+  for (const [id, qty] of totalsByIngredient(week, householdFactor)) {
     const ingredient = catalog.get(id);
 
     if (ingredient) {
@@ -475,23 +480,30 @@ export interface PlanUnmetRule {
 }
 
 export interface PlanCompliance {
+  /**
+   * Producers write only these two values. The shared schema accepts any
+   * short string and the web treats an unknown status as "partial".
+   */
   status: "full" | "partial";
   unmet: PlanUnmetRule[];
 }
 
-/** Every shortfall (also unmeasurable and elastic ones) is unmet; none means full. */
+/**
+ * Shortfalls of levels 2-4 (also unmeasurable ones) are unmet; level 5 rules
+ * are always elastic and never reported. Nothing unmet means full.
+ */
 export function complianceFromShortfalls(shortfalls: readonly Shortfall[]): PlanCompliance {
-  const unmet = shortfalls.map((s): PlanUnmetRule => {
+  const unmet = shortfalls.filter((s) => s.level !== 5).map((s): PlanUnmetRule => {
     const entry: PlanUnmetRule = { rule: s.rule, target: s.target, achieved: s.achieved, unit: s.unit };
     return s.unmeasurable ? { ...entry, unmeasurable: true } : entry;
   });
   return { status: unmet.length > 0 ? "partial" : "full", unmet };
 }
 
-/** A copy that can never claim "full" while it lists unmet rules. */
+/** A copy whose status follows its unmet rules: "partial" if any, else "full". */
 function consistentCompliance(compliance: PlanCompliance): PlanCompliance {
   return {
-    status: compliance.unmet.length > 0 ? "partial" : compliance.status,
+    status: compliance.unmet.length > 0 ? "partial" : "full",
     unmet: compliance.unmet.map((entry) => ({ ...entry })),
   };
 }
