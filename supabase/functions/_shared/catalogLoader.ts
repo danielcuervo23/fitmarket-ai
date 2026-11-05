@@ -4,7 +4,9 @@ import {
   type Catalog,
   type DietTag,
   type FoodUnit,
+  type GabaGroup,
   type Ingredient,
+  type MicroNutrients,
   type ShoppingCategory,
 } from "./catalog.ts";
 import { logEvent } from "./log.ts";
@@ -78,6 +80,14 @@ const DIET_TAGS: ReadonlySet<string> = new Set<DietTag>([
   "meat",
   "honey",
 ]);
+const GABA_GROUPS: ReadonlySet<string> = new Set<GabaGroup>([
+  "cereales_tuberculos",
+  "frutas_verduras",
+  "lacteos",
+  "proteicos",
+  "grasas",
+  "azucares",
+]);
 const ID_PATTERN = /^[a-z0-9_]{2,40}$/;
 const STORE_PATTERN = /^[A-Za-z0-9_]{1,20}$/;
 const CITY_PATTERN = /^[a-z_]{2,40}$/;
@@ -105,6 +115,33 @@ function numIn(value: unknown, min: number, max: number): number | null {
 
 function text(value: unknown, max: number): string | null {
   return typeof value === "string" && value.length >= 1 && value.length <= max ? value : null;
+}
+
+/**
+ * The micro-nutrient columns of a `foods` row, with the same ranges as the
+ * checks of migration 011, or null when any of them is missing or invalid.
+ */
+function microFromRow(row: Row): MicroNutrients | null {
+  const fiberG = numIn(row.fiber_g, 0, 100);
+  const freeSugarsG = numIn(row.free_sugars_g, 0, 100);
+  const satFatG = numIn(row.sat_fat_g, 0, 100);
+  const sodiumMg = numIn(row.sodium_mg, 0, 40000);
+  const ironMg = numIn(row.iron_mg, 0, 100);
+  const gaba = row.gaba_group;
+  const gabaGroup = gaba == null
+    ? null
+    : typeof gaba === "string" && GABA_GROUPS.has(gaba)
+    ? (gaba as GabaGroup)
+    : undefined;
+
+  if (
+    fiberG === null || freeSugarsG === null || satFatG === null || sodiumMg === null ||
+    ironMg === null || gabaGroup === undefined || typeof row.is_fruit_veg !== "boolean"
+  ) {
+    return null;
+  }
+
+  return { fiberG, freeSugarsG, satFatG, sodiumMg, ironMg, gabaGroup, isFruitVeg: row.is_fruit_veg };
 }
 
 /**
@@ -174,6 +211,13 @@ export function foodRowToIngredient(row: unknown): Ingredient | null {
 
   if (grams !== null) {
     ingredient.gramsPerUnit = grams;
+  }
+
+  // Invalid micro-nutrients never drop the food: it just has no `micro`.
+  const micro = microFromRow(row);
+
+  if (micro !== null) {
+    ingredient.micro = micro;
   }
 
   return ingredient;
@@ -387,19 +431,21 @@ async function loadFoods(client: CatalogClient): Promise<Catalog> {
     client
       .from("foods")
       .select(
-        "id, name_es, name_en, plural_es, plural_en, shopping_category, unit, whole_units, grams_per_unit, diet_tags, kcal, protein_g, carbs_g, fat_g, default_pack, ref_price_cop, ref_price_source",
+        "id, name_es, name_en, plural_es, plural_en, shopping_category, unit, whole_units, grams_per_unit, diet_tags, kcal, protein_g, carbs_g, fat_g, fiber_g, free_sugars_g, sat_fat_g, sodium_mg, iron_mg, gaba_group, is_fruit_veg, default_pack, ref_price_cop, ref_price_source",
       )
       .eq("is_active", true)
       .order("id")
   );
   const items = new Map<string, Ingredient>();
   let skipped = 0;
+  let microMissing = 0;
 
   for (const row of rows) {
     const ingredient = foodRowToIngredient(row);
 
     if (ingredient && !items.has(ingredient.id)) {
       items.set(ingredient.id, ingredient);
+      microMissing += ingredient.micro ? 0 : 1;
     } else {
       skipped += 1;
     }
@@ -407,6 +453,10 @@ async function loadFoods(client: CatalogClient): Promise<Catalog> {
 
   if (skipped > 0) {
     logEvent("catalog_rows_skipped", { reason: "invalid_row", count: skipped });
+  }
+
+  if (microMissing > 0) {
+    logEvent("catalog_micro_missing", { count: microMissing });
   }
 
   if (items.size < MIN_DB_FOODS) {

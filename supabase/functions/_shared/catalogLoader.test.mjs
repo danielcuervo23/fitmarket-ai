@@ -42,6 +42,13 @@ function rowFor(item) {
     default_pack: item.pack,
     ref_price_cop: item.price,
     ref_price_source: item.priceSource,
+    fiber_g: item.micro?.fiberG ?? null,
+    free_sugars_g: item.micro?.freeSugarsG ?? null,
+    sat_fat_g: item.micro?.satFatG ?? null,
+    sodium_mg: item.micro?.sodiumMg ?? null,
+    iron_mg: item.micro?.ironMg ?? null,
+    gaba_group: item.micro?.gabaGroup ?? null,
+    is_fruit_veg: item.micro?.isFruitVeg ?? false,
   };
 }
 
@@ -116,6 +123,79 @@ test("rejects invalid rows", () => {
   for (const row of bad) {
     assert.equal(foodRowToIngredient(row), null, JSON.stringify(row));
   }
+});
+
+test("a row with valid micro columns maps to ingredient.micro", () => {
+  const brocoli = getIngredient("brocoli");
+  const row = { ...rowFor(brocoli), fiber_g: "2.6", sodium_mg: "33.0", gaba_group: "frutas_verduras", is_fruit_veg: true };
+
+  assert.deepEqual(foodRowToIngredient(row).micro, {
+    fiberG: 2.6,
+    freeSugarsG: 0,
+    satFatG: 0.11,
+    sodiumMg: 33,
+    ironMg: 0.73,
+    gabaGroup: "frutas_verduras",
+    isFruitVeg: true,
+  });
+});
+
+test("a null gaba_group is accepted as no group", () => {
+  const row = { ...rowFor(getIngredient("sal")), gaba_group: null };
+
+  assert.equal(foodRowToIngredient(row).micro.gabaGroup, null);
+});
+
+test("a row with an out-of-range micro column keeps the food without micro", () => {
+  const base = rowFor(getIngredient("brocoli"));
+  const bad = [
+    { ...base, sodium_mg: 50000 },
+    { ...base, fiber_g: -1 },
+    { ...base, free_sugars_g: 101 },
+    { ...base, sat_fat_g: "abc" },
+    { ...base, iron_mg: null },
+    { ...base, gaba_group: "dulces" },
+    { ...base, is_fruit_veg: "true" },
+    { ...base, is_fruit_veg: null },
+  ];
+
+  for (const row of bad) {
+    const ingredient = foodRowToIngredient(row);
+    assert.ok(ingredient, JSON.stringify(row));
+    assert.equal(ingredient.id, "brocoli");
+    assert.equal(ingredient.micro, undefined, JSON.stringify(row));
+  }
+});
+
+test("foods are read with the micro columns", async () => {
+  const client = fakeClient({ foods: page(allRows()) });
+  await loadPlannerData(client, null);
+  const [call] = callsTo(client, "foods");
+
+  for (const column of ["fiber_g", "free_sugars_g", "sat_fat_g", "sodium_mg", "iron_mg", "gaba_group", "is_fruit_veg"]) {
+    assert.ok(call.columns.split(",").map((c) => c.trim()).includes(column), column);
+  }
+});
+
+test("foods without micro are counted and logged once per load", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(JSON.parse(line)));
+  const rows = allRows().map((row, index) => (index < 3 ? { ...row, sodium_mg: 50000 } : row));
+  const data = await loadPlannerData(fakeClient({ foods: page(rows) }), null);
+
+  assert.equal(data.origin, "db");
+  assert.equal(data.catalog.all.length, CATALOG.length);
+  assert.deepEqual(logs.filter((entry) => entry.event === "catalog_micro_missing"), [
+    { event: "catalog_micro_missing", count: 3 },
+  ]);
+});
+
+test("no catalog_micro_missing log when every food has micro", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(JSON.parse(line)));
+  await loadPlannerData(fakeClient({ foods: page(allRows()) }), null);
+
+  assert.equal(logs.filter((entry) => entry.event === "catalog_micro_missing").length, 0);
 });
 
 test("invalid rows are skipped, valid ones kept", async () => {
