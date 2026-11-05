@@ -6,7 +6,11 @@
  *   slots, week rules the weekly total.
  * - A bound is missed only when the gap is larger than `tolerance` (default
  *   2 %) of the bound, or of the share allowance for zero-bound share rules
- *   (e.g. 2 % of the 9.9 % free-sugar allowance).
+ *   (e.g. 2 % of the 9.9 % free-sugar allowance). Level 1 safety rules and
+ *   the "strictly less than" rules (whose 1999 / 0.099 bounds already encode
+ *   "< 2000 / < 10 %") are exact: no tolerance.
+ * - A meal counts as a legume meal or as having an iron source only when that
+ *   food weighs at least MIN_SOURCE_QTY_G in the meal.
  * - Missing data (a food without micro-nutrients, or an id not in the catalog)
  *   never counts as met. Nutrient amounts only add up, so when every unknown
  *   metric of a rule has a positive coefficient the measured part is a lower
@@ -18,14 +22,21 @@
  */
 
 import { gramsOf, microOf, nutritionOf } from "../../catalog.ts";
-import type { Catalog, GabaGroup } from "../../catalog.ts";
+import type { Catalog, GabaGroup, Ingredient } from "../../catalog.ts";
 import { DAYS, SLOTS } from "../types.ts";
 import type { ComposedMeal, ComposedWeek } from "../types.ts";
 import { CHEAP_PROTEIN_IDS, LEGUME_IDS, isIronSource } from "./ruleSet.ts";
-import type { LinearRule, Metric, RuleSet, Shortfall, StructuralRule } from "./ruleSet.ts";
+import type { LinearRule, Metric, RuleCode, RuleSet, Shortfall, StructuralRule } from "./ruleSet.ts";
 
 const DEFAULT_TOLERANCE = 0.02;
 const GABA_MIN_GRAMS = 10;
+/**
+ * Deliberate refinement of the plan (product decision): a trace amount, such
+ * as 2 g of cilantro, does not make a legume meal or an iron-source meal.
+ */
+const MIN_SOURCE_QTY_G = 30;
+/** "Strictly less than" rules: the bound is already just under the spec value. */
+const STRICT_RULES: ReadonlySet<RuleCode> = new Set(["sodium_max", "free_sugar_max", "sat_fat_max"]);
 
 const MACRO_METRICS: readonly Metric[] = ["kcal", "protein", "carbs", "fat", "cheapProtein"];
 const MICRO_METRICS: readonly Metric[] = ["fiber", "freeSugars", "satFat", "sodium", "fruitVeg"];
@@ -132,7 +143,10 @@ function boundInDisplayUnit(rule: LinearRule, bound: number, weightKg: number): 
   return rule.display.unit === "g_per_kg" ? round2(bound / weightKg) : bound;
 }
 
-function checkLinear(rule: LinearRule, totals: Totals, weightKg: number, tolerance: number): Check[] {
+const isExact = (rule: LinearRule): boolean => rule.level === 1 || STRICT_RULES.has(rule.code);
+
+function checkLinear(rule: LinearRule, totals: Totals, weightKg: number, defaultTolerance: number): Check[] {
+  const tolerance = isExact(rule) ? 0 : defaultTolerance;
   const terms = termsOf(rule);
   const sum = terms.reduce((acc, [metric, coef]) => acc + coef * totals.values[metric], 0);
   const allowance = terms.reduce(
@@ -198,13 +212,22 @@ function gabaCheck(meals: readonly ComposedMeal[], catalog: Catalog, min: number
   return countCheck(min, groups, unsure);
 }
 
+/** Catalog foods of a meal present in at least MIN_SOURCE_QTY_G. */
+function sourceFoods(meal: ComposedMeal, catalog: Catalog): Ingredient[] {
+  return eaten(meal)
+    .map((item) => ({ ingredient: catalog.get(item.id), qty: item.qty }))
+    .filter((line): line is { ingredient: Ingredient; qty: number } =>
+      line.ingredient !== undefined && gramsOf(line.ingredient, line.qty) >= MIN_SOURCE_QTY_G)
+    .map((line) => line.ingredient);
+}
+
 function ironCheck(meals: readonly ComposedMeal[], catalog: Catalog, min: number): Check {
   let known = 0;
   let unsure = false;
   for (const meal of meals) {
-    const ingredients = eaten(meal).map((item) => catalog.get(item.id));
-    if (ingredients.some((i) => i !== undefined && isIronSource(i))) known += 1;
-    else if (ingredients.some((i) => i === undefined || !i.micro)) unsure = true;
+    const sources = sourceFoods(meal, catalog);
+    if (sources.some(isIronSource)) known += 1;
+    else if (sources.some((i) => !i.micro) || eaten(meal).some((item) => !catalog.get(item.id))) unsure = true;
   }
   return countCheck(min, known, unsure);
 }
@@ -216,7 +239,7 @@ function checkStructural(rule: StructuralRule, week: ComposedWeek, catalog: Cata
     case "gaba_groups_day":
       return worst(days.map((dayMeals) => gabaCheck(dayMeals, catalog, rule.min)));
     case "legumes_week": {
-      const count = meals.filter((meal) => eaten(meal).some((item) => LEGUME_IDS.has(item.id))).length;
+      const count = meals.filter((meal) => sourceFoods(meal, catalog).some((i) => LEGUME_IDS.has(i.id))).length;
       return worst([countCheck(rule.min, count, false)]);
     }
     case "distinct_foods_week": {

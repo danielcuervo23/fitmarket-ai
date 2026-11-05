@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { buildTargets } from "./targets.ts";
 import { buildRuleSet } from "./ruleSet.ts";
 import { evaluateWeek } from "./evaluate.ts";
-import { createCatalog } from "../../catalog.ts";
+import { createCatalog, getIngredient } from "../../catalog.ts";
 import { DAYS } from "../types.ts";
 
 const man = { age: 25, weightKg: 70, heightCm: 175, activity: "moderate", sex: "male" };
@@ -33,6 +33,9 @@ const catalog = createCatalog([
   food("sin_micro", n(400, 20, 70, 5)),
   food("salado", n(0, 0, 0, 0), micro({ sodiumMg: 40000 })),
   food("fibra", n(0, 0, 0, 0), micro({ fiberG: 100 })),
+  food("proteina", n(400, 100, 0, 0), micro()),
+  getIngredient("cilantro"), // real data: 1.77 mg iron per 100 g, frutas_verduras
+
   ...FILLERS.map((id) => food(id, n(0, 0, 0, 0), micro())),
 ]);
 
@@ -262,4 +265,71 @@ test("lines with quantity 0 are not on the menu", () => {
   );
   const s = byRule(evaluateWeek(week, rulesFor(["healthy"]), catalog), "legumes_week");
   assert.equal(s?.achieved, 1);
+});
+
+// ---- Exact rules: level 1 safety and "strictly less than" rules get no tolerance.
+const cerealWeek = (kcal) =>
+  weekOf(() => ({ desayuno: meal(["cereal", kcal / 4]), almuerzo: meal(), cena: meal(), snacks: meal() }));
+
+test("level 1: kcal 1 % under the safety minimum is a shortfall", () => {
+  const rules = rulesFor([]);
+  const min = rules.targets.kcalSafety.min;
+  const s = byRule(evaluateWeek(cerealWeek(0.99 * min), rules, catalog), "kcal_safety");
+  assert.deepEqual([s?.level, s?.target, s?.achieved, s?.unmeasurable], [1, min, Math.round(99 * min) / 100, undefined]);
+});
+
+test("level 1: 4079 kcal against the 4000 kcal cap is a shortfall", () => {
+  const t = buildTargets(man, []);
+  const rules = buildRuleSet({ ...t, kcalSafety: { min: t.kcalSafety.min, max: 4000 } });
+  const s = byRule(evaluateWeek(cerealWeek(4079), rules, catalog), "kcal_safety");
+  assert.deepEqual([s?.level, s?.target, s?.achieved], [1, 4000, 4079]);
+});
+
+test("level 1: 2.54 g/kg protein against 2.5 g/kg is a shortfall", () => {
+  // 177.8 g of pure protein for 70 kg.
+  const week = weekOf(() => ({ desayuno: meal(["proteina", 177.8]), almuerzo: meal(), cena: meal(), snacks: meal() }));
+  const s = byRule(evaluateWeek(week, rulesFor([]), catalog), "protein_safety_max");
+  assert.deepEqual([s?.level, s?.unit, s?.target, s?.achieved], [1, "g_per_kg", 2.5, 2.54]);
+});
+
+test("strictly less than: sodium 2010 mg is a shortfall (no tolerance on 1999)", () => {
+  // healthyDay has 630 mg; 3.45 g of "salado" adds 1380 mg.
+  const week = healthyWeek(() => healthyDay({ cena: meal(["cereal", 125], ["verdura", 250], ["salado", 3.45]) }));
+  const s = byRule(evaluateWeek(week, rulesFor(["healthy"]), catalog), "sodium_max");
+  assert.deepEqual([s?.target, s?.achieved], [2000, 2010]);
+});
+
+test("strictly less than: free sugars just over 9.9 % of kcal are a shortfall", () => {
+  const sugar = food("azucar_t", n(400, 0, 100, 0), micro({ freeSugarsG: 100 }));
+  const cat = createCatalog([...catalog.all, sugar]);
+  // healthyDay 2520 kcal + x g sugar (4 kcal/g): share = 4x / (2520 + 4x). x = 70 → 280 / 2800 = 10 %.
+  const week = healthyWeek(() => healthyDay({ cena: meal(["cereal", 125], ["verdura", 250], ["azucar_t", 70]) }));
+  const s = byRule(evaluateWeek(week, rulesFor(["healthy"]), cat), "free_sugar_max");
+  assert.deepEqual([s?.target, s?.achieved], [10, 10]);
+});
+
+test("zero-width kcal range means >= min and <= the safety max, as intended", () => {
+  const t = buildTargets(man, []);
+  const rules = buildRuleSet({ ...t, kcalRange: { min: 2400, max: 2400 }, kcalSafety: { min: 1946, max: 2983 } });
+  const kcalRange = (kcal) => byRule(evaluateWeek(cerealWeek(kcal), rules, catalog), "kcal_range");
+  assert.equal(kcalRange(2400), undefined);
+  assert.equal(kcalRange(2900), undefined);
+  assert.deepEqual([kcalRange(2200)?.target, kcalRange(2200)?.achieved], [2400, 2200]);
+  assert.deepEqual([kcalRange(3100)?.target, kcalRange(3100)?.achieved], [2983, 3100]);
+});
+
+// ---- A trace amount does not count (MIN_SOURCE_QTY_G = 30).
+const lunchWith = (...items) =>
+  healthyWeek(() => healthyDay({ almuerzo: meal(["cereal", 125], ["verdura", 250], ...items) }));
+
+test("2 g of cilantro is not an iron source; 30 g is", () => {
+  const rules = rulesFor(["energy"]);
+  assert.equal(byRule(evaluateWeek(lunchWith(["cilantro", 2]), rules, catalog), "iron_sources_week")?.achieved, 0);
+  assert.equal(byRule(evaluateWeek(lunchWith(["cilantro", 30]), rules, catalog), "iron_sources_week"), undefined);
+});
+
+test("5 g of lentejas is not a legume meal; 60 g is", () => {
+  const rules = rulesFor(["healthy"]);
+  assert.equal(byRule(evaluateWeek(lunchWith(["lentejas", 5]), rules, catalog), "legumes_week")?.achieved, 0);
+  assert.equal(byRule(evaluateWeek(lunchWith(["lentejas", 60]), rules, catalog), "legumes_week"), undefined);
 });
