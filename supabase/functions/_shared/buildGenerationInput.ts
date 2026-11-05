@@ -3,8 +3,17 @@ import {
   mapGenerationInputLoadError,
   type GenerationInputError,
 } from "./generationInputErrors.ts";
+import { logEvent } from "./log.ts";
 import { isActivityLevel, type Sex } from "./nutrition.ts";
 import type { GenerateInput } from "./planner/generate.ts";
+import {
+  APPLIANCES,
+  COOKING_LEVELS,
+  DEFAULT_COOKING,
+  type Appliance,
+  type CookingLevel,
+  type CookingPrefs,
+} from "./recipes/types.ts";
 
 const GOAL_TYPES = new Set([
   "muscle",
@@ -15,8 +24,50 @@ const GOAL_TYPES = new Set([
   "energy",
 ]);
 
-/** The generation input plus the profile city (null when unset or invalid). */
-export type GenerationRequest = GenerateInput & { city: string | null };
+/** The generation input plus the profile city (null when unset or invalid) and cooking prefs. */
+export type GenerationRequest = GenerateInput & { city: string | null; cooking: CookingPrefs };
+
+const COOKING_COLUMNS = "cooking_weekday_minutes, cooking_level, kitchen_appliances, batch_cooking";
+const WEEKDAY_MINUTES: readonly CookingPrefs["weekdayMinutes"][] = [10, 20, 30];
+
+function normalizeAppliances(raw: unknown): Appliance[] {
+  const valid = Array.isArray(raw)
+    ? [...new Set(raw.filter((item): item is Appliance => APPLIANCES.includes(item as Appliance)))]
+    : [];
+  // Copy: DEFAULT_COOKING.appliances is frozen and shared by every request.
+  return valid.length > 0 ? valid : [...DEFAULT_COOKING.appliances];
+}
+
+/** Postgres / PostgREST codes ("42703", "PGRST204"); anything else is logged as unknown. */
+const SAFE_ERROR_CODE = /^[A-Za-z0-9_]{1,16}$/;
+
+function safeErrorCode(error: { code?: unknown }): string {
+  return typeof error.code === "string" && SAFE_ERROR_CODE.test(error.code) ? error.code : "unknown";
+}
+
+/**
+ * Cooking answers from the profile row; every missing or invalid field falls back
+ * to DEFAULT_COOKING on its own. Always returns fresh, mutable arrays.
+ */
+export function normalizeCooking(row: unknown): CookingPrefs {
+  const source: Record<string, unknown> =
+    row !== null && typeof row === "object" && !Array.isArray(row)
+      ? (row as Record<string, unknown>)
+      : {};
+  const minutes = source.cooking_weekday_minutes;
+  const level = source.cooking_level;
+
+  return {
+    weekdayMinutes: WEEKDAY_MINUTES.includes(minutes as CookingPrefs["weekdayMinutes"])
+      ? (minutes as CookingPrefs["weekdayMinutes"])
+      : DEFAULT_COOKING.weekdayMinutes,
+    level: COOKING_LEVELS.includes(level as CookingLevel)
+      ? (level as CookingLevel)
+      : DEFAULT_COOKING.level,
+    appliances: normalizeAppliances(source.kitchen_appliances),
+    batch: typeof source.batch_cooking === "boolean" ? source.batch_cooking : DEFAULT_COOKING.batch,
+  };
+}
 
 const CITY_SLUG = /^[a-z_]{2,40}$/;
 
@@ -86,7 +137,7 @@ export async function buildGenerationInputFromDb(
   data: GenerationRequest | null;
   error: GenerationInputError | null;
 }> {
-  const [profileResult, goalsResult, supermarketsResult, cityResult] = await Promise.all([
+  const [profileResult, goalsResult, supermarketsResult, cityResult, cookingResult] = await Promise.all([
     supabase
       .from("profiles")
       .select(
@@ -102,6 +153,9 @@ export async function buildGenerationInputFromDb(
     // Separate on purpose: if migration 010 (profiles.city) is not applied yet, this
     // read fails and generation continues without a city instead of failing.
     supabase.from("profiles").select("city").eq("id", userId).maybeSingle(),
+    // Separate on purpose, like city: if migration 015 is not applied yet, this read
+    // fails and generation continues with DEFAULT_COOKING.
+    supabase.from("profiles").select(COOKING_COLUMNS).eq("id", userId).maybeSingle(),
   ]);
 
   if (profileResult.error) {
@@ -178,6 +232,11 @@ export async function buildGenerationInputFromDb(
     );
   }
 
+  if (cookingResult.error) {
+    // Code only: never profile data. Expected until migration 015 is applied.
+    logEvent("cooking_prefs_default", { code: safeErrorCode(cookingResult.error) });
+  }
+
   const sex = profile?.sex;
   const household = Number(profile?.household_size);
 
@@ -188,6 +247,7 @@ export async function buildGenerationInputFromDb(
       stores,
       restrictions: normalizeRestrictions(profile?.dietary_restrictions),
       city: normalizeCity(cityResult.error ? null : cityResult.data?.city),
+      cooking: normalizeCooking(cookingResult.error ? null : cookingResult.data),
       householdSize:
         Number.isInteger(household) && household >= 1 && household <= 8
           ? household
