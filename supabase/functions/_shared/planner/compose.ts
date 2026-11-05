@@ -396,17 +396,29 @@ export function buildComposerUserPrompt(input: ComposerInput): string {
 // ============================================================================
 
 /** OpenAI strict mode accepts at most 500 enum values in one schema. */
-const MAX_ENUM_VALUES = 500;
+export const MAX_ENUM_VALUES = 500;
+/**
+ * OpenAI strict mode caps the total length of enum strings at 15000
+ * characters. Counted over the whole schema (stricter than OpenAI's
+ * per-property rule), so a passing schema is always accepted.
+ */
+export const MAX_ENUM_CHARS = 15_000;
 
 const WEEKEND: ReadonlySet<Day> = new Set<Day>(["sab", "dom"]);
 
 /**
  * Strict schema: a list of days, each with one enum of recipe ids per slot, so
  * the model cannot even spell an id that is not eligible for that meal.
- * Callers check recipe coverage first; an empty slot is a programming error.
+ *
+ * Throws RangeError when a slot is empty or the enums exceed OpenAI's limits
+ * (MAX_ENUM_VALUES values, MAX_ENUM_CHARS characters). The caller (T13) must
+ * check before calling, with `recipeCoverage` for empty slots and the same
+ * limits for size, and answer `restrictions_too_strict` instead of letting this
+ * throw. With the planned library (about 50 recipes) the limits are far away.
  */
 export function recipeResponseFormat(slotIds: Record<Slot, string[]>) {
   let enumValues = DAYS.length;
+  let enumChars = DAYS.join("").length;
 
   for (const slot of SLOTS) {
     if (slotIds[slot].length === 0) {
@@ -414,10 +426,15 @@ export function recipeResponseFormat(slotIds: Record<Slot, string[]>) {
     }
 
     enumValues += slotIds[slot].length;
+    enumChars += slotIds[slot].join("").length;
   }
 
   if (enumValues > MAX_ENUM_VALUES) {
     throw new RangeError(`recipeResponseFormat: ${enumValues} enum values (max ${MAX_ENUM_VALUES})`);
+  }
+
+  if (enumChars > MAX_ENUM_CHARS) {
+    throw new RangeError(`recipeResponseFormat: ${enumChars} enum characters (max ${MAX_ENUM_CHARS})`);
   }
 
   const idsFor = (slot: Slot) => ({ type: "string", enum: [...slotIds[slot]] });
@@ -535,7 +552,13 @@ export const MAX_BATCH_DAYS = 3;
 /**
  * Weekly uses allowed for a recipe. A batch recipe, for a user who cooks in
  * batches, may be cooked twice a week and each batch served on up to
- * min(keepsDays, 3) days; never less than the normal cap.
+ * min(keepsDays, 3) days; never less than the normal cap:
+ *
+ *   cap = max(3, 2 * min(keepsDays, 3))   e.g. keepsDays 3 -> 6, 2 -> 4, 1 -> 3
+ *
+ * It is only a ceiling on the weekly count: whether those uses fall on
+ * consecutive days (one batch eaten over 2-3 days in a row) is NOT enforced
+ * here; the prompt asks for it.
  */
 function repeatCap(recipe: ResolvedRecipe | undefined, cooking: Pick<CookingPrefs, "batch">): number {
   if (!recipe || !cooking.batch || !recipe.batch.ok) {
@@ -734,6 +757,7 @@ const MAX_PLANNED_LINE_LENGTH = 200;
 const MAX_MAIN_FOODS = 4;
 const MAIN_ROLES: ReadonlySet<string> = new Set(["protein", "carb", "veg"]);
 const DAY_SET: ReadonlySet<string> = new Set(DAYS);
+const KNOWN_GOALS: ReadonlySet<string> = new Set(["healthy", "fat", "muscle", "energy", "save"]);
 
 /** User free text: letters, digits and simple punctuation only, one short line. */
 function cleanUserNote(text: string): string {
@@ -801,7 +825,8 @@ function formatRecipeLine(recipe: ResolvedRecipe, input: RecipeComposerInput): s
 
 export function buildRecipeComposerPrompt(input: RecipeComposerInput): string {
   const { targets, cooking } = input;
-  const goals = input.goals.map(cleanUserNote).filter(Boolean);
+  // Only known goal codes, once each: free text never reaches the prompt this way.
+  const goals = [...new Set(input.goals.filter((goal) => KNOWN_GOALS.has(goal)))];
   const budget = Math.round(input.budgetPerPersonCop);
   const lines = [
     `Daily targets for one person: about ${Math.round(targets.kcal)} kcal and ${Math.round(targets.proteinG.min)}-${Math.round(targets.proteinG.max)} g of protein.`,
