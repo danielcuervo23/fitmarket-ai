@@ -16,12 +16,12 @@
 - **One branch per task** (`feat/plan2-tNN-<slug>`, from the latest merged state). Two agents never work on the same branch or the same file at the same time; the "Parallel waves" table is the only allowed concurrency, at most 4 agents at once. Implementers do not launch subagents.
 - **No secret in code, fixtures, recipes or logs.** `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` stay in Supabase secrets. `VITE_*` values are public by design. Logs carry codes and counts only (never profile data, health data or request bodies).
 - **Validate every input:** the request body (size cap 2048 chars, typed fields, anything else ignored), the profile's cooking columns (invalid value → default), DB food rows (invalid micro-nutrients → food has no `micro`), recipe files (zod schema at build time plus a sync test), the AI answer (strict schema plus `parseComposition`). Never trust the AI or the client.
-- **Least privilege:** no new table. Migration 014 only adds nullable columns with `check` constraints to `profiles`, covered by its existing own-row RLS policies. The function keeps reading with the caller's JWT client; the service role is used only where Plan 1 already uses it (save, refund).
+- **Least privilege:** no new table. Migration 015 only adds nullable columns with `check` constraints to `profiles`, covered by its existing own-row RLS policies. The function keeps reading with the caller's JWT client; the service role is used only where Plan 1 already uses it (save, refund).
 - **Hard limits never relax:** forbidden foods, level 1 safety rules and the household budget are never broken, also not by "Quiero el plan igual". The final shopping list total (whole packs, `PriceBook.quote`) is always `<=` the weekly budget.
 - **Performance at thousands of users:** recipes are served from code (no query, no cache). Catalog and prices keep Plan 1's per-instance cache. Supabase Edge Functions cap **CPU time at 2 s per request** (wall clock 150 s free / 400 s paid; the generation keeps its 120 s budget, `GENERATION_TIME_BUDGET_MS` ceiling 140 s). The optimizer is pure LP (no integer branching) and shares `OPTIMIZER_CPU_BUDGET_MS = 900` per request across all attempts; when spent it returns the best result so far.
 - **Backward compatibility:** every new plan field is optional; old plans and old web versions render as before. The app sends `appVersion` in the request body; clients without it, or older than `MIN_VERSION_GOALS_UNREACHABLE = "0.1.0"`, never receive `goals_unreachable` (fallback: `budget_too_low` when a budget increase fixes it, else `goal_incoherent`). Codes in plans (`notices`, `compliance.unmet[].rule`) are plain strings, never enums, so a newer server cannot break an older web's schema.
-- **Deploy order is respected:** migration 014 → Edge Function `generate-weekly-plan` → web. Each step works with the previous one still live (the function reads the cooking columns in a separate query and uses defaults if they are missing; the new web handles plans without recipe fields and an old function that ignores the body).
-- **Migrations** follow `supabase/migrations/NNN_snake_name.sql`; this plan owns **014** only.
+- **Deploy order is respected:** migration 015 → Edge Function `generate-weekly-plan` → web. Each step works with the previous one still live (the function reads the cooking columns in a separate query and uses defaults if they are missing; the new web handles plans without recipe fields and an old function that ignores the body).
+- **Migrations** follow `supabase/migrations/NNN_snake_name.sql`; this plan owns **015** only.
 - **TypeScript run by Node:** only erasable syntax (no `enum`, no parameter properties, no namespaces); relative imports include the `.ts` extension.
 - **Generated files are never edited by hand:** `supabase/functions/_shared/catalogMicro.generated.ts` (from `data/foods/foods.json`) and `supabase/functions/_shared/recipes/library.generated.ts` (from `data/recipes/*.json`). A sync test fails if they drift.
 - **Copy:** Spanish first, every string in `es` and `en` through `defineMessages`. Recipe steps use student language: short sentences, one action each, no technical cooking terms without explanation.
@@ -422,10 +422,10 @@ test("no recipe step mentions an appliance the recipe does not list", ...); // k
 
 ---
 
-### Task 6: Cooking preferences in the profile (migration 014) and generation input
+### Task 6: Cooking preferences in the profile (migration 015) and generation input
 
 **Files:**
-- Create: `supabase/migrations/014_cooking_preferences.sql`
+- Create: `supabase/migrations/015_cooking_preferences.sql`
 - Create: `supabase/tests/cooking_prefs_checks.sql`
 - Modify: `supabase/functions/_shared/buildGenerationInput.ts`
 - Test: `scripts/cookingPrefsMigration.test.mjs`, `supabase/functions/_shared/buildGenerationInput.test.mjs` (add cases)
@@ -445,14 +445,14 @@ alter table public.profiles
     and cardinality(kitchen_appliances) between 1 and 8),
   add column if not exists batch_cooking boolean;
 ```
-Plus a `comment on column` for each (Spanish), the idempotent header used by 010–013, and no new policy (the own-row policies of `profiles` already cover the columns). Health conditions are **not** added here (sensitive data, Plan 3 with the privacy-policy update).
+Plus a `comment on column` for each (Spanish), the idempotent header used by 010–014, and no new policy (the own-row policies of `profiles` already cover the columns). Health conditions are **not** added here (sensitive data, Plan 3 with the privacy-policy update).
 
 - [ ] **Step 1: Write the failing tests**
 
 ```js
 // cookingPrefsMigration.test.mjs (text checks, like referencePricesMigration.test.mjs)
-test("014 adds four nullable columns with checks and no default", ...);
-test("014 creates no policy, grant or table", ...);
+test("015 adds four nullable columns with checks and no default", ...);
+test("015 creates no policy, grant or table", ...);
 // buildGenerationInput.test.mjs
 test("missing cooking columns (old DB) give the defaults", async () => { /* cooking query returns error 42703 */ assert.deepEqual(data.cooking, DEFAULT_COOKING); });
 test("invalid values fall back per field", () => {
@@ -976,10 +976,10 @@ Each meal shows the recipe name, "{minutes} min", the level ("Lo básico" / "Me 
 - Create: `docs/ROLLOUT-plan-2.md` (same format as `docs/ROLLOUT-plan-1.md`: who, check, undo; "¿lo hago?" before every production step)
 
 Rollout content (in order):
-1. **Staging:** apply migration 014; run `supabase/tests/cooking_prefs_checks.sql`; run the Supabase security and performance advisors.
+1. **Staging:** apply migration 015; run `supabase/tests/cooking_prefs_checks.sql`; run the Supabase security and performance advisors.
 2. **Staging function:** deploy `generate-weekly-plan` with its `deno.json`; check the logs show `optimizer_result` and that `optimizer_cpu_ms` p95 stays under 900 over 20 generations (5 goal mixes × 4 profiles); check an old-web request (`{}`) gets `budget_too_low` or `goal_incoherent`, never `goals_unreachable`.
 3. **Owner reviews recipes:** a sample of 12 (3 per slot, chosen across restriction profiles); each approved recipe changes to `approved`; corrections go by PR. Production waits for the owner's "listo".
-4. **Production, in order:** migration 014 → Edge Function → web (version 0.1.0). Each step: what to check and how to undo (014 is additive; redeploy the previous function; redeploy the previous web).
+4. **Production, in order:** migration 015 → Edge Function → web (version 0.1.0). Each step: what to check and how to undo (015 is additive; redeploy the previous function; redeploy the previous web).
 5. **After launch:** watch `goals_unreachable` and `restrictions_too_strict` rates for a week; if a slot has few recipes for a frequent profile, add recipes.
 
 - [ ] **Step 1:** Write both documents.
