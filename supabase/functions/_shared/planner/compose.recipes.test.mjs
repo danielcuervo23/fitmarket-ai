@@ -9,6 +9,7 @@ import { APPLIANCES, DEFAULT_COOKING } from "../recipes/types.ts";
 import {
   RECIPE_COMPOSER_SYSTEM_PROMPT,
   buildRecipeComposerPrompt,
+  capRepeats,
   parseRecipeComposition,
   recipeResponseFormat,
   repairWeekendOnly,
@@ -231,7 +232,8 @@ function weekendFixture() {
 
 test("weekend-only recipe on Monday is replaced by a weekday one", () => {
   const eligible = weekendFixture();
-  const base = parseRecipeComposition(rawWeek(), toMap(eligibleWith())).week;
+  const { day: _day, ...meals } = rawWeek().days[0];
+  const base = weekOf(() => meals);
   const week = {
     ...base,
     lun: { ...base.lun, almuerzo: "pollo_guisado_con_papa" },
@@ -380,4 +382,104 @@ test("system prompt states the rules", () => {
   for (const pattern of [/ONLY ids/, /3 times/, /sab.*dom/, /main protein/, /legumes/, /portions/i]) {
     assert.match(RECIPE_COMPOSER_SYSTEM_PROMPT, pattern);
   }
+});
+
+// ------------------------------------------------------------- repeat cap
+
+const LETTERS = ["a", "b", "c", "d", "e", "f", "g"];
+
+/** Test-only recipes `<slot>_<letter>`, one slot each, weekday-ok, no batch (library data is never edited). */
+function synthLibrary(change = () => ({})) {
+  const base = eligibleWith()[0];
+  return toMap(
+    SLOTS.flatMap((slot) =>
+      LETTERS.map((letter) => {
+        const id = `${slot}_${letter}`;
+        return { ...base, id, slots: [slot], weekendOnly: false, batch: { ok: false, keepsDays: 1 }, ...change(id) };
+      }),
+    ),
+  );
+}
+
+/** Every meal different (each id used once), with per-day overrides. */
+const synthWeek = (pick = () => ({})) =>
+  weekOf((day) => ({
+    ...Object.fromEntries(SLOTS.map((slot) => [slot, `${slot}_${LETTERS[DAYS.indexOf(day)]}`])),
+    ...pick(day),
+  }));
+
+const lunches = (week) => DAYS.map((day) => week[day].almuerzo);
+const WEEKDAYS = new Set(["lun", "mar", "mie", "jue", "vie"]);
+
+test("a recipe used 5 times is cut to 3; each excess gets the least-used recipe, ties by lowest id", () => {
+  const week = synthWeek((day) => (WEEKDAYS.has(day) ? { almuerzo: "almuerzo_a" } : {}));
+  const before = JSON.stringify(week);
+
+  const capped = capRepeats(week, synthLibrary(), { batch: false });
+
+  assert.equal(JSON.stringify(week), before, "input is not changed");
+  assert.deepEqual(lunches(capped), ["almuerzo_a", "almuerzo_a", "almuerzo_a", "almuerzo_b", "almuerzo_c", "almuerzo_f", "almuerzo_g"]);
+  assert.equal(capped.lun.cena, "cena_a");
+});
+
+test("a batch recipe may repeat more when the user cooks in batches, not otherwise", () => {
+  const eligible = synthLibrary((id) => (id === "almuerzo_a" ? { batch: { ok: true, keepsDays: 3 } } : {}));
+  const week = synthWeek(() => ({ almuerzo: "almuerzo_a" }));
+
+  const batchOn = capRepeats(week, eligible, { batch: true });
+  const batchOff = capRepeats(week, eligible, { batch: false });
+
+  assert.deepEqual(lunches(batchOn), [...Array(6).fill("almuerzo_a"), "almuerzo_b"]);
+  assert.deepEqual(lunches(batchOff), [...Array(3).fill("almuerzo_a"), "almuerzo_b", "almuerzo_c", "almuerzo_d", "almuerzo_e"]);
+});
+
+test("a recipe without batch.ok keeps the normal cap even when the user cooks in batches", () => {
+  const capped = capRepeats(synthWeek(() => ({ almuerzo: "almuerzo_a" })), synthLibrary(), { batch: true });
+
+  assert.equal(lunches(capped).filter((id) => id === "almuerzo_a").length, 3);
+});
+
+test("with only one eligible recipe for the slot the meal is kept", () => {
+  const eligible = new Map([...synthLibrary()].filter(([id]) => !id.startsWith("snacks_") || id === "snacks_a"));
+  const week = synthWeek(() => ({ snacks: "snacks_a" }));
+
+  const capped = capRepeats(week, eligible, { batch: false });
+
+  assert.deepEqual(DAYS.map((day) => capped[day].snacks), Array(7).fill("snacks_a"));
+  for (const day of DAYS) for (const slot of SLOTS) assert.ok(capped[day][slot]);
+});
+
+test("a weekday excess never gets a weekend-only recipe; a weekend excess may", () => {
+  const weekendOnly = new Set(["almuerzo_b", "almuerzo_c", "almuerzo_d", "almuerzo_e"]);
+  const eligible = synthLibrary((id) => (weekendOnly.has(id) ? { weekendOnly: true } : {}));
+  const weekdays = capRepeats(synthWeek((day) => (WEEKDAYS.has(day) ? { almuerzo: "almuerzo_a" } : { almuerzo: "almuerzo_b" })), eligible, { batch: false });
+  const weekend = capRepeats(synthWeek(() => ({ almuerzo: "almuerzo_f" })), eligible, { batch: false });
+
+  assert.deepEqual(lunches(weekdays), ["almuerzo_a", "almuerzo_a", "almuerzo_a", "almuerzo_f", "almuerzo_g", "almuerzo_b", "almuerzo_b"]);
+  // jue, vie: only a and g are weekday-ok (a has the lower id); sab, dom: weekend-only b and c are least used
+  assert.deepEqual(lunches(weekend), ["almuerzo_f", "almuerzo_f", "almuerzo_f", "almuerzo_a", "almuerzo_g", "almuerzo_b", "almuerzo_c"]);
+});
+
+test("parsing caps repeats using the user's batch preference", () => {
+  const eligible = synthLibrary((id) => (id === "almuerzo_a" ? { batch: { ok: true, keepsDays: 3 } } : {}));
+  const week = synthWeek(() => ({ almuerzo: "almuerzo_a" }));
+  const raw = { days: DAYS.map((day) => ({ day, ...week[day] })) };
+  const count = (result) => lunches(result.week).filter((id) => id === "almuerzo_a").length;
+
+  assert.equal(count(parseRecipeComposition(raw, eligible)), 3);
+  assert.equal(count(parseRecipeComposition(raw, eligible, { batch: true })), 6);
+});
+
+test("ties go to the lowest id whatever the order of the eligible list", () => {
+  const reversed = new Map([...synthLibrary()].reverse());
+  const week = synthWeek((day) => (WEEKDAYS.has(day) ? { almuerzo: "almuerzo_a" } : {}));
+
+  assert.deepEqual(lunches(capRepeats(week, reversed, { batch: false })).slice(3, 5), ["almuerzo_b", "almuerzo_c"]);
+});
+
+test("an excess is kept rather than swapped for a recipe already at its cap", () => {
+  const eligible = new Map([...synthLibrary()].filter(([id]) => !id.startsWith("almuerzo_") || id <= "almuerzo_b"));
+  const week = synthWeek((day) => ({ almuerzo: DAYS.indexOf(day) < 4 ? "almuerzo_a" : "almuerzo_b" }));
+
+  assert.deepEqual(lunches(capRepeats(week, eligible, { batch: false })), lunches(week));
 });

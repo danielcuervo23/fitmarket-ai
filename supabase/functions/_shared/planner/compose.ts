@@ -465,11 +465,13 @@ const fitsSlot = (recipe: ResolvedRecipe | undefined, slot: Slot): recipe is Res
  * Parses the AI answer into a RecipeWeek. Never trusts it: an id that is not
  * eligible for its slot (invented, forbidden by the user's restrictions, or
  * meant for another meal) rejects the answer; a missing meal is copied from
- * the nearest day; weekend-only recipes are moved off weekdays.
+ * the nearest day; weekend-only recipes are moved off weekdays; repeats
+ * beyond the weekly cap are replaced (`capRepeats`, batch per `cooking`).
  */
 export function parseRecipeComposition(
   raw: unknown,
   eligible: ReadonlyMap<string, ResolvedRecipe>,
+  cooking: Pick<CookingPrefs, "batch"> = { batch: false },
 ): { week: RecipeWeek | null; issue: RecipeComposeIssue | null } {
   if (!isRecord(raw) || !Array.isArray(raw.days)) {
     return { week: null, issue: { code: "invalid_format" } };
@@ -522,7 +524,94 @@ export function parseRecipeComposition(
 
   return "gap" in repaired
     ? { week: null, issue: { code: "missing_meal", ...repaired.gap } }
-    : { week: repaired.week, issue: null };
+    : { week: capRepeats(repaired.week, eligible, cooking), issue: null };
+}
+
+/** A dish may appear at most this many times a week (all meals counted). */
+export const MAX_REPEATS_PER_WEEK = 3;
+/** A batch is served on at most this many days, whatever the recipe keeps. */
+export const MAX_BATCH_DAYS = 3;
+
+/**
+ * Weekly uses allowed for a recipe. A batch recipe, for a user who cooks in
+ * batches, may be cooked twice a week and each batch served on up to
+ * min(keepsDays, 3) days; never less than the normal cap.
+ */
+function repeatCap(recipe: ResolvedRecipe | undefined, cooking: Pick<CookingPrefs, "batch">): number {
+  if (!recipe || !cooking.batch || !recipe.batch.ok) {
+    return MAX_REPEATS_PER_WEEK;
+  }
+
+  return Math.max(MAX_REPEATS_PER_WEEK, 2 * Math.min(recipe.batch.keepsDays, MAX_BATCH_DAYS));
+}
+
+/**
+ * Enforces the repeat cap in code (the prompt only asks for it). Going day by
+ * day and meal by meal, each use beyond a recipe's cap is replaced with the
+ * least-used eligible recipe for that meal and day type (weekday-ok on
+ * lun-vie) that is still under its own cap; ties go to the lowest id. With no
+ * such recipe the meal is kept, so a meal is never left empty. Pure: returns a
+ * new week and logs nothing.
+ */
+export function capRepeats(
+  week: RecipeWeek,
+  eligible: ReadonlyMap<string, ResolvedRecipe>,
+  cooking: Pick<CookingPrefs, "batch">,
+): RecipeWeek {
+  const result = Object.fromEntries(DAYS.map((day) => [day, { ...week[day] }])) as RecipeWeek;
+  const capOf = (id: string): number => repeatCap(eligible.get(id), cooking);
+  const total = new Map<string, number>();
+  const seen = new Map<string, number>();
+  const bump = (counts: Map<string, number>, id: string, by: number) => counts.set(id, (counts.get(id) ?? 0) + by);
+
+  for (const day of DAYS) for (const slot of SLOTS) bump(total, result[day][slot], 1);
+
+  const bySlot = new Map(
+    SLOTS.map((slot) => [slot, [...eligible.values()].filter((recipe) => fitsSlot(recipe, slot))] as const),
+  );
+
+  for (const day of DAYS) {
+    for (const slot of SLOTS) {
+      const id = result[day][slot];
+
+      if ((seen.get(id) ?? 0) < capOf(id)) {
+        bump(seen, id, 1);
+        continue;
+      }
+
+      let best: string | null = null;
+
+      for (const candidate of bySlot.get(slot) ?? []) {
+        const uses = total.get(candidate.id) ?? 0;
+
+        if (
+          candidate.id === id ||
+          (!WEEKEND.has(day) && candidate.weekendOnly) ||
+          uses >= capOf(candidate.id)
+        ) {
+          continue;
+        }
+
+        const bestUses = best === null ? Infinity : (total.get(best) ?? 0);
+
+        if (uses < bestUses || (uses === bestUses && best !== null && candidate.id < best)) {
+          best = candidate.id;
+        }
+      }
+
+      if (best === null) {
+        bump(seen, id, 1); // nothing better: keep the meal
+        continue;
+      }
+
+      result[day][slot] = best;
+      bump(total, id, -1);
+      bump(total, best, 1);
+      bump(seen, best, 1);
+    }
+  }
+
+  return result;
 }
 
 /**
