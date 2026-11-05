@@ -228,6 +228,7 @@ test("vegan + microwave only: restrictions_too_strict with availableRecipes, no 
     ok: false,
     code: "restrictions_too_strict",
     availableRecipes: { desayuno: 0, almuerzo: 0, cena: 0, snacks: 0 },
+    totalRecipes: { desayuno: 0, almuerzo: 0, cena: 0, snacks: 0 },
   });
 });
 
@@ -238,7 +239,8 @@ test("lactose + gluten + fish at 10 minutes: too strict, counts per slot, only a
 
   assert.equal(coverage.ok, false);
   assert.equal(coverage.code, "restrictions_too_strict");
-  assert.deepEqual(coverage.availableRecipes, countBySlot(eligible));
+  assert.deepEqual(coverage.availableRecipes, countBySlot(eligible.filter((recipe) => !recipe.weekendOnly)));
+  assert.deepEqual(coverage.totalRecipes, countBySlot(eligible));
 
   for (const recipe of eligible) {
     for (const food of foodsOf(recipe)) {
@@ -252,7 +254,8 @@ test("coverage is ok when every slot has at least MIN_RECIPES_PER_SLOT recipes",
     [1, 2, 3].map((n) => ({ ...resolveRecipe(pollo, ctx({ cooking: { weekdayMinutes: 30 } })), id: `${slot}_${n}`, slots: [slot] })),
   );
 
-  assert.deepEqual(recipeCoverage(plenty), { ok: true, availableRecipes: { desayuno: 3, almuerzo: 3, cena: 3, snacks: 3 } });
+  const three = { desayuno: 3, almuerzo: 3, cena: 3, snacks: 3 };
+  assert.deepEqual(recipeCoverage(plenty), { ok: true, availableRecipes: three, totalRecipes: three });
 });
 
 test("two recipes per slot is still too strict", () => {
@@ -261,4 +264,34 @@ test("two recipes per slot is still too strict", () => {
 
   assert.equal(recipeCoverage(two).ok, false);
   assert.deepEqual(recipeCoverage(two).availableRecipes, { desayuno: 2, almuerzo: 2, cena: 2, snacks: 2 });
+});
+
+test("weekend-only recipes do not count toward coverage (weekdays would be empty)", () => {
+  const weekday = resolveRecipe(pollo, ctx({ cooking: { weekdayMinutes: 30 } }));
+  const recipes = SLOTS.flatMap((slot) =>
+    [1, 2, 3].map((n) => ({ ...weekday, id: `${slot}_${n}`, slots: [slot], weekendOnly: slot === "cena" })),
+  );
+
+  assert.deepEqual(recipeCoverage(recipes), {
+    ok: false,
+    code: "restrictions_too_strict",
+    availableRecipes: { desayuno: 3, almuerzo: 3, cena: 0, snacks: 3 },
+    totalRecipes: { desayuno: 3, almuerzo: 3, cena: 3, snacks: 3 },
+  });
+});
+
+test("a resolved recipe owns its arrays: changing them never touches the frozen library", () => {
+  const before = JSON.stringify(RECIPES);
+  const r = resolveRecipe(lentejas, ctx());
+  const scaled = resolveRecipe(fixture({ id: "con_escala", scale: { protein: [0.8, 1.5] } }), ctx({ cooking: { weekdayMinutes: 30 } }));
+
+  r.slots.push("desayuno");
+  r.appliances.push("horno");
+  r.steps.es.push("x");
+  r.steps.en.push("x");
+  r.batch.keepsDays = 1;
+  r.name.es = "x";
+  scaled.scale.protein[1] = 3;
+
+  assert.equal(JSON.stringify(RECIPES), before);
 });

@@ -126,7 +126,30 @@ export function resolveRecipe(recipe: Recipe, ctx: EligibilityContext): Resolved
     return null;
   }
 
-  return { ...recipe, lines, weekendOnly };
+  return { ...ownedCopy(recipe), lines, weekendOnly };
+}
+
+/**
+ * A copy whose arrays and objects belong to the caller, so a later change to a
+ * resolved recipe can never hit the deep-frozen library (which would throw).
+ * Copying is cheaper to keep right than readonly types on every consumer.
+ */
+function ownedCopy(recipe: Recipe): Recipe {
+  const scale = recipe.scale
+    ? Object.fromEntries(
+        Object.entries(recipe.scale).map(([role, range]) => [role, [...range] as [number, number]]),
+      )
+    : undefined;
+
+  return {
+    ...recipe,
+    name: { ...recipe.name },
+    slots: [...recipe.slots],
+    appliances: [...recipe.appliances],
+    batch: { ...recipe.batch },
+    steps: { es: [...recipe.steps.es], en: [...recipe.steps.en] },
+    ...(scale ? { scale } : {}),
+  };
 }
 
 export function eligibleRecipes(recipes: readonly Recipe[], ctx: EligibilityContext): ResolvedRecipe[] {
@@ -136,7 +159,7 @@ export function eligibleRecipes(recipes: readonly Recipe[], ctx: EligibilityCont
   });
 }
 
-/** Usable recipes per meal slot (a recipe counts in each of its slots). */
+/** Usable recipes per meal slot (a recipe counts in each of its slots), weekend-only included. */
 export function countBySlot(recipes: readonly ResolvedRecipe[]): Record<Slot, number> {
   const counts = Object.fromEntries(SLOTS.map((slot) => [slot, 0])) as Record<Slot, number>;
 
@@ -149,15 +172,27 @@ export function countBySlot(recipes: readonly ResolvedRecipe[]): Record<Slot, nu
   return counts;
 }
 
-export type RecipeCoverage =
-  | { ok: true; availableRecipes: Record<Slot, number> }
-  | { ok: false; code: "restrictions_too_strict"; availableRecipes: Record<Slot, number> };
+interface CoverageCounts {
+  /** Recipes usable on weekdays (not weekendOnly), per slot: what coverage is judged on. */
+  availableRecipes: Record<Slot, number>;
+  /** All usable recipes per slot, weekend-only ones included. */
+  totalRecipes: Record<Slot, number>;
+}
 
-/** Every slot needs MIN_RECIPES_PER_SLOT options, else the restrictions are too strict. */
+export type RecipeCoverage =
+  | ({ ok: true } & CoverageCounts)
+  | ({ ok: false; code: "restrictions_too_strict" } & CoverageCounts);
+
+/**
+ * Every slot needs MIN_RECIPES_PER_SLOT recipes that work on a weekday, else
+ * the restrictions are too strict: weekend-only recipes would leave Monday to
+ * Friday with nothing.
+ */
 export function recipeCoverage(recipes: readonly ResolvedRecipe[]): RecipeCoverage {
-  const availableRecipes = countBySlot(recipes);
+  const availableRecipes = countBySlot(recipes.filter((recipe) => !recipe.weekendOnly));
+  const totalRecipes = countBySlot(recipes);
 
   return SLOTS.every((slot) => availableRecipes[slot] >= MIN_RECIPES_PER_SLOT)
-    ? { ok: true, availableRecipes }
-    : { ok: false, code: "restrictions_too_strict", availableRecipes };
+    ? { ok: true, availableRecipes, totalRecipes }
+    : { ok: false, code: "restrictions_too_strict", availableRecipes, totalRecipes };
 }

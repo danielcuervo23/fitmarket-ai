@@ -57,6 +57,12 @@ export function lineQty(recipe: ResolvedRecipe, index: number, food: string): nu
   return alternative.qty;
 }
 
+/**
+ * The meal for one serving: each line's base qty times its role's scale
+ * (fixed lines and missing roles use 1). Scales are NOT clamped here: callers
+ * (the optimizer, T9/T10) must pass scales already inside the recipe's range
+ * (`recipe.scale` or DEFAULT_ROLE_SCALE). Quantities are not rounded either.
+ */
 export function expandMeal(recipe: ResolvedRecipe, choice: LineChoice, scales: RoleScales): ComposedMeal {
   const items: MealItem[] = [];
 
