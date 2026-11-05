@@ -1,0 +1,39 @@
+{
+  "id": "yogur_con_fruta",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": { "es": "Yogur con fruta", "en": "Yogurt with fruit" },
+  "slots": ["desayuno", "snacks"],
+  "minutes": 5,
+  "level": "basic",
+  "appliances": ["estufa"],
+  "batch": { "ok": false, "keepsDays": 1 },
+  "lines": [
+    { "food": "yogur_natural", "qty": 150, "role": "protein" },
+    {
+      "food": "papaya",
+      "qty": 100,
+      "role": "veg",
+      "alternatives": [
+        { "food": "mango", "qty": 100 },
+        { "food": "fresa", "qty": 100 },
+        { "food": "pina", "qty": 100 }
+      ]
+    },
+    { "food": "avena", "qty": 20, "role": "carb", "optional": true }
+  ],
+  "steps": {
+    "es": [
+      "Lava la fruta y quítale la cáscara si tiene.",
+      "Córtala en cuadritos.",
+      "Sirve el yogur en un plato hondo.",
+      "Pon la fruta encima y, si quieres, la avena en hojuelas."
+    ],
+    "en": [
+      "Wash the fruit and peel it if needed.",
+      "Cut it into small cubes.",
+      "Serve the yogurt in a bowl.",
+      "Put the fruit on top and, if you like, the rolled oats."
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "huevos_pericos_con_arepa",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": { "es": "Huevos pericos con arepa", "en": "Scrambled eggs with tomato and onion, with arepa" },
+  "slots": ["desayuno", "cena"],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": ["estufa"],
+  "batch": { "ok": false, "keepsDays": 1 },
+  "lines": [
+    { "food": "huevo", "qty": 2, "role": "protein" },
+    { "food": "harina_maiz", "qty": 60, "role": "carb" },
+    { "food": "tomate_chonto", "qty": 60, "role": "veg" },
+    { "food": "cebolla_junca", "qty": 20, "role": "veg" },
+    { "food": "aceite_vegetal", "qty": 5, "role": "fat" },
+    { "food": "sal", "qty": 1, "role": "fixed" }
+  ],
+  "steps": {
+    "es": [
+      "Mezcla la harina con un poco de sal y agua tibia, poco a poco, hasta tener una masa suave.",
+      "Haz una bola con la masa y aplástala con las manos hasta que quede como un disco.",
+      "Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
+      "Pica el tomate y la cebolla en cuadritos.",
+      "En otra sartén con el aceite, cocina el tomate y la cebolla 3 minutos, revolviendo.",
+      "Bate los huevos en un plato, échalos a la sartén y revuelve hasta que no estén líquidos."
+    ],
+    "en": [
+      "Mix the flour with a little salt and warm water, bit by bit, until you get a soft dough.",
+      "Roll the dough into a ball and press it with your hands into a disc.",
+      "Cook the arepa in a dry pan over medium heat, 5 minutes on each side.",
+      "Chop the tomato and the onion into small cubes.",
+      "In another pan with the oil, cook the tomato and onion for 3 minutes, stirring.",
+      "Beat the eggs on a plate, pour them into the pan and stir until they are no longer runny."
+    ]
+  }
+}

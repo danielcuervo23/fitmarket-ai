@@ -13,6 +13,8 @@ export interface MealItem {
 export interface ComposedMeal {
   name: { es: string; en: string };
   items: MealItem[];
+  /** Library recipe the meal comes from (absent in free-composition meals). */
+  recipeId?: string;
 }
 
 export type ComposedWeek = Record<Day, Record<Slot, ComposedMeal>>;
