@@ -15,6 +15,8 @@ import {
   MAX_MODEL_CALLS_CEILING,
   MAX_TIME_BUDGET_MS,
 } from "../_shared/planner/callBudget.ts";
+import { readGenerationRequestBody } from "../_shared/generationRequest.ts";
+import { failureResponse } from "../_shared/generationResponse.ts";
 import { generatePlan } from "../_shared/planner/generate.ts";
 import { respondWithGeneratedPlan } from "../_shared/planStorage.ts";
 import { positiveIntOr, shouldRefund } from "../_shared/quota.ts";
@@ -91,6 +93,12 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Read before any quota write. Capped at MAX_BODY_CHARS; anything invalid
+    // (or the `{}` the old web sends) gives the defaults. Only the version is
+    // logged, never the body.
+    const requestBody = await readGenerationRequestBody(req);
+    logEvent("client_version", { version: requestBody.appVersion ?? "none" });
+
     const { data: input, error: inputError } = await buildGenerationInputFromDb(
       supabase,
       user.id,
@@ -166,7 +174,11 @@ Deno.serve(async (req: Request) => {
     });
     logEvent("catalog_origin", { origin: plannerData.origin });
 
-    const outcome = await generatePlan(input, callOpenAI, {
+    // "Quiero el plan igual" travels with the input; a generator that does
+    // not know the flag yet simply ignores it.
+    const generationInput = { ...input, allowPartial: requestBody.allowPartial };
+
+    const outcome = await generatePlan(generationInput, callOpenAI, {
       maxModelCalls: positiveIntOr(
         Deno.env.get("GENERATION_MAX_MODEL_CALLS"),
         DEFAULT_MAX_MODEL_CALLS,
@@ -229,21 +241,12 @@ Deno.serve(async (req: Request) => {
       return json(body, status);
     }
 
-    const { code, message, budget, diagnostics } = outcome.error;
-
-    if (shouldRefund(code, outcome.usage)) {
+    if (shouldRefund(outcome.error.code, outcome.usage)) {
       await refund();
     }
 
-    if (code === "budget_too_low" && budget) {
-      // 200 so supabase.functions.invoke delivers the body in `data`.
-      return json({ error: "budget_too_low", code, ...budget }, 200);
-    }
-
-    const status =
-      code === "server_config" ? 503 : code === "rate_limited" ? 429 : 422;
-
-    return json({ error: message, code, diagnostics }, status);
+    const { status, payload } = failureResponse(outcome.error, requestBody);
+    return json(payload, status);
   } catch (error) {
     logUnexpected("generate-weekly-plan", error);
     return json(
