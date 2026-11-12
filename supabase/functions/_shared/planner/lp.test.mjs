@@ -86,6 +86,112 @@ test("invalid wasm bytes resolve false instead of throwing", async () => {
   assert.equal(await lp.prepareLp({ loadWasm: async () => new Uint8Array([1, 2, 3]) }), false);
 });
 
+// --- load diagnosis ------------------------------------------------------------
+
+test("lpLoadError is null before any load and after a successful one", async () => {
+  const lp = await freshLp();
+  assert.equal(lp.lpLoadError(), null);
+  assert.equal(await lp.prepareLp({ loadWasm: wasmBytes }), true);
+  assert.equal(lp.lpLoadError(), null);
+});
+
+test("a loader that cannot find the file reports wasm_not_found", async () => {
+  const lp = await freshLp();
+  assert.equal(await lp.prepareLp({ loadWasm: async () => { throw new Error("ENOENT /secret/path"); } }), false);
+  assert.equal(lp.lpLoadError(), "wasm_not_found");
+});
+
+test("bytes that are not valid wasm report wasm_instantiate_failed", async () => {
+  const lp = await freshLp();
+  await lp.prepareLp({ loadWasm: async () => new Uint8Array([1, 2, 3]) });
+  assert.equal(lp.lpLoadError(), "wasm_instantiate_failed");
+});
+
+test("a load that never settles times out, is not cached, and the next call retries", async () => {
+  const lp = await freshLp();
+  assert.equal(lp.LP_LOAD_TIMEOUT_MS, 5000);
+  assert.equal(await lp.prepareLp({ loadWasm: () => new Promise(() => {}), loadTimeoutMs: 20 }), false);
+  assert.equal(lp.lpLoadError(), "load_timeout");
+  assert.equal(await lp.prepareLp({ loadWasm: wasmBytes }), true);
+  assert.equal(lp.lpLoadError(), null);
+});
+
+test("a load that finishes after its timeout is not used", async () => {
+  const lp = await freshLp();
+  const slow = async () => { await new Promise((r) => setTimeout(r, 80)); return wasmBytes(); };
+  assert.equal(await lp.prepareLp({ loadWasm: slow, loadTimeoutMs: 10 }), false);
+  await new Promise((r) => setTimeout(r, 300));
+  assert.equal(lp.solveLp(dietModel()).error, "solver_error");
+});
+
+// --- per-solve time limit (fake solver, fresh module) -----------------------------
+
+const AMBIGUOUS = { Status: "Primal infeasible or unbounded", ObjectiveValue: 0, Columns: {} };
+const OPTIMAL = { Status: "Optimal", ObjectiveValue: 0.08, Columns: { x0: { Primal: 1 }, x1: { Primal: 1 } } };
+
+async function withFakeSolver(answers, msPerSolve) {
+  const lp = await freshLp();
+  const clock = { t: 0 };
+  const calls = [];
+  lp.__setLpSolverForTests({
+    solve(text, options) {
+      calls.push({ ...options });
+      clock.t += msPerSolve;
+      return answers[Math.min(calls.length - 1, answers.length - 1)];
+    },
+  });
+  return { lp, calls, now: () => clock.t };
+}
+
+test("the default per-solve limit is 800 ms, passed as HiGHS time_limit in seconds", async () => {
+  const { lp, calls, now } = await withFakeSolver([OPTIMAL], 10);
+  assert.equal(lp.solveLp(dietModel(), now).feasible, true);
+  assert.equal(calls[0].time_limit, 0.8);
+});
+
+test("the presolve-off retry only gets the time that is left", async () => {
+  const { lp, calls, now } = await withFakeSolver([AMBIGUOUS, OPTIMAL], 300);
+  const s = lp.solveLp(dietModel(), now, { timeLimitMs: 800 });
+  assert.equal(s.feasible, true);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].presolve, "off");
+  near(calls[1].time_limit, 0.5, "retry limit");
+});
+
+test("no time left after the first solve: time_limit and no retry", async () => {
+  const { lp, calls, now } = await withFakeSolver([AMBIGUOUS, OPTIMAL], 250);
+  const s = lp.solveLp(dietModel(), now, { timeLimitMs: 200 });
+  assert.equal(s.feasible, false);
+  assert.equal(s.error, "time_limit");
+  assert.equal(calls.length, 1);
+});
+
+test("a zero or negative budget answers time_limit without solving", async () => {
+  const { lp, calls, now } = await withFakeSolver([OPTIMAL], 1);
+  for (const timeLimitMs of [0, -5]) {
+    const s = lp.solveLp(dietModel(), now, { timeLimitMs });
+    assert.equal(s.error, "time_limit");
+    assert.equal(s.feasible, false);
+  }
+  assert.equal(calls.length, 0);
+});
+
+test("an invalid limit falls back to 800 ms and a huge one is clamped", async () => {
+  const { lp, calls, now } = await withFakeSolver([OPTIMAL], 1);
+  lp.solveLp(dietModel(), now, { timeLimitMs: Number.NaN });
+  lp.solveLp(dietModel(), now, { timeLimitMs: 1e9 });
+  assert.equal(calls[0].time_limit, 0.8);
+  assert.equal(calls[1].time_limit, lp.LP_MAX_TIME_LIMIT_MS / 1000);
+  assert.ok(lp.LP_MAX_TIME_LIMIT_MS <= 2000, "never more than the Edge Function CPU limit");
+});
+
+test("__setLpSolverForTests(null) resets the adapter to unloaded", async () => {
+  const { lp, now } = await withFakeSolver([OPTIMAL], 1);
+  lp.__setLpSolverForTests(null);
+  assert.equal(lp.solveLp(dietModel(), now).error, "solver_error");
+  assert.equal(lp.lpLoadError(), null);
+});
+
 before(async () => {
   assert.equal(await prepareLp(), true, "default wasm loader works in Node");
 });
@@ -223,8 +329,8 @@ for (const name of ["feasible", "result", "bounded", "Status", "Columns"]) {
 }
 
 test("cpuMs is measured with the injected clock", () => {
-  let t = 100;
-  const s = solveLp(dietModel(), () => (t += 7));
+  let reads = 0;
+  const s = solveLp(dietModel(), () => (reads++ === 0 ? 100 : 107)); // start, then every later read
   assert.equal(s.cpuMs, 7);
 });
 

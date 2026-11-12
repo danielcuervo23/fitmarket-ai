@@ -16,7 +16,7 @@
 // Safety: caller names (which may come from catalog or user text) never enter
 // the LP text. Variables are written as x0…xN and rows as c0…cM, and mapped
 // back by position.
-import type { Highs } from "highs";
+import type { LegacyHighs } from "highs";
 
 export interface LpConstraint { min?: number; max?: number; equal?: number }
 export interface LpModel {
@@ -36,7 +36,21 @@ export interface LpSolution {
 
 /** Returns the bytes of `highs.wasm`. */
 export type WasmLoader = () => Promise<ArrayBuffer | ArrayBufferView>;
-export interface PrepareLpOptions { loadWasm?: WasmLoader }
+export interface PrepareLpOptions {
+  loadWasm?: WasmLoader;
+  loadTimeoutMs?: number; // default LP_LOAD_TIMEOUT_MS
+}
+/** Why the last load failed: a code only, safe to log (never paths or messages). */
+export type LpLoadError = "wasm_not_found" | "wasm_instantiate_failed" | "load_timeout";
+export interface SolveLpOptions {
+  /**
+   * Time this call may use, in ms (default LP_DEFAULT_TIME_LIMIT_MS, clamped to
+   * [0, LP_MAX_TIME_LIMIT_MS]). Passed to HiGHS as its own `time_limit` option;
+   * a presolve-off retry only gets what is left. Callers pass
+   * min(remaining planner budget, LP_DEFAULT_TIME_LIMIT_MS).
+   */
+  timeLimitMs?: number;
+}
 
 // CPU guard: the planner's model is about 320 variables and 400 rows.
 export const LP_MAX_VARIABLES = 1000;
@@ -44,15 +58,21 @@ export const LP_MAX_CONSTRAINTS = 1000;
 // HiGHS treats |values| >= 1e15 (matrix) and >= 1e20 (bounds, costs) as
 // infinite; anything near that is a bug in the model builder, not data.
 export const LP_MAX_ABS_VALUE = 1e12;
-// Wall-clock cap for one solve; the planner shares 900 ms across all solves.
-const SOLVE_TIME_LIMIT_SECONDS = 0.8;
+export const LP_DEFAULT_TIME_LIMIT_MS = 800;
+export const LP_MAX_TIME_LIMIT_MS = 1500; // below the Edge Function's 2 s CPU limit
+export const LP_LOAD_TIMEOUT_MS = 5000;
 const ZERO_TOLERANCE = 1e-9;
 
 // ---------------------------------------------------------------------------
 // Loading
 
-let solver: Highs | null = null;
+type LpSolver = Pick<LegacyHighs, "solve">;
+type LoadOutcome = { ok: true; solver: LpSolver } | { ok: false; error: LpLoadError };
+
+let solver: LpSolver | null = null;
 let loading: Promise<boolean> | null = null;
+let lastLoadError: LpLoadError | null = null;
+let attempt = 0; // a result from an older attempt (timed out or reset) is ignored
 
 type DenoFs = { readFile(path: string | URL): Promise<Uint8Array>; mainModule: string };
 
@@ -89,9 +109,14 @@ type InstantiateWasm = (
   done: (instance: WebAssembly.Instance) => void,
 ) => Record<string, never>;
 
-async function load(loadWasm: WasmLoader): Promise<boolean> {
+async function load(loadWasm: WasmLoader): Promise<LoadOutcome> {
+  let bytes: ArrayBuffer | ArrayBufferView;
   try {
-    const bytes = await loadWasm();
+    bytes = await loadWasm();
+  } catch {
+    return { ok: false, error: "wasm_not_found" };
+  }
+  try {
     const { default: highsLoader } = await import("highs");
     // Emscripten waits forever if instantiateWasm never calls `done`, so a
     // failed instantiation must reject on its own path.
@@ -103,28 +128,63 @@ async function load(loadWasm: WasmLoader): Promise<boolean> {
     };
     const options: Parameters<typeof highsLoader>[0] & { instantiateWasm: InstantiateWasm } = { instantiateWasm };
     const instance = await Promise.race([highsLoader(options), failed]);
-    if (typeof instance?.solve !== "function") return false;
-    solver = instance;
-    return true;
+    if (typeof instance?.solve !== "function") return { ok: false, error: "wasm_instantiate_failed" };
+    return { ok: true, solver: instance };
   } catch {
-    return false;
+    return { ok: false, error: "wasm_instantiate_failed" };
   }
 }
 
+const positiveOr = (v: unknown, fallback: number): number =>
+  typeof v === "number" && Number.isFinite(v) && v > 0 ? v : fallback;
+
 /**
  * Loads the solver once per instance. Resolves true when ready, false when the
- * load failed (never rejects). A failed load is forgotten, so the next call
- * tries again; `options` only matter for the call that starts a load.
+ * load failed or took longer than `loadTimeoutMs` (never rejects; the reason is
+ * in `lpLoadError()`). A failed or timed-out load is forgotten, so the next
+ * call tries again; `options` only matter for the call that starts a load.
  */
 export function prepareLp(options: PrepareLpOptions = {}): Promise<boolean> {
   if (solver !== null) return Promise.resolve(true);
   if (loading === null) {
-    loading = load(options.loadWasm ?? defaultWasmBytes).then((ok) => {
-      if (!ok) loading = null;
-      return ok;
+    const id = ++attempt;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<LoadOutcome>((resolve) => {
+      timer = setTimeout(
+        () => resolve({ ok: false, error: "load_timeout" }),
+        positiveOr(options.loadTimeoutMs, LP_LOAD_TIMEOUT_MS),
+      );
+    });
+    loading = Promise.race([load(options.loadWasm ?? defaultWasmBytes), timeout]).then((outcome) => {
+      clearTimeout(timer);
+      if (id !== attempt) return solver !== null;
+      loading = null;
+      if (outcome.ok) {
+        solver = outcome.solver;
+        lastLoadError = null;
+        return true;
+      }
+      lastLoadError = outcome.error;
+      return false;
     });
   }
   return loading;
+}
+
+/** Code of the last failed load, or null (never tried, loading, or ready). */
+export function lpLoadError(): LpLoadError | null {
+  return solver === null ? lastLoadError : null;
+}
+
+/**
+ * TEST ONLY: replaces the loaded solver (null = back to "not loaded") and
+ * forgets any load in progress or past error.
+ */
+export function __setLpSolverForTests(fake: LpSolver | null): void {
+  attempt++;
+  solver = fake;
+  loading = null;
+  lastLoadError = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -299,6 +359,12 @@ const failure = (error: LpError, cpuMs: number): LpSolution => ({
   feasible: false, bounded: false, objective: Number.POSITIVE_INFINITY, values: {}, cpuMs, error,
 });
 
+/** Default for a missing or non-finite value; otherwise clamped to [0, LP_MAX_TIME_LIMIT_MS]. */
+function timeLimitOf(v: unknown): number {
+  if (typeof v !== "number" || !Number.isFinite(v)) return LP_DEFAULT_TIME_LIMIT_MS;
+  return Math.min(Math.max(v, 0), LP_MAX_TIME_LIMIT_MS);
+}
+
 const zeros = (names: readonly string[]): Record<string, number> => Object.fromEntries(names.map((n) => [n, 0]));
 
 function toSolution(read: SolverRead, names: readonly string[], cpuMs: number): LpSolution {
@@ -323,11 +389,23 @@ function toSolution(read: SolverRead, names: readonly string[], cpuMs: number): 
 /**
  * Minimises `model.optimize` subject to the constraints; all variables are >= 0.
  * `now` is a millisecond clock (injectable for tests). The call is synchronous,
- * so wall time measured around it approximates CPU time.
+ * so wall time measured around it approximates CPU time. Primal values carry
+ * solver noise: callers treat values <= 1e-6 as zero.
  */
-export function solveLp(model: LpModel, now: () => number = () => performance.now()): LpSolution {
+export function solveLp(
+  model: LpModel,
+  now: () => number = () => performance.now(),
+  options: SolveLpOptions = {},
+): LpSolution {
   const start = now();
   const elapsed = () => now() - start;
+  const limitMs = timeLimitOf(options.timeLimitMs);
+  // HiGHS's own `time_limit` option, in seconds, for whatever time is left.
+  const solveWithin = (text: string, retry: boolean): unknown | null => {
+    const leftMs = limitMs - elapsed();
+    if (!(solver !== null && leftMs > 0)) return null;
+    return solver.solve(text, retry ? { time_limit: leftMs / 1000, presolve: "off" } : { time_limit: leftMs / 1000 });
+  };
   try {
     const safe = readModel(model);
     if (safe === null) return failure("invalid_model", elapsed());
@@ -339,10 +417,15 @@ export function solveLp(model: LpModel, now: () => number = () => performance.no
     if (names.length === 0) return toSolution({ kind: "optimal", objective: 0, primal: [] }, names, elapsed());
     if (solver === null) return failure("solver_error", elapsed());
 
-    let read = readSolverResult(solver.solve(text, { time_limit: SOLVE_TIME_LIMIT_SECONDS }), names.length);
+    const first = solveWithin(text, false);
+    if (first === null) return failure("time_limit", elapsed());
+    let read = readSolverResult(first, names.length);
     if (read.kind === "ambiguous") {
-      // Presolve could not tell infeasible from unbounded; the simplex can.
-      read = readSolverResult(solver.solve(text, { time_limit: SOLVE_TIME_LIMIT_SECONDS, presolve: "off" }), names.length);
+      // Presolve could not tell infeasible from unbounded; the simplex can,
+      // within the time that is left.
+      const retry = solveWithin(text, true);
+      if (retry === null) return failure("time_limit", elapsed());
+      read = readSolverResult(retry, names.length);
     }
     return toSolution(read, names, elapsed());
   } catch {
