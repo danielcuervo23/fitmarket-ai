@@ -53,7 +53,14 @@ test("the staging check script tests RLS as a signed-in user, both ways", () => 
   assert.match(sql, /set local role authenticated/);
   assert.match(sql, /set_config\('request\.jwt\.claims'/);
   assert.match(sql, /select count\(\*\) from public\.partial_plan_results/, "own row visible");
-  assert.match(sql, /delete from public\.partial_plan_results where user_id = \(select id from auth\.users order by id desc limit 1\)/, "cross-user delete");
+  assert.match(sql, /delete from public\.partial_plan_results where user_id = current_setting\('t\.b'\)::uuid/, "cross-user delete");
+  // The authenticated role cannot read auth.users: user ids are captured as the owner first.
+  const firstRoleSwitch = sql.indexOf("set local role authenticated");
+  assert.ok(sql.indexOf("set_config('t.a'") < firstRoleSwitch && sql.indexOf("set_config('t.b'") < firstRoleSwitch);
+  for (const block of sql.split(/reset role;/)) {
+    const asUser = block.slice(block.indexOf("set local role authenticated"));
+    if (block.includes("set local role authenticated")) assert.doesNotMatch(asUser, /auth\.users/, asUser.slice(0, 120));
+  }
   assert.match(sql, /insert into public\.partial_plan_results [^;]*; rollback to savepoint user_insert;/, "user insert inside a savepoint");
   assert.match(sql, /update public\.partial_plan_results set/);
   // Every savepoint rollback is followed by reset role before the next check.
