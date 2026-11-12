@@ -8,7 +8,7 @@
     "build": "vite build",
     "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"supabase/functions/_shared/*.test.mjs\" \"supabase/functions/_shared/planner/*.test.mjs\" \"src/lib/*.test.mjs\" \"scripts/**/*.test.mjs\"",
+    "test": "node --import ./scripts/test-hooks/register.mjs --test \"supabase/functions/_shared/*.test.mjs\" \"supabase/functions/_shared/planner/*.test.mjs\" \"src/lib/*.test.mjs\" \"scripts/**/*.test.mjs\"",
     "typecheck:functions": "tsc --noEmit -p tsconfig.functions.json",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json",
     "check": "npm run typecheck && npm run typecheck:functions && npm run typecheck:scripts && npm test",
