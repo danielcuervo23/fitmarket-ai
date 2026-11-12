@@ -18,6 +18,7 @@ import {
 import { readGenerationRequestBody } from "../_shared/generationRequest.ts";
 import { failureResponse } from "../_shared/generationResponse.ts";
 import {
+  finishInBackground,
   generationFingerprint,
   reusePartialPlan,
   storePartialWeek,
@@ -279,12 +280,16 @@ Deno.serve(async (req: Request) => {
     // Keep the week so "Quiero el plan igual" with the same inputs reuses it.
     if (outcome.error.code === "goals_unreachable" && outcome.reusable) {
       // The price date of the fingerprint is the one this request started on.
-      await storePartialWeek(
-        createServiceClient() as unknown as PartialPlanClient | null,
-        user.id,
-        await generationFingerprint(input, startedAt),
-        outcome.reusable,
-        Date.now(),
+      // In the background: the goals_unreachable answer does not wait for it.
+      const fingerprint = await generationFingerprint(input, startedAt);
+      await finishInBackground(
+        storePartialWeek(
+          createServiceClient() as unknown as PartialPlanClient | null,
+          user.id,
+          fingerprint,
+          outcome.reusable,
+          Date.now(),
+        ),
       );
     }
 

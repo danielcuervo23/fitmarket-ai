@@ -257,3 +257,32 @@ export async function reusePartialPlan(reuse: ReuseRequest): Promise<BuiltPlan |
   logEvent("partial_plan_reused");
   return plan;
 }
+
+/** Longest the answer waits for background work when the runtime cannot keep it alive. */
+export const BACKGROUND_FALLBACK_MS = 1500;
+
+interface BackgroundRuntime {
+  EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void };
+}
+
+/**
+ * Lets work that the user does not wait for (keeping the week for "Quiero el
+ * plan igual") finish after the answer. On Supabase Edge Functions
+ * `EdgeRuntime.waitUntil` keeps the instance alive and the answer leaves at
+ * once; elsewhere it waits at most `fallbackMs`. The task must not reject
+ * (storePartialWeek never does).
+ */
+export async function finishInBackground(
+  task: Promise<unknown>,
+  runtime: BackgroundRuntime = globalThis as BackgroundRuntime,
+  fallbackMs: number = BACKGROUND_FALLBACK_MS,
+): Promise<void> {
+  const waitUntil = runtime.EdgeRuntime?.waitUntil;
+  if (typeof waitUntil === "function") {
+    waitUntil.call(runtime.EdgeRuntime, task);
+    return;
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([task, new Promise<void>((resolve) => (timer = setTimeout(resolve, fallbackMs)))]);
+  clearTimeout(timer);
+}

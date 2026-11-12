@@ -321,3 +321,34 @@ test("handler: reuse is tried before the daily quota row, and the week is stored
   assert.match(source.slice(reuse, quota), /client: supabase as unknown as PartialPlanClient/, "taken with the user's JWT client (RLS)");
   assert.match(source, /if \(outcome\.error\.code === "goals_unreachable" && outcome\.reusable\) \{[\s\S]*?storePartialWeek\(\s*createServiceClient\(\)/);
 });
+
+// ---------------------------------------------------------------- background store
+
+import { BACKGROUND_FALLBACK_MS, finishInBackground } from "./partialPlanStore.ts";
+
+test("background: with EdgeRuntime.waitUntil the answer does not wait for the store", async () => {
+  const handed = [];
+  const never = new Promise(() => {});
+  const started = performance.now();
+  await finishInBackground(never, { EdgeRuntime: { waitUntil: (p) => handed.push(p) } });
+  assert.ok(performance.now() - started < 50);
+  assert.deepEqual(handed, [never]);
+});
+
+test("background fallback: without waitUntil it waits at most the fallback time", async () => {
+  assert.equal(BACKGROUND_FALLBACK_MS, 1500);
+  const started = performance.now();
+  await finishInBackground(new Promise(() => {}), {}, 30);
+  const waited = performance.now() - started;
+  assert.ok(waited >= 25 && waited < 500, `${waited}`);
+
+  let done = false;
+  await finishInBackground(Promise.resolve().then(() => (done = true)), {});
+  assert.equal(done, true, "a fast store finishes before the answer");
+});
+
+test("handler: the week is stored through finishInBackground", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("../generate-weekly-plan/index.ts", import.meta.url), "utf8");
+  assert.match(source, /await finishInBackground\(\s*storePartialWeek\(/);
+});
