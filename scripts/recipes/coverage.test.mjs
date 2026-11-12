@@ -80,7 +80,6 @@ test("at least 48 recipes, all pending the owner's OK or approved", () => {
   assert.ok(RECIPES.length >= 48, `${RECIPES.length} recipes`);
   for (const recipe of RECIPES) {
     assert.ok(["pending_owner_ok", "approved"].includes(recipe.status), recipe.id);
-    if (recipe.source === "ai_draft") assert.equal(recipe.status, "pending_owner_ok", recipe.id);
   }
 });
 

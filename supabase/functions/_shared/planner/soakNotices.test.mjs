@@ -85,3 +85,29 @@ test("(d) a free-composition plan (no recipe library) never gets a reminder", ()
   for (const day of DAYS) for (const slot of SLOTS) delete w[day][slot].recipeId;
   assert.ok(!("notices" in assemblePlan(w, { householdSize: 1, stores: STORES, targets })));
 });
+
+// A batch recipe served Saturday and again Sunday is one pot: cooked Saturday,
+// Sunday is the leftover. Only the evening before the first cooking day counts.
+const BATCH_LIBRARY = new Map([
+  ...LIBRARY,
+  ["frijoles", { ...recipe("frijoles"), batch: { ok: true, keepsDays: 3 } }],
+]);
+
+test("(d) Sunday leftovers of Saturday's batch: only the Friday reminder", () => {
+  const w = week({ sab: "frijoles", dom: "frijoles" });
+  assert.deepEqual(soakNotices(w, BATCH_LIBRARY), ["soak_friday_night"]);
+});
+
+test("(d) the plan with a Sunday batch leftover carries only the Friday reminder", () => {
+  const built = plan(week({ sab: "frijoles", dom: "frijoles" }), { recipes: BATCH_LIBRARY });
+  assert.deepEqual(built.notices, ["soak_friday_night"]);
+});
+
+test("(d) the same soak recipe on both days without batch cooks twice: both reminders", () => {
+  const w = week({ sab: "frijoles", dom: "frijoles" });
+  assert.deepEqual(soakNotices(w, LIBRARY), ["soak_friday_night", "soak_saturday_night"]);
+});
+
+test("(d) a batch soak recipe cooked only on Sunday: the Saturday reminder", () => {
+  assert.deepEqual(soakNotices(week({ dom: "frijoles" }), BATCH_LIBRARY), ["soak_saturday_night"]);
+});

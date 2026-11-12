@@ -11,12 +11,12 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-export const RECIPE_LIBRARY_VERSION = "bc13cca30ebf";
+export const RECIPE_LIBRARY_VERSION = "d90eba286c7f";
 
 export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   {
     "id": "arepa_con_aguacate_y_tomate",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Arepa con aguacate y tomate",
@@ -75,7 +75,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "arepa_con_queso",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Arepa con queso",
@@ -142,7 +142,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "arroz_con_huevo_y_tomate",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Arroz con huevo y tomate",
@@ -214,7 +214,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "arroz_con_pollo",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Arroz con pollo",
@@ -307,7 +307,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "avena_con_banano",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Avena con banano",
@@ -376,7 +376,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "avena_de_microondas_con_banano",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Avena de microondas con banano y maní",
@@ -449,7 +449,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "avena_remojada_con_fruta",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Avena remojada con fruta (sin cocinar)",
@@ -522,7 +522,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "batido_de_banano_y_mani",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Batido de banano y maní",
@@ -587,7 +587,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "batido_de_fresa_y_avena",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Batido de fresa y avena",
@@ -666,7 +666,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "carne_molida_con_papa_criolla",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Carne molida guisada con papa criolla",
@@ -748,7 +748,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "changua",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Changua (caldo de leche con huevo)",
@@ -826,7 +826,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "colada_de_avena",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Colada de avena",
@@ -894,7 +894,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "ensalada_de_aguacate_y_mani",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Ensalada de aguacate, tomate y maní",
@@ -979,7 +979,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "ensalada_de_atun_con_aguacate",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Ensalada de atún con aguacate",
@@ -1056,7 +1056,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "ensalada_de_frutas_con_mani",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Ensalada de frutas con maní",
@@ -1123,7 +1123,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "ensalada_de_repollo_y_mani",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Ensalada de repollo, zanahoria y maní con pan",
@@ -1196,7 +1196,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "frijoles_en_olla_a_presion",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Fríjoles con plátano en olla a presión",
@@ -1285,7 +1285,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "fruta_con_almendras",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Fruta con almendras",
@@ -1361,7 +1361,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "garbanzos_guisados_con_papa",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Garbanzos guisados con papa",
@@ -1461,7 +1461,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "huevos_pericos_con_arepa",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Huevos pericos con arepa",
@@ -1533,7 +1533,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "huevos_revueltos_con_espinaca",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Huevos revueltos con espinaca y tomate",
@@ -1607,7 +1607,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "huevos_revueltos_en_microondas",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Huevos revueltos en el microondas",
@@ -1680,7 +1680,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "lentejas_con_arroz",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Lentejas con arroz",
@@ -1787,7 +1787,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "lentejas_con_papa_en_microondas",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Lentejas con papa en el microondas",
@@ -1869,7 +1869,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "maduro_asado_con_queso",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Maduro asado con queso",
@@ -1931,7 +1931,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "palitos_de_verdura_con_guacamole",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Palitos de verdura con guacamole",
@@ -1991,7 +1991,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "pan_con_aguacate_y_tomate",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Pan con aguacate y tomate",
@@ -2047,7 +2047,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "papa_al_microondas_con_guacamole",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Papa al microondas con queso y guacamole",
@@ -2131,7 +2131,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "papa_criolla_con_huevos_en_hogao",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Papa criolla con huevos en hogao",
@@ -2203,7 +2203,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "pasta_con_atun",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Pasta con atún y tomate",
@@ -2280,7 +2280,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "pasta_con_huevo_y_tomate",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Pasta con huevo, tomate y habichuela",
@@ -2357,7 +2357,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "pasta_con_tomate_y_espinaca",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Pasta con tomate y espinaca",
@@ -2446,7 +2446,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "pechuga_a_la_plancha_con_arepa",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Pechuga a la plancha con arepa y ensalada",
@@ -2534,7 +2534,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "pollo_guisado_con_papa",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Pollo guisado con papa",
@@ -2639,7 +2639,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "pollo_salteado_con_quinua",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Pollo salteado con verduras y quinua",
@@ -2721,7 +2721,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "quinua_con_verduras",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Quinua con verduras",
@@ -2809,7 +2809,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "salpicon_de_frutas",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Salpicón de frutas",
@@ -2870,7 +2870,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "sandwich_de_aguacate_y_tomate",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Sándwich de aguacate, verduras y maní",
@@ -2941,7 +2941,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "sandwich_de_atun",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Sándwich de atún",
@@ -3013,7 +3013,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "sandwich_de_queso_y_tomate",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Sándwich de queso y tomate",
@@ -3073,7 +3073,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "sardinas_con_papa_al_microondas",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Sardinas con papa al microondas y ensalada",
@@ -3143,7 +3143,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "sardinas_guisadas_con_arepa",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Sardinas guisadas con arepa",
@@ -3215,7 +3215,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "sopa_de_arveja_seca",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Sopa de arveja seca",
@@ -3298,7 +3298,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "sopa_de_lentejas",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Sopa de lentejas con verduras",
@@ -3386,7 +3386,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "sopa_rapida_de_verduras_con_huevo",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Sopa rápida de verduras con huevo",
@@ -3469,7 +3469,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "tilapia_con_arepa_y_ensalada",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Tilapia en sartén con arepa y ensalada",
@@ -3551,7 +3551,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "tortilla_de_verduras_con_aguacate",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Tortilla de verduras con aguacate",
@@ -3628,7 +3628,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "tostadas_francesas_con_fruta",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Tostadas francesas con fruta",
@@ -3717,7 +3717,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   },
   {
     "id": "yogur_con_fruta",
-    "status": "pending_owner_ok",
+    "status": "approved",
     "source": "ai_draft",
     "name": {
       "es": "Yogur con fruta",

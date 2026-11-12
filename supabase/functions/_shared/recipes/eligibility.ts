@@ -81,17 +81,26 @@ function isUsableFood(food: string, ctx: EligibilityContext): boolean {
 
 type LineResult = { kind: "keep"; line: ResolvedLine } | { kind: "drop" } | { kind: "blocked" };
 
+/**
+ * The line with these alternatives. The key is left out when none remain, the
+ * same shape as a recipe line that never had any (readers use `?? []`).
+ */
+function withAlternatives<T extends RecipeLine>(line: T, alternatives: RecipeAlternative[]): T {
+  const { alternatives: _old, ...rest } = line;
+  return (alternatives.length > 0 ? { ...rest, alternatives } : rest) as T;
+}
+
 function resolveLine(line: RecipeLine, ctx: EligibilityContext): LineResult {
   const usable: RecipeAlternative[] = (line.alternatives ?? []).filter((alt) => isUsableFood(alt.food, ctx));
 
   if (isUsableFood(line.food, ctx)) {
-    return { kind: "keep", line: { ...line, alternatives: usable } };
+    return { kind: "keep", line: withAlternatives(line, usable) };
   }
 
   const [first, ...rest] = usable;
 
   if (first) {
-    const swapped: ResolvedLine = { ...line, food: first.food, qty: first.qty, alternatives: rest };
+    const swapped: ResolvedLine = withAlternatives({ ...line, food: first.food, qty: first.qty }, rest);
 
     if (line.inName && first.name) {
       swapped.name = { ...first.name };
@@ -149,7 +158,7 @@ export function resolveRecipe(recipe: Recipe, ctx: EligibilityContext): Resolved
 
   const weekdaySafe = weekendOnly
     ? lines
-    : lines.map((line) => ({ ...line, alternatives: (line.alternatives ?? []).filter((alt) => !needsSoaking(alt.food)) }));
+    : lines.map((line) => withAlternatives(line, (line.alternatives ?? []).filter((alt) => !needsSoaking(alt.food))));
 
   return { ...ownedCopy(recipe), lines: weekdaySafe, weekendOnly };
 }

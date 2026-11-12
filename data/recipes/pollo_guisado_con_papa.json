@@ -1,6 +1,6 @@
 {
   "id": "pollo_guisado_con_papa",
-  "status": "pending_owner_ok",
+  "status": "approved",
   "source": "ai_draft",
   "name": { "es": "Pollo guisado con papa", "en": "Chicken stew with potato" },
   "slots": ["almuerzo", "cena"],

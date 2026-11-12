@@ -93,6 +93,7 @@ function isRecipeInfo(value: unknown): value is PlanRecipeInfo {
     typeof name.en === "string" &&
     typeof minutes === "number" &&
     Number.isFinite(minutes) &&
+    minutes > 0 &&
     typeof level === "string" &&
     isStringList(appliances) &&
     typeof batch === "boolean" &&
