@@ -89,6 +89,39 @@ export interface PlanSummary {
   target_kcal?: number;
   household_size?: number;
   savings_note?: string;
+  /** Version of the recipe library the plan was built from (Plan 2). */
+  recipe_library_version?: string;
+}
+
+/**
+ * What the plan shows about one recipe (Plan 2). Level and appliances are
+ * plain codes: a newer server may send ones this web has no copy for.
+ */
+export interface PlanRecipeInfo {
+  name: { es: string; en: string };
+  minutes: number;
+  level: string;
+  appliances: string[];
+  batch: boolean;
+  steps: { es: string[]; en: string[] };
+}
+
+/**
+ * A goal the plan does not meet. `unmeasurable: true` means it could not be
+ * checked (some food has no nutrient data); `achieved` is then only partial.
+ */
+export interface PlanUnmetRule {
+  rule: string;
+  target: number;
+  achieved: number;
+  unit: string;
+  unmeasurable?: boolean;
+}
+
+/** Any status other than "full" is shown as a partial plan. */
+export interface PlanCompliance {
+  status: string;
+  unmet: PlanUnmetRule[];
 }
 
 /** Full IA generation payload: menu + shopping list (in-memory, no persistence). */
@@ -100,4 +133,11 @@ export interface WeeklyPlan {
   /** Dish name of every meal, in both languages (newer plans). */
   dish_names?: Record<DayId, Record<MealSlot, { es: string; en: string }>>;
   shopping_list: ShoppingItem[];
+  /** Recipe id of every meal (Plan 2 plans built from recipes). */
+  meal_recipes?: Record<DayId, Record<MealSlot, string>>;
+  /** Details of the recipes used this week, by id. */
+  recipes?: Record<string, PlanRecipeInfo>;
+  /** Codes of notices for the user (e.g. "see_professional"). */
+  notices?: string[];
+  compliance?: PlanCompliance;
 }

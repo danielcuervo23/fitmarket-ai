@@ -14,7 +14,8 @@ import { ProfileScreen } from "./components/setup/ProfileScreen";
 import { ProfileSettingsScreen } from "./components/account/ProfileSettingsScreen";
 import { SupermarketsScreen } from "./components/setup/SupermarketsScreen";
 import { WeeklyMenuScreen } from "./components/plan/WeeklyMenuScreen";
-import { MOCK_DASHBOARD, MOCK_PLAN } from "./devMockData";
+import type { WeeklyPlan } from "@/lib/ai/types";
+import { MOCK_DASHBOARD, MOCK_PLAN, MOCK_RECIPE_PLAN } from "./devMockData";
 
 /**
  * Development-only gallery: /__preview/<name> renders a screen without
@@ -57,12 +58,18 @@ function ProblemPreview({ code }: { code: keyof typeof PREVIEW_MESSAGES }) {
 }
 
 /** Seeds the plan context with sample data so plan screens have content. */
-function WithPlan({ children }: { children: ReactNode }) {
+function WithPlan({
+  children,
+  plan = MOCK_PLAN,
+}: {
+  children: ReactNode;
+  plan?: WeeklyPlan;
+}) {
   const { setPlan } = usePlan();
 
   useEffect(() => {
-    setPlan(MOCK_PLAN);
-  }, [setPlan]);
+    setPlan(plan);
+  }, [setPlan, plan]);
 
   return <>{children}</>;
 }
@@ -97,6 +104,11 @@ const SCREENS: Record<string, () => ReactNode> = {
   ),
   menu: () => (
     <WithPlan>
+      <WeeklyMenuScreen onTabChange={noop} onGeneratePlan={noop} />
+    </WithPlan>
+  ),
+  "menu-recipes": () => (
+    <WithPlan plan={MOCK_RECIPE_PLAN}>
       <WeeklyMenuScreen onTabChange={noop} onGeneratePlan={noop} />
     </WithPlan>
   ),
