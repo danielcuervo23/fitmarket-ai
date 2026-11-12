@@ -97,8 +97,9 @@ test("one scale variable per group and role; batch meals share it", () => {
   for (const day of batchDays) assert.equal(variables[`x|${day}.almuerzo|protein`], undefined);
   assert.ok(variables["x|jue.almuerzo|protein"]);
 
-  // Bounds are rows named after the variable, from DEFAULT_ROLE_SCALE.
-  assert.deepEqual(constraints["x|lentejas_batch|protein"], { min: 0.5, max: 2 });
+  // Bounds are rows named after the variable, from the resolved recipe's scale or DEFAULT_ROLE_SCALE.
+  // Lentejas is protein-dense, so eligibility raised its protein cap to 2.5 (owner decision 2026-11-12).
+  assert.deepEqual(constraints["x|lentejas_batch|protein"], { min: 0.5, max: 2.5 });
   assert.deepEqual(constraints["x|lun.desayuno|veg"], { min: 0.75, max: 2.5 });
   assert.equal(variables["x|lentejas_batch|protein"]["x|lentejas_batch|protein"], 1);
 
@@ -124,6 +125,14 @@ test("cooking oil is a condiment: its scale may drop to half, never grow (owner 
   assert.deepEqual(constraints["x|lun.almuerzo|condiment"], { min: 0.5, max: 1 });
   near(variables["x|lun.almuerzo|condiment"]["pack|aceite_vegetal"], -5);
   assert.equal(variables["x|lun.almuerzo|fat"], undefined);
+});
+
+test("a protein-dense recipe is bounded by its raised protein cap (2.5x, from eligibility)", () => {
+  // pollo_guisado_con_papa: chicken only. The level-2 protein_max rule still caps the day's protein.
+  const constraints = buildModel(input({ goals: ["muscle"] })).model.constraints;
+  assert.deepEqual(constraints["x|lun.cena|protein"], { min: 0.5, max: 2.5 });
+  // yogur_con_fruta keeps the usual cap.
+  assert.deepEqual(constraints["x|lun.snacks|protein"], { min: 0.5, max: 2 });
 });
 
 test("the chosen alternative is the food that enters the model", () => {

@@ -6,6 +6,7 @@ import { buildRestrictionRules, isAllowed } from "../planner/restrictions.ts";
 import { SLOTS } from "../planner/types.ts";
 import {
   MIN_RECIPES_PER_SLOT,
+  PROTEIN_DENSE_MAX_SCALE,
   WEEKEND_MAX_MINUTES,
   countBySlot,
   eligibleRecipes,
@@ -346,4 +347,52 @@ test("a line whose only alternative is unusable loses the key", () => {
 
   assert.equal(r.lines[1].food, "leche_entera");
   assert.equal("alternatives" in r.lines[1], false);
+});
+
+// ---- Protein-dense portions (owner decision 2026-11-12)
+
+const KITCHEN_ALL = {
+  weekdayMinutes: 30,
+  level: "enjoys",
+  appliances: ["estufa", "microondas", "olla_arrocera", "freidora_aire", "licuadora", "horno", "sandwichera", "olla_presion"],
+};
+
+test("the protein cap rises to 2.5x only when every protein option is protein-dense", () => {
+  assert.equal(PROTEIN_DENSE_MAX_SCALE, 2.5);
+  const scaleOf = (id) => resolveRecipe(byId(id), ctx({ cooking: KITCHEN_ALL })).scale?.protein;
+
+  // Chicken (pernil or pechuga), eggs, lentils/beans/chickpeas, canned fish, cheese.
+  for (const id of ["pollo_guisado_con_papa", "huevos_pericos_con_arepa", "lentejas_con_arroz", "pasta_con_atun", "arepa_con_queso"]) {
+    assert.deepEqual(scaleOf(id), [0.5, 2.5], id);
+  }
+  // Milk, yogurt or peanuts on a protein line keep the usual cap (default range, no override).
+  for (const id of ["changua", "yogur_con_fruta", "avena_con_banano", "ensalada_de_aguacate_y_mani"]) {
+    assert.equal(scaleOf(id), undefined, id);
+  }
+});
+
+test("a recipe's own protein scale is never replaced, and the library stays untouched", () => {
+  const own = resolveRecipe(fixture({ scale: { protein: [0.8, 1.2] } }), ctx({ cooking: KITCHEN_ALL }));
+  assert.deepEqual(own.scale.protein, [0.8, 1.2]);
+  assert.equal(byId("pollo_guisado_con_papa").scale, undefined);
+});
+
+test("portions stay realistic at the raised cap: at most 375 g of meat, 8 eggs, 175 g dry legumes", () => {
+  const LIMIT = { g: 375, unit: 8 };
+  const maxima = {};
+  for (const recipe of eligibleRecipes(RECIPES, ctx({ cooking: KITCHEN_ALL }))) {
+    const max = recipe.scale?.protein?.[1];
+    if (max === undefined) continue;
+    for (const line of recipe.lines.filter((l) => l.role === "protein")) {
+      for (const { food, qty } of [line, ...(line.alternatives ?? [])]) {
+        const unit = STATIC_CATALOG.get(food).unit;
+        // Whole eggs round to the nearest egg: 3 x 2.5 = 7.5 -> 8.
+        const top = unit === "unit" ? Math.round(qty * max) : qty * max;
+        maxima[food] = Math.max(maxima[food] ?? 0, top);
+        assert.ok(top <= LIMIT[unit === "unit" ? "unit" : "g"], `${recipe.id}: ${top} ${unit} of ${food}`);
+      }
+    }
+  }
+  console.log(`largest protein portions at ${PROTEIN_DENSE_MAX_SCALE}x: ${JSON.stringify(maxima)}`);
+  assert.ok(maxima.lentejas <= 175);
 });
