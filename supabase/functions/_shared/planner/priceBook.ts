@@ -44,9 +44,37 @@ export interface CityReferencePrice {
   observedOn: string;
 }
 
+/** One pack the optimizer may buy: its size (base unit) and its price. */
+export interface PackOffer {
+  store: string;
+  packSize: number;
+  packPriceCop: number;
+}
+
 export interface PriceBook {
   carries(storeId: string, foodId: string): boolean;
   quote(ingredient: Ingredient, qty: number, stores: string[]): Quote;
+  /**
+   * The pack with the lowest COP per base unit among the stores that carry
+   * the food (ties keep the user's store order). A store without a fresh
+   * price offers one reference pack at its estimate; no carrying store gives
+   * the same fallback as `quote`.
+   */
+  packOffer(ingredient: Ingredient, stores: string[]): PackOffer;
+}
+
+/** A quote for exactly one pack, as a pack offer. */
+const packOfQuote = (quote: Quote): PackOffer => ({
+  store: quote.store,
+  packSize: quote.packSize,
+  packPriceCop: quote.costCop,
+});
+
+/** Lowest price per unit first; ties keep the first one seen. */
+function cheaperPerUnit(best: PackOffer | null, candidate: PackOffer): PackOffer {
+  return !best || candidate.packPriceCop * best.packSize < best.packPriceCop * candidate.packSize
+    ? candidate
+    : best;
 }
 
 const DAY_MS = 86_400_000;
@@ -199,8 +227,35 @@ export function createCityPriceBook(
     return best as Quote;
   };
 
+  /** Cheapest fresh pack per unit at one store, else one reference pack at its estimate. */
+  const packAt = (ingredient: Ingredient, store: string): PackOffer => {
+    const options = fresh
+      .get(keyOf(store, ingredient.id))
+      ?.filter((offer) => plausiblePack(ingredient, offer.packSize));
+
+    if (!options?.length) {
+      return packOfQuote(estimateQuote(ingredient, ingredient.pack, store, undefined, referenceFor(ingredient)));
+    }
+
+    return options.reduce<PackOffer | null>(
+      (best, offer) => cheaperPerUnit(best, { store, packSize: offer.packSize, packPriceCop: offer.regularPriceCop }),
+      null,
+    ) as PackOffer;
+  };
+
   return {
     carries: carriesFood,
+    packOffer(ingredient, stores) {
+      let best: PackOffer | null = null;
+
+      for (const store of stores) {
+        if (carriesFood(store, ingredient.id)) {
+          best = cheaperPerUnit(best, packAt(ingredient, store));
+        }
+      }
+
+      return best ?? packOfQuote(estimateQuote(ingredient, ingredient.pack, stores[0] ?? "", 1, referenceFor(ingredient)));
+    },
     quote(ingredient, qty, stores) {
       let best: Quote | null = null;
 
