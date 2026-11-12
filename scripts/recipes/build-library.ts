@@ -38,6 +38,12 @@ export function loadLibrary(dir: string = RECIPES_DIR): { recipes: Recipe[]; err
   return { recipes: read.files.map((file) => recipeFileSchema.parse(file.data)), errors: [] };
 }
 
+/** Ids of the foods flagged `needsSoaking` in data/foods/foods.json. */
+export function loadSoakFoods(): string[] {
+  const foods = foodsFileSchema.parse(JSON.parse(readFileSync(FOODS_PATH, "utf8")));
+  return foods.filter((food) => food.needsSoaking === true).map((food) => food.id);
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { recipes, errors } = loadLibrary();
   if (errors.length > 0) {
@@ -45,6 +51,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error(`${errors.length} error(s); ${path.relative(root, GENERATED_PATH)} was not written.`);
     process.exit(1);
   }
-  writeFileSync(GENERATED_PATH, buildLibraryModule(recipes));
+  writeFileSync(GENERATED_PATH, buildLibraryModule(recipes, loadSoakFoods()));
   console.log(`Wrote ${path.relative(root, GENERATED_PATH)} (${recipes.length} recipes)`);
 }

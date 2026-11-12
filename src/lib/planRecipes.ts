@@ -16,6 +16,8 @@ export const NOTICE_CODES = [
   "goals_blocked_health",
   "see_professional",
   "deficit_capped_energy",
+  "soak_friday_night",
+  "soak_saturday_night",
 ] as const;
 export type KnownNoticeCode = (typeof NOTICE_CODES)[number];
 

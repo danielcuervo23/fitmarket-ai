@@ -70,6 +70,32 @@ House rules (checked by `scripts/recipes/coverage.test.mjs` where possible):
   después de tocar el pollo crudo"). Explain kitchen words the first time
   ("bate: mezcla rápido con un tenedor", "pitar: sonar como un silbido").
 
+## Legumes that soak overnight (owner decision 2026-11-11)
+
+Dried fríjol, garbanzo and arveja seca must soak the night before, so they are
+cooked **only on Saturday or Sunday**, with a reminder the evening before.
+Lentejas do not soak and are not affected.
+
+- **Data.** The food carries `"needsSoaking": true` in `data/foods/foods.json`
+  (validated by `scripts/foods/foodSchema.ts`). `build-library.ts` copies the
+  flagged ids into `SOAK_FOODS` in `library.generated.ts`; nothing is marked by
+  hand per recipe. A canned (cooked) legume added later must not get the flag.
+- **Eligibility** (`supabase/functions/_shared/recipes/eligibility.ts`). A recipe
+  whose resolved lines cook a soak food is `weekendOnly`, whatever its minutes.
+  A weekday-capable recipe drops its soak alternatives (for example
+  `lentejas_con_arroz` keeps lentejas and loses fríjol/garbanzo); if the primary
+  is not usable and a soak alternative is swapped in, the recipe becomes
+  weekend-only instead. The composer already keeps weekend-only recipes off
+  weekdays, batch repeats included, so leftovers are never planned for Monday.
+- **Reminder.** `assemblePlan` adds the notice `soak_friday_night` (a soak food
+  on Saturday) or `soak_saturday_night` (on Sunday) for recipe plans
+  (`soakNotices` in `planner/build.ts`). The web shows them with the other
+  notices (`notice.soak_*` in `src/i18n/messages/app.ts`); an older web shows
+  its generic notice line and old plans are unchanged.
+- **Tests.** `supabase/functions/_shared/recipes/soaking.test.mjs`,
+  `supabase/functions/_shared/planner/soakNotices.test.mjs`,
+  `scripts/recipes/libraryModule.test.mjs` and `src/lib/planRecipes.test.mjs`.
+
 ## Status flow
 
 ```

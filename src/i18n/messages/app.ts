@@ -102,6 +102,10 @@ export const app = defineMessages({
       "Te recomendamos consultar a un profesional de la salud.",
     "notice.deficit_capped_energy":
       "Como también quieres más energía, el déficit de calorías es suave.",
+    "notice.soak_friday_night":
+      "El viernes en la noche deja los granos del sábado en remojo (en agua) para que se ablanden.",
+    "notice.soak_saturday_night":
+      "El sábado en la noche deja los granos del domingo en remojo (en agua) para que se ablanden.",
     "notice.unknown":
       "Hay un aviso sobre tu plan que esta versión de la app no puede mostrar. Recarga la página para verlo.",
 
@@ -336,6 +340,10 @@ export const app = defineMessages({
       "We recommend seeing a health professional.",
     "notice.deficit_capped_energy":
       "Since you also want more energy, the calorie cut is gentle.",
+    "notice.soak_friday_night":
+      "On Friday night, leave Saturday's beans or peas soaking in water so they get soft.",
+    "notice.soak_saturday_night":
+      "On Saturday night, leave Sunday's beans or peas soaking in water so they get soft.",
     "notice.unknown":
       "There is a note about your plan that this version of the app can't show. Reload the page to see it.",
 

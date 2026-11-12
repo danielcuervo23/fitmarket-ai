@@ -3782,3 +3782,6 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     }
   }
 ]);
+
+// Foods that must soak overnight (needsSoaking in data/foods/foods.json).
+export const SOAK_FOODS: readonly string[] = deepFreeze<string[]>(["arveja_seca","frijol","garbanzo"]);

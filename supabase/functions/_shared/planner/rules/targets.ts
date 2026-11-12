@@ -17,7 +17,10 @@ export type NoticeCode =
   | "fat_blocked_low_bmi"
   | "goals_blocked_health"
   | "see_professional"
-  | "deficit_capped_energy";
+  | "deficit_capped_energy"
+  // Plan builder: soak the dried legumes the evening before (owner decision 2026-11-11).
+  | "soak_friday_night"
+  | "soak_saturday_night";
 
 export interface Range {
   min: number;

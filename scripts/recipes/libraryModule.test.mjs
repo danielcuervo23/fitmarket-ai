@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { GENERATED_PATH, loadLibrary } from "./build-library.ts";
+import { GENERATED_PATH, loadLibrary, loadSoakFoods } from "./build-library.ts";
 import { buildLibraryModule } from "./libraryModule.ts";
 import { RECIPES, RECIPE_LIBRARY_VERSION } from "../../supabase/functions/_shared/recipes/library.generated.ts";
 
@@ -17,7 +17,7 @@ const loadAll = () => {
 };
 
 test("library.generated.ts is in sync with data/recipes", () => {
-  assert.equal(buildLibraryModule(loadAll()), readFileSync(GENERATED_PATH, "utf8").replaceAll("\r\n", "\n"));
+  assert.equal(buildLibraryModule(loadAll(), loadSoakFoods()), readFileSync(GENERATED_PATH, "utf8").replaceAll("\r\n", "\n"));
 });
 
 test("the module does not depend on the order of the files", () => {
@@ -67,4 +67,14 @@ test("an invalid recipe folder gives every error and no recipes", () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("SOAK_FOODS is generated from the needsSoaking flag of data/foods/foods.json", async () => {
+  const { SOAK_FOODS } = await import("../../supabase/functions/_shared/recipes/library.generated.ts");
+  const foods = JSON.parse(readFileSync(new URL("../../data/foods/foods.json", import.meta.url), "utf8"));
+  const flagged = foods.filter((food) => food.needsSoaking === true).map((food) => food.id).sort();
+  assert.deepEqual([...SOAK_FOODS], flagged);
+  // Dried legumes that must soak overnight; lentejas do not, and canned food never does.
+  assert.deepEqual(flagged, ["arveja_seca", "frijol", "garbanzo"]);
+  assert.ok(foods.filter((food) => /lata/.test(food.id)).every((food) => food.needsSoaking !== true));
 });
