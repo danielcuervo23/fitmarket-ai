@@ -44,6 +44,25 @@ test("016 stores no health or body data columns", () => {
   assert.doesNotMatch(sql, /\b(age|weight|height|sex|health|budget|restriction)\w*\s+(int|text|numeric|smallint|jsonb)/);
 });
 
+test("016 grants the service role full access (the function writes with it)", () => {
+  assert.match(readSql(migrationPath), /grant all on table public\.partial_plan_results to service_role;/);
+});
+
+test("the staging check script tests RLS as a signed-in user, both ways", () => {
+  const sql = readSql(checksPath);
+  assert.match(sql, /set local role authenticated/);
+  assert.match(sql, /set_config\('request\.jwt\.claims'/);
+  assert.match(sql, /select count\(\*\) from public\.partial_plan_results/, "own row visible");
+  assert.match(sql, /delete from public\.partial_plan_results where user_id = \(select id from auth\.users order by id desc limit 1\)/, "cross-user delete");
+  assert.match(sql, /insert into public\.partial_plan_results [^;]*; rollback to savepoint user_insert;/, "user insert inside a savepoint");
+  assert.match(sql, /update public\.partial_plan_results set/);
+  // Every savepoint rollback is followed by reset role before the next check.
+  const rollbacks = sql.match(/rollback to savepoint \w+;/g) ?? [];
+  const resets = sql.match(/rollback to savepoint \w+; reset role;/g) ?? [];
+  assert.ok(rollbacks.length >= 3);
+  assert.equal(resets.length, rollbacks.length);
+});
+
 test("the staging check script runs inside a rolled-back transaction", () => {
   assert.ok(existsSync(checksPath));
   const sql = readSql(checksPath);

@@ -44,6 +44,9 @@ alter table public.partial_plan_results enable row level security;
 revoke all on table public.partial_plan_results from anon;
 revoke insert, update, truncate, references, trigger on table public.partial_plan_results from authenticated;
 grant select, delete on table public.partial_plan_results to authenticated;
+-- La Edge Function escribe con el service role (que salta RLS); el permiso
+-- de tabla se da explícito para no depender de los permisos por defecto.
+grant all on table public.partial_plan_results to service_role;
 
 drop policy if exists "Users can view own partial plan" on public.partial_plan_results;
 drop policy if exists "Users can delete own partial plan" on public.partial_plan_results;
