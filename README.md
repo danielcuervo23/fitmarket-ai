@@ -112,9 +112,15 @@ npm run dev              # http://localhost:5173
    supabase secrets set GENERATION_MAX_MODEL_CALLS=12      # optional: AI calls per plan (default 12)
    supabase secrets set GENERATION_TIME_BUDGET_MS=120000   # optional: max time per plan (default 120 s)
    supabase secrets set ALLOWED_ORIGINS=https://your-domain.app,http://localhost:5173
+   # generate-weekly-plan ships the LP solver's highs.wasm as a static file:
+   # with Docker running, copy it right before deploying. Never use --use-api.
+   npm ci && npm run functions:wasm
    supabase functions deploy generate-weekly-plan
    supabase functions deploy delete-account
    ```
+
+   `npm run deploy:plan-fn` does the copy and the `generate-weekly-plan`
+   deploy in one step (run `npm ci` first).
 
 3. In the Supabase dashboard (Authentication): require email confirmation,
    raise the minimum password length, and add your site URL to the redirect
@@ -131,6 +137,8 @@ npm run dev              # http://localhost:5173
 | `npm test` | Unit tests: catalog, targets, planner pipeline (fake model), helpers |
 | `npm run eval` | Runs the real generator on 12 profiles and prints quality metrics (needs `OPENAI_API_KEY`, costs a little) |
 | `npm run check` | All of the above checks |
+| `npm run functions:wasm` | Copies the LP solver's `highs.wasm` into `generate-weekly-plan` (needed before every deploy of that function; fails if `npm ci` was not run) |
+| `npm run deploy:plan-fn` | `functions:wasm`, then `supabase functions deploy generate-weekly-plan` (Docker must be running) |
 
 In development, `/__preview/<screen>` (for example `/__preview/dashboard`)
 renders screens with sample data and no account. It is excluded from
