@@ -1,4 +1,4 @@
-import { defineMessages } from "../define";
+import { defineMessages } from "../define.ts";
 
 export const errors = defineMessages({
   es: {
@@ -80,6 +80,63 @@ export const errors = defineMessages({
       "No fue posible generar un plan con tu presupuesto actual.",
     "gen.error.failed":
       "No pudimos generar un plan válido. Revisa tus preferencias e intenta de nuevo.",
+
+    // "No se puede cumplir" (Plan 2, Task 15). Numbers come from the server;
+    // the words never promise to relax restrictions, safety or the budget.
+    "gen.unreachable.title": "Así como está, tu plan no cumple todas tus metas",
+    "gen.unreachable.intro": "Para lograrlo, puedes cambiar una de estas cosas:",
+    "gen.unreachable.listLabel": "Lo que no se alcanza",
+    "gen.unreachable.budget": "Subir tu presupuesto en {amount}",
+    "gen.unreachable.changeBudget": "Cambiar mi presupuesto",
+    "gen.unreachable.force": "Quiero el plan igual",
+    "gen.unreachable.forceHelp":
+      "Te damos el mejor plan posible sin pasarte de tu presupuesto ni romper tus restricciones, y te decimos qué no se cumple.",
+    "gen.conflict.generic": "Una de tus metas no se alcanza del todo",
+    "gen.conflict.kcal_safety": "Calorías seguras: llegas a {achieved} de {target} al día",
+    "gen.conflict.kcal_safety.over":
+      "Calorías seguras: tienes {achieved} al día y lo seguro para ti es hasta {target}",
+    "gen.conflict.protein_safety_max":
+      "Límite seguro de proteína: tienes {achieved} g por kilo y el límite es {target}",
+    "gen.conflict.protein_muscle_floor":
+      "Proteína para ganar músculo: llegas a {achieved} de {target} g por kilo al día",
+    "gen.conflict.kcal_range": "Calorías: llegas a {achieved} de {target} al día",
+    "gen.conflict.kcal_range.over":
+      "Calorías: tienes {achieved} al día y lo máximo que buscamos es {target}",
+    "gen.conflict.protein_min":
+      "Bajar tu meta de proteína {gap} g por kilo (hoy llegas a {achieved} de {target})",
+    "gen.conflict.protein_max":
+      "Máximo de proteína: tienes {achieved} g por kilo y el máximo es {target}",
+    "gen.conflict.carbs_min_muscle":
+      "Carbohidratos (arroz, papa, pan): llegas a {achieved} de {target} g por kilo al día",
+    "gen.conflict.meal_protein_muscle":
+      "Proteína en cada comida: alguna comida llega a {achieved} de {target} g",
+    "gen.conflict.meal_protein_muscle.over":
+      "Proteína en cada comida: alguna comida tiene {achieved} g y lo máximo que buscamos es {target} g",
+    "gen.conflict.fruit_veg_min": "Frutas y verduras: llegas a {achieved} de {target} g al día",
+    "gen.conflict.fiber_min": "Fibra: llegas a {achieved} de {target} g al día",
+    "gen.conflict.free_sugar_max":
+      "Azúcar añadida: es el {achieved} % de tus calorías y lo recomendado es menos del {target} %",
+    "gen.conflict.sodium_max":
+      "Sal: tienes {achieved} mg al día y lo recomendado es menos de {target} mg",
+    "gen.conflict.fat_max":
+      "Grasa: es el {achieved} % de tus calorías y lo recomendado es hasta el {target} %",
+    "gen.conflict.sat_fat_max":
+      "Grasa saturada (como la de la mantequilla): es el {achieved} % de tus calorías y lo recomendado es menos del {target} %",
+    "gen.conflict.legumes_week":
+      "Comidas con lentejas, fríjol o garbanzo: llegas a {achieved} de {target} a la semana",
+    "gen.conflict.distinct_foods_week":
+      "Variedad: llegas a {achieved} de {target} alimentos distintos a la semana",
+    "gen.conflict.gaba_groups_day":
+      "Grupos de alimentos: algún día llegas a {achieved} de {target}",
+    "gen.conflict.meal_kcal_share_max":
+      "Calorías por comida: alguna comida tiene el {achieved} % de las calorías del día y lo recomendado es hasta el {target} %",
+    "gen.conflict.breakfast_protein_min":
+      "Proteína del desayuno: llegas a {achieved} de {target} g",
+    "gen.conflict.breakfast_fiber_min": "Fibra del desayuno: llegas a {achieved} de {target} g",
+    "gen.conflict.iron_sources_week":
+      "Comidas con hierro: llegas a {achieved} de {target} a la semana",
+    "gen.conflict.cheap_protein_share":
+      "Proteína económica (huevo, lentejas, pollo): llegas al {achieved} % de tu proteína; buscamos el {target} %",
   },
   en: {
     "errors.save": "We couldn't save your changes. Please try again in a few seconds.",
@@ -157,5 +214,58 @@ export const errors = defineMessages({
       "A plan isn't possible with your current budget.",
     "gen.error.failed":
       "We couldn't generate a valid plan. Review your preferences and try again.",
+
+    "gen.unreachable.title": "As it stands, your plan can't meet all your goals",
+    "gen.unreachable.intro": "To get there, you can change one of these:",
+    "gen.unreachable.listLabel": "What isn't reached",
+    "gen.unreachable.budget": "Raise your budget by {amount}",
+    "gen.unreachable.changeBudget": "Change my budget",
+    "gen.unreachable.force": "Give me the plan anyway",
+    "gen.unreachable.forceHelp":
+      "We'll give you the best plan possible without going over your budget or breaking your restrictions, and tell you what isn't met.",
+    "gen.conflict.generic": "One of your goals is not fully reached",
+    "gen.conflict.kcal_safety": "Safe calories: you reach {achieved} of {target} a day",
+    "gen.conflict.kcal_safety.over":
+      "Safe calories: you have {achieved} a day and the safe amount for you is up to {target}",
+    "gen.conflict.protein_safety_max":
+      "Safe protein limit: you have {achieved} g per kilo and the limit is {target}",
+    "gen.conflict.protein_muscle_floor":
+      "Protein to build muscle: you reach {achieved} of {target} g per kilo a day",
+    "gen.conflict.kcal_range": "Calories: you reach {achieved} of {target} a day",
+    "gen.conflict.kcal_range.over":
+      "Calories: you have {achieved} a day and the most we aim for is {target}",
+    "gen.conflict.protein_min":
+      "Lower your protein goal by {gap} g per kilo (you reach {achieved} of {target})",
+    "gen.conflict.protein_max":
+      "Protein maximum: you have {achieved} g per kilo and the maximum is {target}",
+    "gen.conflict.carbs_min_muscle":
+      "Carbs (rice, potato, bread): you reach {achieved} of {target} g per kilo a day",
+    "gen.conflict.meal_protein_muscle":
+      "Protein in each meal: one meal reaches {achieved} of {target} g",
+    "gen.conflict.meal_protein_muscle.over":
+      "Protein in each meal: one meal has {achieved} g and the most we aim for is {target} g",
+    "gen.conflict.fruit_veg_min": "Fruit and vegetables: you reach {achieved} of {target} g a day",
+    "gen.conflict.fiber_min": "Fiber: you reach {achieved} of {target} g a day",
+    "gen.conflict.free_sugar_max":
+      "Added sugar: it is {achieved} % of your calories and we recommend less than {target} %",
+    "gen.conflict.sodium_max":
+      "Salt: you have {achieved} mg a day and we recommend less than {target} mg",
+    "gen.conflict.fat_max":
+      "Fat: it is {achieved} % of your calories and we recommend up to {target} %",
+    "gen.conflict.sat_fat_max":
+      "Saturated fat (like the fat in butter): it is {achieved} % of your calories and we recommend less than {target} %",
+    "gen.conflict.legumes_week":
+      "Meals with lentils, beans or chickpeas: you reach {achieved} of {target} a week",
+    "gen.conflict.distinct_foods_week":
+      "Variety: you reach {achieved} of {target} different foods a week",
+    "gen.conflict.gaba_groups_day": "Food groups: one day you reach {achieved} of {target}",
+    "gen.conflict.meal_kcal_share_max":
+      "Calories per meal: one meal has {achieved} % of the day's calories and we recommend up to {target} %",
+    "gen.conflict.breakfast_protein_min": "Breakfast protein: you reach {achieved} of {target} g",
+    "gen.conflict.breakfast_fiber_min": "Breakfast fiber: you reach {achieved} of {target} g",
+    "gen.conflict.iron_sources_week":
+      "Meals with iron: you reach {achieved} of {target} a week",
+    "gen.conflict.cheap_protein_share":
+      "Low-cost protein (eggs, lentils, chicken): you reach {achieved} % of your protein; we aim for {target} %",
   },
 });

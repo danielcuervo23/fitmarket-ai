@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Screen } from "./Screen";
@@ -13,6 +13,7 @@ export function ProblemScreen({
   children,
   actions,
   tone = "warning",
+  focusTitle = false,
 }: {
   title: string;
   body: string;
@@ -20,7 +21,20 @@ export function ProblemScreen({
   children?: ReactNode;
   actions: ReactNode;
   tone?: "warning" | "danger";
+  /**
+   * Moves keyboard and screen-reader focus to the title when the screen
+   * appears, so the user starts reading from the explanation.
+   */
+  focusTitle?: boolean;
 }) {
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (focusTitle) {
+      titleRef.current?.focus();
+    }
+  }, [focusTitle]);
+
   return (
     <Screen className="gap-5 overflow-y-auto px-6 pb-8 pt-16">
       <div className="flex flex-col items-center gap-3 text-center">
@@ -34,7 +48,12 @@ export function ProblemScreen({
         >
           <AlertTriangle size={26} aria-hidden />
         </span>
-        <h1 role="alert" className="text-2xl font-extrabold tracking-tight">
+        <h1
+          ref={titleRef}
+          role="alert"
+          tabIndex={focusTitle ? -1 : undefined}
+          className="text-2xl font-extrabold tracking-tight outline-none"
+        >
           {title}
         </h1>
         <p className="text-[15px] leading-snug text-ink-500">{body}</p>
