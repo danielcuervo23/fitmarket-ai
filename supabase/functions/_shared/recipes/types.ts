@@ -71,8 +71,8 @@ export interface Recipe {
   /** Can be cooked once for several days; keepsDays is 1..4. */
   batch: { ok: boolean; keepsDays: number };
   lines: RecipeLine[];
-  /** Per-role scale range [min, max] overriding DEFAULT_ROLE_SCALE (never for condiment). */
-  scale?: Partial<Record<ScalableRole, [number, number]>>;
+  /** Per-role scale range [min, max] overriding DEFAULT_ROLE_SCALE (never for condiment: it only shrinks). */
+  scale?: Partial<Record<Exclude<ScalableRole, "condiment">, [number, number]>> & { condiment?: never };
   steps: { es: string[]; en: string[] };
 }
 

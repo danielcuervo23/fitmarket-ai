@@ -563,8 +563,9 @@ test("a level-2 rule the LP met but rounding broke is tightened and solved again
 
 test("tight budget for a muscle goal: relaxed with a protein_min shortfall and its 'what to change'", () => {
   // The plan's 100 kg example, reachable since protein-dense lines may grow to 2.5x (owner decision
-  // 2026-11-12), and the 75 kg user this test used before, whose outcome is unchanged.
-  for (const [weightKg, budgetCop] of [[100, 150_000], [75, 120_000]]) {
+  // 2026-11-12), and the 75 kg user this test used before. Budgets re-measured after the egg cap
+  // (eggs stay at 2x): some budgets return the cheapest safe week, which carries no relaxations.
+  for (const [weightKg, budgetCop] of [[100, 165_000], [75, 117_500]]) {
     const r = optimizeWeek(compactInput(budgetCop, { weightKg, diagnose: true }));
     const label = `${weightKg} kg`;
 

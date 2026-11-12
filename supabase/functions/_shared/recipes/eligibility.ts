@@ -71,29 +71,31 @@ export function soakFoodsOf(recipe: ResolvedRecipe): string[] {
 /**
  * Protein cap for a dish whose every protein option is protein-dense (owner
  * decision 2026-11-12): a 100 kg muscle user needs 140 g of protein a day (the
- * level-1 floor) and 2x portions cannot reach it. 2.5x is enough for 100-110 kg
- * and keeps portions realistic (at most 375 g raw chicken, 8 eggs, 175 g dry
- * lentils); 3x would mean 9 eggs or 210 g dry lentils in one meal. The level-2
- * protein_max rule still caps the day's protein for everyone.
+ * level-1 floor) and 2x portions cannot reach it. 2.5x keeps portions
+ * realistic (at most 375 g raw chicken, 175 g dry lentils, 150 g cheese); 3x
+ * would mean 210 g dry lentils in one meal. Foods counted in whole units (eggs)
+ * keep 2x, so a meal never has more than 6 eggs (review 2026-11-12). The
+ * level-2 protein_max rule still caps the day's protein for everyone.
  */
 export const PROTEIN_DENSE_MAX_SCALE = 2.5;
 const DENSE_DAIRY_MIN_PROTEIN_G = 15;
 
 /**
- * Meat, fish, eggs and legumes (GABA group "proteicos"), or a dairy with at
- * least 15 g of protein per 100 g (cheese). Not milk, yogurt or peanuts.
+ * Meat, fish and legumes (GABA group "proteicos"), or a dairy with at least
+ * 15 g of protein per 100 g (cheese), sold by weight. Not milk, yogurt or
+ * peanuts, and not eggs (whole units).
  */
 function isProteinDense(food: string, catalog: Catalog): boolean {
   const ingredient = catalog.get(food);
   const group = ingredient?.micro?.gabaGroup;
-  if (!ingredient || !group) return false;
+  if (!ingredient || !group || ingredient.unit !== "g") return false;
   return group === "proteicos" || (group === "lacteos" && ingredient.per100.protein >= DENSE_DAIRY_MIN_PROTEIN_G);
 }
 
 /**
  * The recipe's scale ranges, with the protein cap raised to
  * PROTEIN_DENSE_MAX_SCALE when every option of every protein line is
- * protein-dense. A range the recipe sets itself is kept.
+ * protein-dense (a single egg line keeps the whole dish at 2x). A range the recipe sets itself is kept.
  */
 function resolvedScale(recipe: Recipe, lines: readonly ResolvedLine[], catalog: Catalog): Recipe["scale"] {
   const own = recipe.scale

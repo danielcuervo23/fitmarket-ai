@@ -16,7 +16,7 @@ import {
 } from "./eligibility.ts";
 import { primaryChoice, recipeName } from "./expand.ts";
 import { RECIPES } from "./library.generated.ts";
-import { DEFAULT_COOKING } from "./types.ts";
+import { DEFAULT_COOKING, DEFAULT_ROLE_SCALE } from "./types.ts";
 
 const byId = (id) => RECIPES.find((recipe) => recipe.id === id);
 
@@ -357,16 +357,18 @@ const KITCHEN_ALL = {
   appliances: ["estufa", "microondas", "olla_arrocera", "freidora_aire", "licuadora", "horno", "sandwichera", "olla_presion"],
 };
 
-test("the protein cap rises to 2.5x only when every protein option is protein-dense", () => {
+test("the protein cap rises to 2.5x only when every protein option is protein-dense and sold by weight", () => {
   assert.equal(PROTEIN_DENSE_MAX_SCALE, 2.5);
   const scaleOf = (id) => resolveRecipe(byId(id), ctx({ cooking: KITCHEN_ALL })).scale?.protein;
 
-  // Chicken (pernil or pechuga), eggs, lentils/beans/chickpeas, canned fish, cheese.
-  for (const id of ["pollo_guisado_con_papa", "huevos_pericos_con_arepa", "lentejas_con_arroz", "pasta_con_atun", "arepa_con_queso"]) {
+  // Chicken (pernil or pechuga), lentils/beans/chickpeas, canned fish, cheese.
+  for (const id of ["pollo_guisado_con_papa", "lentejas_con_arroz", "pasta_con_atun", "arepa_con_queso"]) {
     assert.deepEqual(scaleOf(id), [0.5, 2.5], id);
   }
   // Milk, yogurt or peanuts on a protein line keep the usual cap (default range, no override).
-  for (const id of ["changua", "yogur_con_fruta", "avena_con_banano", "ensalada_de_aguacate_y_mani"]) {
+  // Eggs (whole units) keep it too: 3 eggs x 2 = 6, never 8 in one meal (review 2026-11-12).
+  for (const id of ["changua", "yogur_con_fruta", "avena_con_banano", "ensalada_de_aguacate_y_mani",
+    "huevos_pericos_con_arepa", "huevos_revueltos_con_espinaca", "tostadas_francesas_con_fruta"]) {
     assert.equal(scaleOf(id), undefined, id);
   }
 });
@@ -377,22 +379,22 @@ test("a recipe's own protein scale is never replaced, and the library stays unto
   assert.equal(byId("pollo_guisado_con_papa").scale, undefined);
 });
 
-test("portions stay realistic at the raised cap: at most 375 g of meat, 8 eggs, 175 g dry legumes", () => {
-  const LIMIT = { g: 375, unit: 8 };
+test("portions stay realistic at any cap: at most 375 g of meat, 6 eggs, 175 g dry legumes", () => {
+  const LIMIT = { g: 375, unit: 6 };
   const maxima = {};
   for (const recipe of eligibleRecipes(RECIPES, ctx({ cooking: KITCHEN_ALL }))) {
-    const max = recipe.scale?.protein?.[1];
-    if (max === undefined) continue;
+    const max = recipe.scale?.protein?.[1] ?? DEFAULT_ROLE_SCALE.protein[1];
     for (const line of recipe.lines.filter((l) => l.role === "protein")) {
       for (const { food, qty } of [line, ...(line.alternatives ?? [])]) {
         const unit = STATIC_CATALOG.get(food).unit;
-        // Whole eggs round to the nearest egg: 3 x 2.5 = 7.5 -> 8.
+        if (unit === "ml") continue; // milk in drinks and oats, outside this decision
+        // Whole eggs round to the nearest egg.
         const top = unit === "unit" ? Math.round(qty * max) : qty * max;
         maxima[food] = Math.max(maxima[food] ?? 0, top);
         assert.ok(top <= LIMIT[unit === "unit" ? "unit" : "g"], `${recipe.id}: ${top} ${unit} of ${food}`);
       }
     }
   }
-  console.log(`largest protein portions at ${PROTEIN_DENSE_MAX_SCALE}x: ${JSON.stringify(maxima)}`);
+  console.log(`largest protein portions: ${JSON.stringify(maxima)}`);
   assert.ok(maxima.lentejas <= 175);
 });
