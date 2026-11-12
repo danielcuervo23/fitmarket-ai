@@ -30,11 +30,25 @@ const fakePrices = {
   }),
 };
 
-/** Up to 45 minutes on weekdays: every library recipe is weekday-ok. */
+/**
+ * The 6 seed recipes. Tests here pin exact enums, nearest-day copies and
+ * fallbacks, so they use this fixed set: adding library recipes cannot change them.
+ */
+const SEED_IDS = new Set([
+  "arroz_con_huevo_y_tomate",
+  "avena_con_banano",
+  "huevos_pericos_con_arepa",
+  "lentejas_con_arroz",
+  "pollo_guisado_con_papa",
+  "yogur_con_fruta",
+]);
+const SEED_RECIPES = RECIPES.filter((recipe) => SEED_IDS.has(recipe.id));
+
+/** Up to 45 minutes on weekdays: every seed recipe is weekday-ok. */
 const COOKING = { ...DEFAULT_COOKING, weekdayMinutes: 30 };
 
 function eligibleWith(cooking = COOKING) {
-  return eligibleRecipes(RECIPES, {
+  return eligibleRecipes(SEED_RECIPES, {
     rules: buildRestrictionRules([], STATIC_CATALOG),
     catalog: STATIC_CATALOG,
     prices: fakePrices,
@@ -176,7 +190,7 @@ test("an id that is not eligible (forbidden food or invented) is unknown_recipe"
   // The user cannot eat egg: egg recipes are not eligible (none of them has an egg-free alternative).
   const rules = buildRestrictionRules([], STATIC_CATALOG);
   rules.excludedIds.add("huevo");
-  const noEgg = eligibleRecipes(RECIPES, { rules, catalog: STATIC_CATALOG, prices: fakePrices, stores: [], cooking: COOKING });
+  const noEgg = eligibleRecipes(SEED_RECIPES, { rules, catalog: STATIC_CATALOG, prices: fakePrices, stores: [], cooking: COOKING });
   const raw = rawWeek({ lun: { cena: "huevos_pericos_con_arepa" } });
   raw.days.slice(1).forEach((day) => (day.cena = "pollo_guisado_con_papa"));
   const forbidden = parseRecipeComposition(raw, toMap(noEgg));
