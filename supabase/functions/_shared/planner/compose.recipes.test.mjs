@@ -579,3 +579,21 @@ test("schema refuses enum strings longer than OpenAI accepts (15000 characters)"
   assert.throws(() => recipeResponseFormat(long), (error) => error instanceof RangeError && /characters/.test(error.message));
   assert.doesNotThrow(() => recipeResponseFormat({ ...long, desayuno: ids(70, "d"), snacks: ids(70, "s") })); // 340 x 40 = 13600
 });
+
+// Owner decision 2026-11-12: fewer different packs make a cheaper list. The AI
+// is asked to share ingredients and repeat dishes (within the cap of 3).
+test("system prompt asks for shared ingredients and repeated dishes to cut packs", () => {
+  assert.match(RECIPE_COMPOSER_SYSTEM_PROMPT, /share (the same )?main ingredients/i);
+  assert.match(RECIPE_COMPOSER_SYSTEM_PROMPT, /repeat/i);
+  assert.match(RECIPE_COMPOSER_SYSTEM_PROMPT, /fewer different (packs|products)/i);
+});
+
+test("the user prompt asks for at most about 3 dishes per meal when the budget is tight or the goal is save", () => {
+  const base = { targets: { kcal: 2000, proteinG: { min: 60, max: 120, target: 80 } }, goals: ["healthy"], recipes: [], cooking: DEFAULT_COOKING, catalog: STATIC_CATALOG, prices: fakePrices, stores: [], unmatchedText: [] };
+  const tight = buildRecipeComposerPrompt({ ...base, budgetPerPersonCop: 120_000 });
+  const save = buildRecipeComposerPrompt({ ...base, goals: ["save"], budgetPerPersonCop: 400_000 });
+  const roomy = buildRecipeComposerPrompt({ ...base, budgetPerPersonCop: 400_000 });
+  assert.match(tight, /2-3 different dishes per meal/);
+  assert.match(save, /2-3 different dishes per meal/);
+  assert.doesNotMatch(roomy, /2-3 different dishes per meal/);
+});
