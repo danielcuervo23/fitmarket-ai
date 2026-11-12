@@ -112,6 +112,11 @@ export function cheapestStore(
  */
 export const STATIC_PRICE_BOOK: PriceBook = {
   carries,
+  packOffer(ingredient, stores) {
+    const { store, costCop } = STATIC_PRICE_BOOK.quote(ingredient, ingredient.pack, stores);
+
+    return { store, packSize: ingredient.pack, packPriceCop: costCop };
+  },
   quote(ingredient, qty, stores) {
     const { store, factor } = cheapestStore(ingredient, stores);
 

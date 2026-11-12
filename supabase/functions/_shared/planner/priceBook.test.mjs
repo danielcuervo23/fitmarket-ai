@@ -311,3 +311,97 @@ test("a reference price never changes a book built without one", () => {
     assert.deepEqual(plain.quote(item, item.pack * 1.5, ["D1", "Jumbo"]), STATIC_PRICE_BOOK.quote(item, item.pack * 1.5, ["D1", "Jumbo"]), item.id);
   }
 });
+
+// ---- packOffer: lowest COP per base unit among the stores that carry the food ----
+
+test("packOffer picks the lowest price per unit among carrying stores", () => {
+  // Jumbo: 30 eggs for 18 000 (600/unit). Exito: 12 for 6 600 (550/unit) wins
+  // although its pack costs more per quote of 12. D1's 30 for 16 900 (563/unit) loses.
+  const offers = [
+    { ...eggOffer, storeId: "Jumbo", packSize: 30, regularPriceCop: 18000 },
+    { ...eggOffer, storeId: "Exito", packSize: 12, regularPriceCop: 6600 },
+    eggOffer,
+  ];
+  const book = createCityPriceBook(offers, { today: TODAY });
+
+  assert.deepEqual(book.packOffer(huevo, ["Jumbo", "D1", "Exito"]), { store: "Exito", packSize: 12, packPriceCop: 6600 });
+});
+
+test("packOffer compares several packs of the same store per unit", () => {
+  const arroz = getIngredient("arroz_blanco");
+  const offers = [
+    { storeId: "D1", foodId: "arroz_blanco", packSize: 500, regularPriceCop: 4000, source: "user", observedOn: TODAY },
+    { storeId: "D1", foodId: "arroz_blanco", packSize: 1000, regularPriceCop: 7000, source: "user", observedOn: TODAY },
+  ];
+
+  assert.deepEqual(createCityPriceBook(offers, { today: TODAY }).packOffer(arroz, ["D1"]), {
+    store: "D1",
+    packSize: 1000,
+    packPriceCop: 7000,
+  });
+});
+
+test("packOffer skips stores that do not carry the food", () => {
+  const offers = [{ ...eggOffer, storeId: "Exito", packSize: 12, regularPriceCop: 1200 }];
+  const book = createCityPriceBook(offers, { today: TODAY, inactive: [{ storeId: "Jumbo", foodId: "huevo" }] });
+  const salmon = getIngredient("salmon");
+
+  assert.equal(book.packOffer(huevo, ["Exito"]).store, "Exito");
+  assert.equal(book.packOffer(salmon, ["D1", "Exito"]).store, "Exito");
+});
+
+test("packOffer falls back to the estimate when no store has a fresh price", () => {
+  const stale = createCityPriceBook([{ ...eggOffer, observedOn: "2026-09-01" }], { today: TODAY });
+  const offer = stale.packOffer(huevo, ["D1", "Jumbo"]);
+
+  // The estimate for one reference pack at the cheapest store, exactly as quote prices it.
+  assert.deepEqual(offer, {
+    store: "D1",
+    packSize: huevo.pack,
+    packPriceCop: STATIC_PRICE_BOOK.quote(huevo, huevo.pack, ["D1", "Jumbo"]).costCop,
+  });
+});
+
+test("packOffer estimates use the city reference price", () => {
+  const book = createCityPriceBook([], { today: TODAY, cityReference: [ref()] });
+
+  assert.deepEqual(book.packOffer(papa, ["Exito", "D1"]), {
+    store: "D1",
+    packSize: papa.pack,
+    packPriceCop: expectedWithRef(papa, papa.pack, "D1", papa.price * 1.5),
+  });
+});
+
+test("packOffer with no carrying store falls back like quote (reference at factor 1)", () => {
+  const book = createCityPriceBook([], { today: TODAY });
+  const salmon = getIngredient("salmon");
+
+  assert.deepEqual(book.packOffer(salmon, ["D1", "Ara"]), {
+    store: "D1",
+    packSize: salmon.pack,
+    packPriceCop: Math.round(costOf(salmon, salmon.pack)),
+  });
+  assert.equal(book.packOffer(salmon, []).store, "");
+});
+
+test("static book packOffer: one reference pack at the cheapest store, same as quote", () => {
+  const stores = ["Jumbo", "D1", "Ara"];
+
+  for (const item of CATALOG) {
+    const quote = STATIC_PRICE_BOOK.quote(item, item.pack, stores);
+
+    assert.deepEqual(
+      STATIC_PRICE_BOOK.packOffer(item, stores),
+      { store: quote.store, packSize: item.pack, packPriceCop: quote.costCop },
+      item.id,
+    );
+  }
+});
+
+test("a city book without offers gives the same pack offers as the static book", () => {
+  const plain = createCityPriceBook([], { today: TODAY });
+
+  for (const item of CATALOG) {
+    assert.deepEqual(plain.packOffer(item, ["D1", "Jumbo"]), STATIC_PRICE_BOOK.packOffer(item, ["D1", "Jumbo"]), item.id);
+  }
+});
