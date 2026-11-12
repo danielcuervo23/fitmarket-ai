@@ -28,3 +28,12 @@ export type GenerationErrorCode =
   | "budget_too_low"
   | "generation_failed"
   | "unexpected";
+
+/**
+ * Every code the generation pipeline can answer with. `goals_unreachable`
+ * ("así como está, tu plan no cumple todas tus metas") is kept out of
+ * GenerationErrorCode on purpose: an app older than
+ * MIN_VERSION_GOALS_UNREACHABLE never receives it (generationResponse.ts maps
+ * it to a code that app knows).
+ */
+export type PipelineErrorCode = GenerationErrorCode | "goals_unreachable";

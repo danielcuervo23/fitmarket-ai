@@ -1,4 +1,4 @@
-import type { GenerationErrorCode } from "./errors.ts";
+import type { GenerationErrorCode, PipelineErrorCode } from "./errors.ts";
 import type { GenerationUsage } from "./planner/callBudget.ts";
 
 /**
@@ -16,10 +16,10 @@ const REFUNDABLE_CODES: ReadonlySet<GenerationErrorCode> = new Set([
 
 /** True when a failed generation must not use up a daily try. */
 export function shouldRefund(
-  code: GenerationErrorCode,
+  code: PipelineErrorCode,
   usage: GenerationUsage | undefined,
 ): boolean {
-  if (!REFUNDABLE_CODES.has(code)) {
+  if (code === "goals_unreachable" || !REFUNDABLE_CODES.has(code)) {
     return false;
   }
 

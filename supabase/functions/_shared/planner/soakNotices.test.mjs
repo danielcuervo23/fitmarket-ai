@@ -111,3 +111,17 @@ test("(d) the same soak recipe on both days without batch cooks twice: both remi
 test("(d) a batch soak recipe cooked only on Sunday: the Saturday reminder", () => {
   assert.deepEqual(soakNotices(week({ dom: "frijoles" }), BATCH_LIBRARY), ["soak_saturday_night"]);
 });
+
+// The user's own batch-cooking answer decides, not a guess: a user who does not
+// cook in batches cooks the batch recipe again on Sunday, so it soaks again.
+test("(d) a batch recipe on both days for a user who does not cook in batches: both reminders", () => {
+  const w = week({ sab: "frijoles", dom: "frijoles" });
+  assert.deepEqual(soakNotices(w, BATCH_LIBRARY, { batch: false }), ["soak_friday_night", "soak_saturday_night"]);
+  assert.deepEqual(soakNotices(w, BATCH_LIBRARY, { batch: true }), ["soak_friday_night"]);
+});
+
+test("(d) assemblePlan passes the user's batch answer to the reminders", () => {
+  const w = week({ sab: "frijoles", dom: "frijoles" });
+  assert.deepEqual(plan(w, { recipes: BATCH_LIBRARY, batch: false }).notices, ["soak_friday_night", "soak_saturday_night"]);
+  assert.deepEqual(plan(w, { recipes: BATCH_LIBRARY, batch: true }).notices, ["soak_friday_night"]);
+});
