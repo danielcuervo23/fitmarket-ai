@@ -2,9 +2,16 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import pkg from './package.json'
 
 
 export default defineConfig({
+  // The app version, sent to the server so it knows which answers this web
+  // understands. package.json is the only place it is written.
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
+
   plugins: [
     react(),
     tailwindcss(),
