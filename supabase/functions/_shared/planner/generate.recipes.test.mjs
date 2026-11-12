@@ -361,3 +361,18 @@ test("planFromPartial rejects malformed data", () => {
   assert.equal(planFromPartial(baseInput, { week: { lun: {} } }), null);
   assert.equal(planFromPartial(baseInput, { week: "x" }), null);
 });
+
+test("fat_max shortfall: the retry names the fattiest day and its fattiest dish to swap", async () => {
+  const fatty = { desayuno: "pan_con_aguacate_y_tomate", almuerzo: "ensalada_de_aguacate_y_mani", cena: "tortilla_de_verduras_con_aguacate", snacks: "palitos_de_verdura_con_guacamole" };
+  const base = Object.fromEntries(rotationWeek().days.map(({ day, ...meals }) => [day, meals]));
+  const week = { ...base, mie: fatty };
+  const feedbacks = [];
+  const picker = { pick: async (context) => (feedbacks.push(context.feedback), { kind: "week", week }) };
+  const FAT = { rule: "fat_max", level: 3, unit: "pct_kcal", target: 30, achieved: 41 };
+  await generatePlan(baseInput, rotationModel(), undefined, { picker, optimizer: realOptimizer(asRelaxed([FAT], null)) });
+
+  assert.equal(feedbacks.length, 3);
+  assert.match(feedbacks[1], /mie/);
+  assert.match(feedbacks[1], /"(ensalada_de_aguacate_y_mani|tortilla_de_verduras_con_aguacate)"/);
+  assert.match(feedbacks[1], /at most one high-fat dish per day/);
+});

@@ -1,4 +1,4 @@
-import { STATIC_CATALOG, type Catalog } from "../catalog.ts";
+import { STATIC_CATALOG, nutritionOf, type Catalog } from "../catalog.ts";
 import type { GenerationErrorCode } from "../errors.ts";
 import { logEvent } from "../log.ts";
 import type { BodyProfile } from "../nutrition.ts";
@@ -310,9 +310,54 @@ const SHORTFALL_FEEDBACK: Readonly<Record<string, string>> = {
   free_sugar_max: "choose fewer sweetened dishes",
 };
 
+/**
+ * fat_max: name the day with the highest fat share of kcal and its meal with
+ * the most fat, so the retry swaps that dish instead of guessing.
+ */
+function fatFeedback(week: ComposedWeek | null, catalog: Catalog): string {
+  const general = "put at most one high-fat dish per day";
+  if (!week) return general;
+
+  let worst: { day: Day; share: number; recipeId: string | undefined; slot: Slot } | null = null;
+  for (const day of DAYS) {
+    let kcal = 0;
+    let fat = 0;
+    let fattest: { fat: number; recipeId: string | undefined; slot: Slot } | null = null;
+    for (const slot of SLOTS) {
+      const meal = week[day][slot];
+      let mealFat = 0;
+      for (const item of meal.items) {
+        const ingredient = catalog.get(item.id);
+        if (!ingredient) continue;
+        const n = nutritionOf(ingredient, item.qty);
+        kcal += n.kcal;
+        fat += n.fat;
+        mealFat += n.fat;
+      }
+      if (!fattest || mealFat > fattest.fat) fattest = { fat: mealFat, recipeId: meal.recipeId, slot };
+    }
+    const share = kcal > 0 ? (fat * 9) / kcal : 0;
+    if (fattest && (!worst || share > worst.share)) worst = { day, share, recipeId: fattest.recipeId, slot: fattest.slot };
+  }
+
+  return worst?.recipeId
+    ? `day ${worst.day} has too much fat: swap "${worst.recipeId}" (${worst.slot}) for a lower-fat dish, and ${general}`
+    : general;
+}
+
 /** Retry feedback from what the week missed (code-made text only, never user data). */
-export function feedbackFromShortfalls(shortfalls: readonly Shortfall[]): string {
-  const asks = [...new Set(shortfalls.map((s) => SHORTFALL_FEEDBACK[s.rule]).filter(Boolean))];
+export function feedbackFromShortfalls(
+  shortfalls: readonly Shortfall[],
+  week: ComposedWeek | null = null,
+  catalog: Catalog = STATIC_CATALOG,
+): string {
+  const asks = [
+    ...new Set(
+      shortfalls
+        .map((s) => (s.rule === "fat_max" ? fatFeedback(week, catalog) : SHORTFALL_FEEDBACK[s.rule]))
+        .filter(Boolean),
+    ),
+  ];
   return asks.length > 0
     ? `The last week missed some goals: ${asks.join("; ")}.`
     : "The last week missed some goals: choose dishes that fit the goals better.";
@@ -418,7 +463,7 @@ async function runAttempts(
       reasons.push(`relaxed:${result.shortfalls.map((s) => s.rule).join(",")}`);
       // "Quiero el plan igual" takes the first week that meets level 1 and the budget.
       if (input.allowPartial) break;
-      feedback = feedbackFromShortfalls(result.shortfalls);
+      feedback = feedbackFromShortfalls(result.shortfalls, result.week, context.catalog);
       continue;
     }
 
