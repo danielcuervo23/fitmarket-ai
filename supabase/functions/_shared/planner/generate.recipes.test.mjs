@@ -166,12 +166,12 @@ test("allowPartial: plan with compliance partial and total <= budget, one attemp
 });
 
 test("allowPartial never relaxes the budget: over_budget still answers budget_too_low", async () => {
-  const input = { ...baseInput, weeklyBudgetCop: 45_000, allowPartial: true };
-  const result = await generatePlan(input, rotationModel());
+  const input = { ...baseInput, weeklyBudgetCop: 140_000, allowPartial: true };
+  const overBudget = () => ({ status: "over_budget", week: null, costCop: null, shortfalls: [], relaxations: [], requiredBudgetCop: 180_000, solves: 2, cpuMs: 1 });
+  const result = await generatePlan(input, rotationModel(), undefined, { optimizer: realOptimizer(overBudget) });
 
   assert.equal(result.error?.code, "budget_too_low", JSON.stringify(result.error ?? result.plan?.summary));
-  assert.ok(result.error.budget.requiredBudget > 45_000);
-  assert.equal(result.error.budget.recommendedIncrease, result.error.budget.requiredBudget - 45_000);
+  assert.deepEqual(result.error.budget, { currentBudget: 140_000, requiredBudget: 180_000, recommendedIncrease: 40_000 });
 });
 
 // ---------------------------------------------------------------- restrictions and profiles
@@ -353,7 +353,7 @@ test("planFromPartial rejects a stored week with a forbidden food", async () => 
 
 test("planFromPartial rejects a stored week above the budget", async () => {
   const first = await generatePlan(baseInput, rotationModel(), undefined, { optimizer: realOptimizer(asRelaxed()) });
-  assert.equal(planFromPartial({ ...baseInput, weeklyBudgetCop: 50_000 }, first.reusable), null);
+  assert.equal(planFromPartial({ ...baseInput, weeklyBudgetCop: 131_000 }, first.reusable), null);
 });
 
 test("planFromPartial rejects malformed data", () => {

@@ -105,10 +105,13 @@ export type GenerateOutcome = ({ plan: BuiltPlan } | GenerateFailure) & {
 
 const MAX_ATTEMPTS = 3;
 /**
- * Lowest weekly food budget per person worth trying. Below this no realistic
- * plan exists, so we answer immediately (saves a paid request).
+ * Lowest weekly food budget per person worth trying (owner decision
+ * 2026-11-12, from the Task 13 measurement: the cheapest week that only keeps
+ * the safety rules cost 129 000-180 000 COP per person with the static price
+ * book). Below it we answer at once, without a paid request. The web uses the
+ * same value (src/lib/budgetSuggestion.ts, kept equal by a test).
  */
-export const MIN_WEEKLY_BUDGET_PER_PERSON_COP = 40_000;
+export const MIN_WEEKLY_BUDGET_PER_PERSON_COP = 130_000;
 
 /** The optimizer ("el contador") behind an interface, so tests can observe or replace it. */
 export interface WeekOptimizer {
@@ -202,7 +205,13 @@ function budgetTooLow(current: number, required: number): GenerateFailureError {
 
 function budgetFloorFailure(input: GenerateInput): GenerateFailure | null {
   const floor = MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
-  return input.weeklyBudgetCop < floor ? { error: budgetTooLow(input.weeklyBudgetCop, floor) } : null;
+  if (input.weeklyBudgetCop >= floor) return null;
+  return {
+    error: {
+      ...budgetTooLow(input.weeklyBudgetCop, floor),
+      message: "El presupuesto mínimo es 130.000 pesos por persona a la semana.",
+    },
+  };
 }
 
 /**

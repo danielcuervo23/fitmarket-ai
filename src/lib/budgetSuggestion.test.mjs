@@ -3,10 +3,17 @@ import {
   budgetIssue,
   thousandsSuggestion,
   MAX_WEEKLY_BUDGET_COP,
+  MIN_WEEKLY_BUDGET_COP,
   parseBudgetInput,
   roundUpToStep,
   suggestBudget,
 } from "./budgetSuggestion.ts";
+import { MIN_WEEKLY_BUDGET_PER_PERSON_COP } from "../../supabase/functions/_shared/planner/generate.ts";
+import { setup } from "../i18n/messages/setup.ts";
+
+// The minimum is per person and the copy says so (es + en).
+assert.match(setup.es["budget.minimum"], /por persona/);
+assert.match(setup.en["budget.minimum"], /per person/);
 
 // Rounds up to steps of 5,000.
 assert.equal(roundUpToStep(212_100), 215_000);
@@ -32,12 +39,16 @@ assert.equal(parseBudgetInput(""), 0);
 // Typed budgets: too low, too high, or a forgotten "thousand".
 assert.equal(budgetIssue(0), null);
 assert.equal(budgetIssue(150), "too_low");
-assert.equal(budgetIssue(39_999), "too_low");
-assert.equal(budgetIssue(40_000), null);
+// Owner decision 2026-11-12: 130 000 per person, the same floor as the server.
+assert.equal(MIN_WEEKLY_BUDGET_COP, 130_000);
+assert.equal(MIN_WEEKLY_BUDGET_COP, MIN_WEEKLY_BUDGET_PER_PERSON_COP);
+assert.equal(budgetIssue(40_000), "too_low");
+assert.equal(budgetIssue(129_999), "too_low");
+assert.equal(budgetIssue(130_000), null);
 assert.equal(budgetIssue(MAX_WEEKLY_BUDGET_COP + 1), "too_high");
 assert.equal(thousandsSuggestion(150), 150_000);
-assert.equal(thousandsSuggestion(40), 40_000);
-assert.equal(thousandsSuggestion(20), null, "20,000 is still below the minimum");
+assert.equal(thousandsSuggestion(130), 130_000);
+assert.equal(thousandsSuggestion(40), null, "40,000 is below the minimum");
 assert.equal(thousandsSuggestion(150_000), null);
 assert.equal(thousandsSuggestion(0), null);
 

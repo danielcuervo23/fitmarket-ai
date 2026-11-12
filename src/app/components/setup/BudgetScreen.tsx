@@ -24,7 +24,8 @@ interface Props {
   onBack: () => void;
 }
 
-const PRESETS = [50_000, 100_000, 150_000, 200_000] as const;
+// All at or above MIN_WEEKLY_BUDGET_COP (130 000).
+const PRESETS = [130_000, 150_000, 200_000, 250_000] as const;
 const MAX_BUDGET_COP = 20_000_000;
 
 export function BudgetScreen({ onNext, onBack }: Props) {

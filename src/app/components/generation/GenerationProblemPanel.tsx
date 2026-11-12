@@ -170,7 +170,7 @@ export function GenerationProblemPanel({
             setBudgetInput(value);
             setErrorKey(null);
           }}
-          options={[100_000, 150_000, 200_000].map((value) => ({
+          options={[150_000, 200_000, 250_000].map((value) => ({
             label: formatCurrency(value),
             value,
           }))}

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { before, test } from "node:test";
 import { shouldRefund } from "../quota.ts";
 import { baseInput, isDayFill, loadSolver, respond, rotationModel, rotationWeek } from "./generate.fixtures.mjs";
-import { generatePlan } from "./generate.ts";
+import { MIN_WEEKLY_BUDGET_PER_PERSON_COP, generatePlan } from "./generate.ts";
 
 before(loadSolver);
 
@@ -14,9 +14,13 @@ test("an absurd budget is answered at once, without paying for an AI request", a
 
   assert.equal(calls, 0);
   assert.equal(result.error.code, "budget_too_low");
-  assert.equal(result.error.budget.requiredBudget, 40_000);
-  const household = await generatePlan({ ...baseInput, weeklyBudgetCop: 100_000, householdSize: 3 }, rotationModel());
-  assert.equal(household.error.budget.requiredBudget, 120_000, "the floor scales with the household");
+  // Owner decision 2026-11-12: 130 000 COP per person and week.
+  assert.equal(MIN_WEEKLY_BUDGET_PER_PERSON_COP, 130_000);
+  assert.equal(result.error.budget.requiredBudget, 130_000);
+  assert.match(result.error.message, /130\.000/);
+  const household = await generatePlan({ ...baseInput, weeklyBudgetCop: 300_000, householdSize: 3 }, rotationModel());
+  assert.equal(household.error.budget.requiredBudget, 390_000, "the floor scales with the household");
+  assert.equal(household.error.budget.recommendedIncrease, 90_000);
 });
 
 test("failures from the model are reported; a missing key is not retried", async () => {

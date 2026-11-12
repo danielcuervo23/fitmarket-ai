@@ -5,10 +5,12 @@ const BUDGET_STEP_COP = 5_000;
 export const MAX_WEEKLY_BUDGET_COP = 20_000_000;
 
 /**
- * Lowest weekly budget for one person that can buy a realistic week of food.
- * The server uses the same floor, so the app can say so before generating.
+ * Lowest weekly budget for one person that can buy a realistic week of food
+ * (owner decision 2026-11-12). The server uses the same floor per person
+ * (MIN_WEEKLY_BUDGET_PER_PERSON_COP, a test keeps them equal), so the app can
+ * say so before generating.
  */
-export const MIN_WEEKLY_BUDGET_COP = 40_000;
+export const MIN_WEEKLY_BUDGET_COP = 130_000;
 
 export function roundUpToStep(amount: number, step = BUDGET_STEP_COP): number {
   return Math.ceil(amount / step) * step;

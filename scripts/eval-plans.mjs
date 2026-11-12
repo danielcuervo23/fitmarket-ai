@@ -31,11 +31,11 @@ const student = { age: 20, weightKg: 58, heightCm: 168, activity: "light", sex: 
 
 const profiles = [
   { name: "Healthy, 1 person, 150k", weeklyBudgetCop: 150_000, goals: ["healthy"], restrictions: [], householdSize: 1, profile: woman },
-  { name: "Save money, student, 90k", weeklyBudgetCop: 90_000, goals: ["save"], restrictions: [], householdSize: 1, profile: student },
+  { name: "Save money, student, 130k", weeklyBudgetCop: 130_000, goals: ["save"], restrictions: [], householdSize: 1, profile: student },
   { name: "Muscle gain, 200k", weeklyBudgetCop: 200_000, goals: ["muscle"], restrictions: [], householdSize: 1, profile: man },
   { name: "Fat loss, 130k", weeklyBudgetCop: 130_000, goals: ["fat"], restrictions: [], householdSize: 1, profile: woman },
   { name: "Recomposition, 180k", weeklyBudgetCop: 180_000, goals: ["fat", "muscle"], restrictions: [], householdSize: 1, profile: man },
-  { name: "Family of 4, 400k", weeklyBudgetCop: 400_000, goals: ["family", "save"], restrictions: [], householdSize: 4, profile: man },
+  { name: "Family of 4, 520k", weeklyBudgetCop: 520_000, goals: ["family", "save"], restrictions: [], householdSize: 4, profile: man },
   { name: "Vegetarian, 140k", weeklyBudgetCop: 140_000, goals: ["healthy"], restrictions: ["vegetarian"], householdSize: 1, profile: woman },
   { name: "Vegan, 140k", weeklyBudgetCop: 140_000, goals: ["healthy"], restrictions: ["vegan"], householdSize: 1, profile: woman },
   { name: "Lactose + gluten, 160k", weeklyBudgetCop: 160_000, goals: ["healthy"], restrictions: ["lactose", "gluten"], householdSize: 1, profile: man },
