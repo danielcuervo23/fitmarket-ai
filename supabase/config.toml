@@ -1,0 +1,10 @@
+# Supabase CLI settings this project needs. Anything not listed keeps the CLI
+# default. No secrets here: keys live in Supabase secrets.
+project_id = "fitmarket-ai"
+
+[functions.generate-weekly-plan]
+# The LP solver (highs) needs its WebAssembly file at runtime. The bundler only
+# ships JavaScript, so the file is listed here as a static file. It is copied
+# from node_modules before deploying with `npm run functions:wasm` (the copy
+# is not committed). Static files need a Docker-based deploy, not `--use-api`.
+static_files = ["./functions/generate-weekly-plan/highs.wasm"]

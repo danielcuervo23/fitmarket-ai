@@ -8,18 +8,20 @@
     "build": "vite build",
     "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "test": "node --import ./scripts/test-hooks/register.mjs --test \"supabase/functions/_shared/*.test.mjs\" \"supabase/functions/_shared/planner/*.test.mjs\" \"src/lib/*.test.mjs\" \"scripts/**/*.test.mjs\"",
+    "test": "node --import ./scripts/test-hooks/register.mjs --test \"supabase/functions/_shared/**/*.test.mjs\" \"src/lib/*.test.mjs\" \"scripts/**/*.test.mjs\"",
     "typecheck:functions": "tsc --noEmit -p tsconfig.functions.json",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json",
     "check": "npm run typecheck && npm run typecheck:functions && npm run typecheck:scripts && npm test",
     "eval": "node scripts/eval-plans.mjs",
     "prices:import": "node scripts/prices/manual/import.ts",
-    "anotador:build": "node scripts/prices/manual/anotador/build.ts"
+    "anotador:build": "node scripts/prices/manual/anotador/build.ts",
+    "functions:wasm": "node -e \"require('node:fs').copyFileSync('node_modules/highs/build/highs.wasm','supabase/functions/generate-weekly-plan/highs.wasm')\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
+    "highs": "1.15.4",
     "lucide-react": "0.487.0",
     "motion": "12.23.24",
     "react": "18.3.1",
