@@ -89,7 +89,9 @@ Lentejas do not soak and are not affected.
   weekdays, batch repeats included, so leftovers are never planned for Monday.
 - **Reminder.** `assemblePlan` adds the notice `soak_friday_night` (a soak food
   on Saturday) or `soak_saturday_night` (on Sunday) for recipe plans
-  (`soakNotices` in `planner/build.ts`). The web shows them with the other
+  (`soakNotices` in `planner/build.ts`). A Sunday meal from a batch recipe
+  (`batch.ok`, keeps 2+ days) that was also served on Saturday is Saturday's
+  leftover, so it needs no Saturday-night reminder. The web shows them with the other
   notices (`notice.soak_*` in `src/i18n/messages/app.ts`); an older web shows
   its generic notice line and old plans are unchanged.
 - **Tests.** `supabase/functions/_shared/recipes/soaking.test.mjs`,

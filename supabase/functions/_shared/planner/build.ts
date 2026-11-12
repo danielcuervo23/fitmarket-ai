@@ -579,22 +579,49 @@ const SOAK_REMINDER: Partial<Record<Day, NoticeCode>> = {
 /**
  * Reminders to soak dried legumes the evening before (owner decision
  * 2026-11-11). Only recipe meals count; eligibility keeps soak foods off
- * weekdays, so only Saturday and Sunday can need one.
+ * weekdays, so only Saturday and Sunday can need one. A Sunday meal from a
+ * batch recipe (per `recipes`) already served on Saturday is that pot's
+ * leftover, not a new cooking, so it needs no Saturday-night reminder.
  */
-export function soakNotices(week: ComposedWeek): NoticeCode[] {
+export function soakNotices(
+  week: ComposedWeek,
+  recipes?: ReadonlyMap<string, ResolvedRecipe>,
+): NoticeCode[] {
   const notices: NoticeCode[] = [];
 
   for (const day of DAYS) {
     const code = SOAK_REMINDER[day];
     const soaks = SLOTS.some((slot) => {
       const meal = week[day][slot];
-      return meal.recipeId !== undefined && meal.items.some((item) => needsSoaking(item.id));
+      return (
+        meal.recipeId !== undefined &&
+        meal.items.some((item) => needsSoaking(item.id)) &&
+        !isBatchLeftover(week, day, meal.recipeId, recipes)
+      );
     });
 
     if (code && soaks) notices.push(code);
   }
 
   return notices;
+}
+
+/** Sunday's meal is Saturday's batch when a batch recipe that keeps 2+ days was also served Saturday. */
+function isBatchLeftover(
+  week: ComposedWeek,
+  day: Day,
+  recipeId: string,
+  recipes?: ReadonlyMap<string, ResolvedRecipe>,
+): boolean {
+  const recipe = recipes?.get(recipeId);
+
+  return (
+    day === "dom" &&
+    recipe !== undefined &&
+    recipe.batch.ok &&
+    recipe.batch.keepsDays >= 2 &&
+    SLOTS.some((slot) => week.sab[slot].recipeId === recipeId)
+  );
 }
 
 export function assemblePlan(
@@ -673,7 +700,7 @@ export function assemblePlan(
   }
 
   const fromRecipes = options.recipes ? recipeFields(week, options.recipes) : null;
-  const soak = fromRecipes ? soakNotices(week) : [];
+  const soak = fromRecipes ? soakNotices(week, options.recipes) : [];
   const notices =
     options.notices || soak.length > 0 ? [...new Set([...(options.notices ?? []), ...soak])] : null;
 
