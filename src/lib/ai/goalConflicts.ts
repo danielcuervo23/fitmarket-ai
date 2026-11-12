@@ -187,12 +187,15 @@ export function describeConflict(conflict: GoalConflict): ConflictLine | null {
 /**
  * The new budget offered by the budget option and the increase shown in its
  * label, from one computation so they never disagree: the recommended budget
- * rounded up to the steps people use (see suggestBudget).
+ * rounded up to the steps people use (see suggestBudget). Null when the
+ * budget cannot go up (already at MAX_WEEKLY_BUDGET_COP).
  */
-export function budgetOptionAmounts(option: BudgetOption): { newBudget: number; increase: number } {
+export function budgetOptionAmounts(option: BudgetOption): { newBudget: number; increase: number } | null {
   const recommended = Math.max(option.requiredBudget, option.currentBudget + option.recommendedIncrease);
   const newBudget = suggestBudget(option.currentBudget, recommended);
-  return { newBudget, increase: newBudget - option.currentBudget };
+  const increase = newBudget - option.currentBudget;
+  // At the weekly maximum the budget cannot go up: offer no budget option.
+  return increase > 0 ? { newBudget, increase } : null;
 }
 
 /** The panel intro, naming only the ways out the panel actually offers. */

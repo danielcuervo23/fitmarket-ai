@@ -91,7 +91,7 @@ export function GoalsUnreachablePanel({
     return result;
   }, [error.conflicts, locale, t]);
 
-  const introKey = unreachableIntroKey({ hasBudget: budget !== null, canForce });
+  const introKey = unreachableIntroKey({ hasBudget: amounts !== null, canForce });
 
   const amount = parseBudgetInput(input);
   const canSaveBudget =

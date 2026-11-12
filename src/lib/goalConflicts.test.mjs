@@ -252,7 +252,8 @@ test("panel copy, Spanish first (owner-approved changes of 2026-11-12)", () => {
   assert.equal(errors.en["gen.unreachable.force"], "Give me the plan anyway");
   assert.equal(
     errors.es["gen.unreachable.forceHelp"],
-    "Te damos el mejor plan posible sin pasarte de tu presupuesto ni romper tus restricciones, y te decimos qué no se cumple.",
+    // Owner-approved sentence, plus the Task 13 note on the daily try.
+    "Te damos el mejor plan posible sin pasarte de tu presupuesto ni romper tus restricciones, y te decimos qué no se cumple. Si lo pides ahora, sin cambiar nada en tu perfil, no gasta otro intento del día.",
   );
   assert.equal(errors.es["gen.conflict.generic"], "Una de tus metas no se alcanza del todo");
   assert.equal(errors.es["gen.conflict.fiber_min"], "Fibra: llegas a {achieved} de {target} g al día");
@@ -260,4 +261,21 @@ test("panel copy, Spanish first (owner-approved changes of 2026-11-12)", () => {
     errors.es["gen.conflict.protein_min"],
     "Proteína: llegas a {achieved} de {target} g por kilo al día. Con tu presupuesto y tus restricciones no alcanza. Prueba subir tu presupuesto o revisar los alimentos que evitas en tu perfil.",
   );
+});
+
+test("budget option is hidden when the budget cannot go up (already at the weekly maximum)", async () => {
+  const { MAX_WEEKLY_BUDGET_COP } = await import("./budgetSuggestion.ts");
+  assert.equal(
+    budgetOptionAmounts({ currentBudget: MAX_WEEKLY_BUDGET_COP, requiredBudget: MAX_WEEKLY_BUDGET_COP + 50_000, recommendedIncrease: 50_000 }),
+    null,
+  );
+});
+
+test("'Quiero el plan igual' help says it uses no extra daily try only while nothing changes", () => {
+  assert.match(errors.es["gen.unreachable.forceHelp"], /no gasta otro intento del día/);
+  assert.match(errors.es["gen.unreachable.forceHelp"], /si lo pides ahora, sin cambiar nada/i);
+  assert.match(errors.en["gen.unreachable.forceHelp"], /doesn't use another try for today/);
+  assert.match(errors.en["gen.unreachable.forceHelp"], /if you ask now, without changing anything/i);
+  // The budget option regenerates: its copy never promises a free try.
+  for (const lang of ["es", "en"]) assert.doesNotMatch(errors[lang]["gen.unreachable.budget"], /intento|try/);
 });
