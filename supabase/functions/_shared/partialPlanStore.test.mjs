@@ -5,6 +5,7 @@ import {
   PARTIAL_PLAN_TTL_MS,
   generationFingerprint,
   storePartialWeek,
+  readPartialWeek,
   takePartialWeek,
 } from "./partialPlanStore.ts";
 
@@ -80,8 +81,9 @@ function fakeClient(result = { error: null }) {
     },
     select(columns) {
       calls.push({ op: "select", columns });
-      return { abortSignal: () => Promise.resolve(result) };
+      return chain;
     },
+    abortSignal: () => Promise.resolve(result),
   };
   return { calls, from: (table) => (calls.push({ op: "from", table }), chain) };
 }
@@ -143,6 +145,23 @@ test("take: one atomic delete of the user's unexpired row with this fingerprint,
   assert.deepEqual(client.calls[0], { op: "from", table: "partial_plan_results" });
 });
 
+test("read: the user's unexpired row with this fingerprint, read without deleting it", async () => {
+  const client = fakeClient({ data: [{ week: WEEK }], error: null });
+  assert.deepEqual(await readPartialWeek(client, USER, FP, NOW), { week: WEEK });
+  assert.deepEqual(
+    client.calls.filter((c) => c.op !== "from"),
+    [
+      { op: "select", columns: "week" },
+      { op: "eq", column: "user_id", value: USER },
+      { op: "eq", column: "fingerprint", value: FP },
+      { op: "gt", column: "expires_at", value: new Date(NOW).toISOString() },
+    ],
+  );
+  assert.equal(await readPartialWeek(fakeClient({ data: [], error: null }), USER, FP, NOW), null);
+  assert.equal(await readPartialWeek(fakeClient({ data: null, error: { code: "x" } }), USER, FP, NOW), null);
+  assert.equal(await readPartialWeek(fakeClient(), USER, "bad", NOW), null);
+});
+
 test("take: nothing stored, expired, an error or a bad fingerprint give null", async () => {
   assert.equal(await takePartialWeek(fakeClient({ data: [], error: null }), USER, FP, NOW), null);
   assert.equal(await takePartialWeek(fakeClient({ data: null, error: { code: "PGRST" } }), USER, FP, NOW), null);
@@ -167,6 +186,18 @@ function memoryTable() {
   const client = {
     rows,
     from: () => ({
+      select: () => {
+        const filters = [];
+        const chain = {
+          eq: (column, value) => (filters.push((r) => r[column] === value), chain),
+          gt: (column, value) => (filters.push((r) => r[column] > value), chain),
+          abortSignal: async () => ({
+            data: [...rows.values()].filter((r) => filters.every((f) => f(r))).map((r) => ({ week: structuredClone(r.week) })),
+            error: null,
+          }),
+        };
+        return chain;
+      },
       upsert: (row) => ({ abortSignal: async () => (rows.set(row.user_id, { ...row }), { error: null }) }),
       delete: () => {
         const filters = [];
@@ -244,7 +275,7 @@ test("reuse: an expired week is not used", async () => {
   assert.equal(await flow(table, input, true, NOW + PARTIAL_PLAN_TTL_MS + 1), null);
 });
 
-test("reuse: a stored week that no longer validates is dropped and logged as a code", async () => {
+test("reuse: a stored week that no longer validates is kept (not burned) and logged as a code", async () => {
   const table = memoryTable();
   const input = { ...baseInput, city: null };
   await firstAttempt(table, input);
@@ -262,6 +293,20 @@ test("reuse: a stored week that no longer validates is dropped and logged as a c
   }
   assert.equal(plan, null);
   assert.ok(logs.includes(JSON.stringify({ event: "partial_plan_reuse_rejected" })));
+  assert.equal(table.rows.size, 1, "validated before deleting: a rejected reuse does not burn the row");
+});
+
+test("reuse: when a parallel retry took the week first, this one gets nothing (single use)", async () => {
+  const table = memoryTable();
+  const input = { ...baseInput, city: null };
+  await firstAttempt(table, input);
+  // The row disappears between the read and the take (another request consumed it).
+  const realFrom = table.from;
+  table.from = () => {
+    const api = realFrom();
+    return { ...api, delete: () => (table.rows.clear(), api.delete()) };
+  };
+  assert.equal(await flow(table, input, true), null);
 });
 
 test("handler: reuse is tried before the daily quota row, and the week is stored only for goals_unreachable", async () => {
@@ -270,6 +315,9 @@ test("handler: reuse is tried before the daily quota row, and the week is stored
   const reuse = source.indexOf("await reusePartialPlan(");
   const quota = source.indexOf('.from("plan_generation_requests")');
   assert.ok(reuse > 0 && quota > reuse, "a reused plan never inserts a quota row");
+  // Only the reused plan returns early: a rejected or missing reuse goes on to the quota.
+  assert.equal(source.slice(reuse, quota).match(/return json\(/g)?.length, 1);
+  assert.match(source.slice(reuse, quota), /if \(reused\) \{[\s\S]*?respondWithGeneratedPlan[\s\S]*?return json\(body, status\);\s*\}/);
   assert.match(source.slice(reuse, quota), /client: supabase as unknown as PartialPlanClient/, "taken with the user's JWT client (RLS)");
   assert.match(source, /if \(outcome\.error\.code === "goals_unreachable" && outcome\.reusable\) \{[\s\S]*?storePartialWeek\(\s*createServiceClient\(\)/);
 });

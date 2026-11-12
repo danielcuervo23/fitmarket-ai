@@ -79,7 +79,14 @@ export interface PartialPlanClient {
       options: { onConflict: "user_id" },
     ): { abortSignal(signal: AbortSignal): Result<unknown> };
     delete(): PartialPlanDelete;
+    select(columns: "week"): PartialPlanSelect;
   };
+}
+
+interface PartialPlanSelect {
+  eq(column: "user_id" | "fingerprint", value: string): PartialPlanSelect;
+  gt(column: "expires_at", value: string): PartialPlanSelect;
+  abortSignal(signal: AbortSignal): Result<{ week?: unknown }[]>;
 }
 
 interface PartialPlanDelete {
@@ -134,8 +141,42 @@ export async function storePartialWeek(
 }
 
 /**
+ * Reads, without deleting, the user's stored week when it has this
+ * fingerprint and has not expired. `client` is the caller's own JWT client
+ * (RLS: own row only). Null when there is nothing to reuse; never throws.
+ */
+export async function readPartialWeek(
+  client: PartialPlanClient,
+  userId: string,
+  fingerprint: string,
+  nowMs: number,
+): Promise<PartialWeek | null> {
+  if (!FINGERPRINT.test(fingerprint)) return null;
+
+  const signal = AbortSignal.timeout(PARTIAL_PLAN_TIMEOUT_MS);
+  try {
+    const { data, error } = await client
+      .from(TABLE)
+      .select("week")
+      .eq("user_id", userId)
+      .eq("fingerprint", fingerprint)
+      .gt("expires_at", new Date(nowMs).toISOString())
+      .abortSignal(signal);
+    if (error) {
+      logEvent("partial_plan_read_failed", { code: codeOf(error, signal.aborted) });
+      return null;
+    }
+    const week = Array.isArray(data) ? data[0]?.week : undefined;
+    return week === undefined || week === null ? null : { week: week as PartialWeek["week"] };
+  } catch {
+    logEvent("partial_plan_read_failed", { code: signal.aborted ? "timeout" : "exception" });
+    return null;
+  }
+}
+
+/**
  * Takes (reads and deletes, in one statement) the user's stored week when it
- * has this fingerprint and has not expired: single use, so two parallel
+ * has this fingerprint and has not expired, after it was validated: single use, so two parallel
  * retries cannot both get it. `client` is the caller's own JWT client (RLS:
  * own row only). Null when there is nothing to reuse; never throws.
  */
@@ -194,11 +235,25 @@ export async function reusePartialPlan(reuse: ReuseRequest): Promise<BuiltPlan |
   if (!reuse.allowPartial) return null;
 
   const fingerprint = await generationFingerprint(reuse.request, reuse.nowMs);
-  const stored = await takePartialWeek(reuse.client, reuse.userId, fingerprint, reuse.nowMs);
+  // Validate first, delete only on success: a week that fails the checks is
+  // not burned (it simply expires), and the caller generates normally.
+  const stored = await readPartialWeek(reuse.client, reuse.userId, fingerprint, reuse.nowMs);
   if (!stored) return null;
 
   const deps = typeof reuse.deps === "function" ? await reuse.deps() : reuse.deps;
   const plan = planFromPartial({ ...reuse.request, allowPartial: true }, stored, deps);
-  logEvent(plan ? "partial_plan_reused" : "partial_plan_reuse_rejected");
+  if (!plan) {
+    logEvent("partial_plan_reuse_rejected");
+    return null;
+  }
+
+  // Single use: only the request whose delete returns the row may deliver it,
+  // so two parallel retries cannot both get a plan from one try.
+  const taken = await takePartialWeek(reuse.client, reuse.userId, fingerprint, reuse.nowMs);
+  if (!taken) {
+    logEvent("partial_plan_reuse_lost");
+    return null;
+  }
+  logEvent("partial_plan_reused");
   return plan;
 }

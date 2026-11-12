@@ -14,6 +14,7 @@ import {
   readGoalsUnreachable,
 } from "./ai/goalConflicts.ts";
 import { RULE_CODES } from "./planRecipes.ts";
+import { PARTIAL_PLAN_TTL_MS } from "../../supabase/functions/_shared/partialPlanStore.ts";
 
 const protein = { rule: "protein_min", level: 2, unit: "g_per_kg", target: 1.6, achieved: 1.32 };
 const fiber = { rule: "fiber_min", level: 3, unit: "g", target: 25, achieved: 18.4 };
@@ -253,7 +254,7 @@ test("panel copy, Spanish first (owner-approved changes of 2026-11-12)", () => {
   assert.equal(
     errors.es["gen.unreachable.forceHelp"],
     // Owner-approved sentence, plus the Task 13 note on the daily try.
-    "Te damos el mejor plan posible sin pasarte de tu presupuesto ni romper tus restricciones, y te decimos qué no se cumple. Si lo pides ahora, sin cambiar nada en tu perfil, no gasta otro intento del día.",
+    "Te damos el mejor plan posible sin pasarte de tu presupuesto ni romper tus restricciones, y te decimos qué no se cumple. Si lo pides en los próximos 30 minutos y sin cambiar nada en tu perfil, no gasta otro intento del día.",
   );
   assert.equal(errors.es["gen.conflict.generic"], "Una de tus metas no se alcanza del todo");
   assert.equal(errors.es["gen.conflict.fiber_min"], "Fibra: llegas a {achieved} de {target} g al día");
@@ -273,9 +274,13 @@ test("budget option is hidden when the budget cannot go up (already at the weekl
 
 test("'Quiero el plan igual' help says it uses no extra daily try only while nothing changes", () => {
   assert.match(errors.es["gen.unreachable.forceHelp"], /no gasta otro intento del día/);
-  assert.match(errors.es["gen.unreachable.forceHelp"], /si lo pides ahora, sin cambiar nada/i);
+  assert.match(errors.es["gen.unreachable.forceHelp"], /en los próximos 30 minutos y sin cambiar nada/i);
   assert.match(errors.en["gen.unreachable.forceHelp"], /doesn't use another try for today/);
-  assert.match(errors.en["gen.unreachable.forceHelp"], /if you ask now, without changing anything/i);
+  assert.match(errors.en["gen.unreachable.forceHelp"], /within the next 30 minutes without changing anything/i);
+  // The minutes are the server's reuse window.
+  const minutes = PARTIAL_PLAN_TTL_MS / 60_000;
+  assert.ok(errors.es["gen.unreachable.forceHelp"].includes(`${minutes} minutos`));
+  assert.ok(errors.en["gen.unreachable.forceHelp"].includes(`${minutes} minutes`));
   // The budget option regenerates: its copy never promises a free try.
   for (const lang of ["es", "en"]) assert.doesNotMatch(errors[lang]["gen.unreachable.budget"], /intento|try/);
 });

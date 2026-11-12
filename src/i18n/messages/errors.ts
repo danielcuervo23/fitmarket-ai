@@ -95,9 +95,9 @@ export const errors = defineMessages({
     "gen.unreachable.changeBudget": "Cambiar mi presupuesto",
     "gen.unreachable.force": "Quiero el plan igual",
     // The server reuses the week it already made (Task 13) while nothing
-    // changes for 30 minutes. Only this button: the budget option regenerates.
+    // changes for 30 minutes (PARTIAL_PLAN_TTL_MS; a test keeps them equal). Only this button: the budget option regenerates.
     "gen.unreachable.forceHelp":
-      "Te damos el mejor plan posible sin pasarte de tu presupuesto ni romper tus restricciones, y te decimos qué no se cumple. Si lo pides ahora, sin cambiar nada en tu perfil, no gasta otro intento del día.",
+      "Te damos el mejor plan posible sin pasarte de tu presupuesto ni romper tus restricciones, y te decimos qué no se cumple. Si lo pides en los próximos 30 minutos y sin cambiar nada en tu perfil, no gasta otro intento del día.",
     "gen.conflict.generic": "Una de tus metas no se alcanza del todo",
     "gen.conflict.kcal_safety": "Calorías seguras: llegas a {achieved} de {target} al día",
     "gen.conflict.kcal_safety.over":
@@ -234,7 +234,7 @@ export const errors = defineMessages({
     "gen.unreachable.changeBudget": "Change my budget",
     "gen.unreachable.force": "Give me the plan anyway",
     "gen.unreachable.forceHelp":
-      "We'll give you the best plan possible without going over your budget or breaking your restrictions, and tell you what isn't met. If you ask now, without changing anything in your profile, it doesn't use another try for today.",
+      "We'll give you the best plan possible without going over your budget or breaking your restrictions, and tell you what isn't met. If you ask within the next 30 minutes without changing anything in your profile, it doesn't use another try for today.",
     "gen.conflict.generic": "One of your goals is not fully reached",
     "gen.conflict.kcal_safety": "Safe calories: you reach {achieved} of {target} a day",
     "gen.conflict.kcal_safety.over":
