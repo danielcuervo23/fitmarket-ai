@@ -848,6 +848,8 @@ test("time budget: no new attempt when less than MIN_COMPOSE_TIME_MS is left", .
 - [ ] **Step 2: Run and see them fail.** — **Step 3: Implement.** — **Step 4: Run and see them pass**, `npm run check` (the old `planner.test.mjs` tests of `fitToBudget` and naming still pass; their code is now unused and is removed in T17).
 - [ ] **Step 5: Commit** — `feat(planner): plans from recipes tuned by the optimizer to meet goal rules`
 
+**Note from Task 14 (merged before this task):** T14 shipped against the pre-T13 types. When implementing T13: (a) replace the local `GenerationFailure` type in `supabase/functions/_shared/generationResponse.ts` with `GenerateFailure["error"]`, and make `conflicts` required when `code` is `goals_unreachable`; (b) add `allowPartial?: boolean` to `GenerateInput` (the handler already forwards it) — it relaxes only level 2–5 rules, never the budget or restrictions; (c) add an integration test that sends `generatePlan` output through `failureResponse` (old and new client) so the contract is checked end to end.
+
 ---
 
 ### Task 14: Request body, app version and error compatibility in the Edge Function

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  BODY_READ_DEADLINE_MS,
   MAX_BODY_CHARS,
   MIN_VERSION_GOALS_UNREACHABLE,
   parseGenerationRequestBody,
@@ -118,4 +119,75 @@ test("readGenerationRequestBody: a streamed body without length stops at the cap
   const req = new Request("https://example.test/fn", { method: "POST", body: stream, duplex: "half" });
   assert.deepEqual(await readGenerationRequestBody(req), DEFAULTS);
   assert.ok(chunks < 10, `read ${chunks} chunks, expected to stop early`);
+});
+
+test("appVersion with leading zeros is ignored", () => {
+  for (const appVersion of ["01.2.3", "1.02.3", "1.2.03", "00.1.0"]) {
+    assert.equal(parseGenerationRequestBody(JSON.stringify({ appVersion })).appVersion, null, appVersion);
+  }
+  for (const appVersion of ["0.0.0", "0.1.0", "100.20.3", "999.999.999"]) {
+    assert.equal(parseGenerationRequestBody(JSON.stringify({ appVersion })).appVersion, appVersion, appVersion);
+  }
+});
+
+test("readGenerationRequestBody: multibyte body over the cap in bytes (not in chars) gives defaults", async () => {
+  const text = JSON.stringify({ appVersion: "0.1.0", pad: "ñ".repeat(1100) });
+  assert.ok(text.length <= MAX_BODY_CHARS);
+  assert.ok(new TextEncoder().encode(text).byteLength > MAX_BODY_CHARS);
+  assert.deepEqual(await readGenerationRequestBody(post(text)), DEFAULTS);
+});
+
+test("readGenerationRequestBody: a non-numeric content-length gives defaults", async () => {
+  const req = post('{"appVersion":"0.1.0"}', { "content-length": "abc" });
+  assert.deepEqual(await readGenerationRequestBody(req), DEFAULTS);
+});
+
+test("readGenerationRequestBody: a single chunk larger than the cap gives defaults", async () => {
+  const big = new TextEncoder().encode(JSON.stringify({ appVersion: "0.1.0", pad: "x".repeat(4000) }));
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(big);
+      controller.close();
+    },
+  });
+  const req = new Request("https://example.test/fn", { method: "POST", body: stream, duplex: "half" });
+  assert.deepEqual(await readGenerationRequestBody(req), DEFAULTS);
+});
+
+test("readGenerationRequestBody: a stream that errors mid-read gives defaults", async () => {
+  let sent = false;
+  const stream = new ReadableStream({
+    pull(controller) {
+      if (!sent) {
+        sent = true;
+        controller.enqueue(new TextEncoder().encode('{"appVersion":'));
+      } else {
+        controller.error(new Error("connection reset"));
+      }
+    },
+  });
+  const req = new Request("https://example.test/fn", { method: "POST", body: stream, duplex: "half" });
+  assert.deepEqual(await readGenerationRequestBody(req), DEFAULTS);
+});
+
+test("the default read deadline is about 3 seconds", () => {
+  assert.equal(BODY_READ_DEADLINE_MS, 3000);
+});
+
+test("readGenerationRequestBody: a slow-drip stream that never closes gives defaults by the deadline", { timeout: 2000 }, async () => {
+  let cancelled = false;
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('{"appVersion":"0.1.0"'));
+      // never closes
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  const req = new Request("https://example.test/fn", { method: "POST", body: stream, duplex: "half" });
+  const started = Date.now();
+  assert.deepEqual(await readGenerationRequestBody(req, { deadlineMs: 50 }), DEFAULTS);
+  assert.ok(Date.now() - started < 1000, "returned within the deadline");
+  assert.equal(cancelled, true, "the reader was cancelled");
 });

@@ -18,7 +18,11 @@ export const MAX_BODY_CHARS = 2048;
 /** First app version that understands the `goals_unreachable` answer. */
 export const MIN_VERSION_GOALS_UNREACHABLE = "0.1.0";
 
-const VERSION_PATTERN = /^\d{1,3}\.\d{1,3}\.\d{1,3}$/;
+/** Longest time spent reading the body before falling back to the defaults. */
+export const BODY_READ_DEADLINE_MS = 3000;
+
+// Each part 0-999 without leading zeros ("01.2.3" is not a version).
+const VERSION_PATTERN = /^(0|[1-9]\d{0,2})\.(0|[1-9]\d{0,2})\.(0|[1-9]\d{0,2})$/;
 
 const defaults = (): GenerationRequestBody => ({
   appVersion: null,
@@ -76,10 +80,13 @@ export function supportsGoalsUnreachable(appVersion: string | null): boolean {
 /**
  * Reads the request body without ever buffering more than the cap: a declared
  * length over the cap is not read at all, and a streamed body without a length
- * is cut as soon as it passes the cap. Any read problem gives the defaults.
+ * is cut as soon as it passes the cap. A body still arriving after the
+ * deadline (a slow drip that would hold the isolate) is cancelled. Any read
+ * problem gives the defaults.
  */
 export async function readGenerationRequestBody(
   req: Request,
+  options: { deadlineMs?: number } = {},
 ): Promise<GenerationRequestBody> {
   const declared = req.headers.get("content-length");
   if (declared !== null && !(Number(declared) <= MAX_BODY_CHARS)) {
@@ -92,20 +99,28 @@ export async function readGenerationRequestBody(
   const reader = req.body.getReader();
   const chunks: Uint8Array[] = [];
   let size = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), options.deadlineMs ?? BODY_READ_DEADLINE_MS);
+  });
+  const stop = () => {
+    reader.cancel().catch(() => undefined);
+    return defaults();
+  };
 
   try {
     for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > MAX_BODY_CHARS) {
-        await reader.cancel().catch(() => undefined);
-        return defaults();
-      }
-      chunks.push(value);
+      const next = await Promise.race([reader.read(), timedOut]);
+      if (next === "timeout") return stop();
+      if (next.done) break;
+      size += next.value.byteLength;
+      if (size > MAX_BODY_CHARS) return stop();
+      chunks.push(next.value);
     }
   } catch {
-    return defaults();
+    return stop();
+  } finally {
+    clearTimeout(timer);
   }
 
   const bytes = new Uint8Array(size);
