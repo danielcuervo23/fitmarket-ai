@@ -2,7 +2,17 @@
 
 Estas son las 49 recetas que la app va a usar para armar el menú de la semana. Todas las escribió la IA y **ninguna se usa con usuarios reales hasta que usted dé el visto bueno**. Cada porción es para un adulto; la app ajusta las cantidades según la meta de cada persona.
 
-## Qué cambió en esta ronda
+## Estado
+
+**El dueño aprobó todas las recetas el 2026-11-11.** En la app siguen marcadas como "pendientes" hasta que el dueño confirme el cambio de estado.
+
+## Qué cambió en la última ronda (2026-11-11)
+
+- **Granos que se remojan, solo el fin de semana.** Los fríjoles, los garbanzos y la arveja seca ya no salen de lunes a viernes, solo el sábado o el domingo. El viernes o el sábado en la noche la app le recuerda a la persona dejarlos en remojo (en agua). Las lentejas no cambian: no necesitan remojo.
+- **"Lentejas con arroz" entre semana** se hace solo con lentejas. Si la persona no puede comer lentejas, el plato cambia a fríjol o garbanzo y pasa al fin de semana.
+- **"Arroz con huevo y tomate" y "Huevos pericos con arepa"** ahora explican qué es batir, dicen cuándo lavarse las manos y llaman "cebolla larga" a la cebolla junca, como las demás recetas.
+
+## Qué cambió en la ronda anterior
 
 Después de una revisión interna corregimos varias recetas antes de mostrárselas:
 
@@ -12,7 +22,7 @@ Después de una revisión interna corregimos varias recetas antes de mostrársel
 - **Higiene.** Las recetas con pollo, carne, pescado o huevo crudo dicen cuándo lavarse las manos.
 - **Pasos más cortos** en el arroz con pollo, los fríjoles y el pollo guisado; la changua se cocina hasta que la yema esté firme; las lentejas al microondas van a potencia media en un recipiente grande (ahora 45 minutos); las sardinas pueden venir en salsa o en aceite.
 
-## Primero, una pregunta: ¿remojar los granos?
+## Pregunta sobre remojar los granos (ya respondida)
 
 Los fríjoles, los garbanzos y la arveja seca necesitan quedarse en agua **desde la noche anterior** (remojarlos) para que se ablanden. Si no, se demoran horas en la olla. Las lentejas no lo necesitan.
 
@@ -23,7 +33,7 @@ Necesitamos que usted decida:
 1. ¿Está bien que la app proponga fríjoles, garbanzos o arveja seca a estudiantes, sabiendo que deben acordarse de remojarlos la noche anterior?
 2. ¿O prefiere que esos platos solo salgan los fines de semana, o que la app le recuerde a la persona la noche anterior?
 
-Respuesta: ______________________________
+Respuesta: **Solo fin de semana, con aviso la noche anterior — dueño, 2026-11-11.**
 
 ## Cómo revisar
 
@@ -467,12 +477,12 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 **Pasos:**
 
-1. Mezcla la harina con un poco de sal y agua tibia, poco a poco, hasta tener una masa suave.
-2. Haz una bola con la masa y aplástala con las manos hasta que quede como un disco.
-3. Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.
-4. Pica el tomate y la cebolla en cuadritos.
-5. En otra sartén con el aceite, cocina el tomate y la cebolla 3 minutos, revolviendo.
-6. Bate los huevos en un plato, échalos a la sartén y revuelve hasta que no estén líquidos.
+1. Mezcla la harina con sal y agua tibia hasta tener una masa suave; haz una bola y aplástala como un disco.
+2. Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.
+3. Pica el tomate y la cebolla larga en cuadritos.
+4. En otra sartén con el aceite, cocina el tomate y la cebolla 3 minutos, revolviendo.
+5. Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.
+6. Bate los huevos (bate: mezcla rápido con un tenedor), échalos a la sartén y revuelve hasta que no estén líquidos.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -1068,9 +1078,9 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 1. Pon el arroz en una olla con el doble de agua y un poquito de sal.
 2. Cuando hierva, baja el fuego, tapa la olla y deja 20 minutos.
-3. Mientras tanto, pica el tomate y la cebolla en cuadritos.
+3. Mientras tanto, pica el tomate y la cebolla larga en cuadritos.
 4. En una sartén con el aceite, cocina el tomate y la cebolla 3 minutos.
-5. Rompe los huevos en la sartén y revuelve hasta que no estén líquidos.
+5. Rompe los huevos en la sartén y revuelve hasta que no estén líquidos. Lávate las manos después.
 6. Sirve el arroz y pon los huevos con tomate encima.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
@@ -1231,7 +1241,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 ### 44. Fríjoles con plátano en olla a presión
 
-- **Tiempo:** 55 minutos (pensada para fin de semana o días con más tiempo)
+- **Tiempo:** 55 minutos (solo fin de semana: los granos se remojan la noche anterior)
 - **Nivel:** Me defiendo
 - **Aparatos:** estufa, olla a presión
 - **Sirve para:** almuerzo, cena
@@ -1262,7 +1272,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 ### 45. Garbanzos guisados con papa
 
-- **Tiempo:** 55 minutos (pensada para fin de semana o días con más tiempo)
+- **Tiempo:** 55 minutos (solo fin de semana: los granos se remojan la noche anterior)
 - **Nivel:** Me defiendo
 - **Aparatos:** estufa, olla a presión
 - **Sirve para:** almuerzo, cena
@@ -1293,7 +1303,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 ### 46. Sopa de arveja seca
 
-- **Tiempo:** 60 minutos (pensada para fin de semana o días con más tiempo)
+- **Tiempo:** 60 minutos (solo fin de semana: los granos se remojan la noche anterior)
 - **Nivel:** Lo básico
 - **Aparatos:** estufa
 - **Sirve para:** almuerzo, cena
