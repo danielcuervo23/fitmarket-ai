@@ -13,15 +13,8 @@ export interface MealItem {
 export interface ComposedMeal {
   name: { es: string; en: string };
   items: MealItem[];
-  /** Library recipe the meal comes from (absent in free-composition meals). */
+  /** Library recipe the meal comes from (absent when the meal is not from the library). */
   recipeId?: string;
 }
 
 export type ComposedWeek = Record<Day, Record<Slot, ComposedMeal>>;
-
-/**
- * Ingredient lines per meal. Real meals include seasonings (oil, salt, garlic,
- * cilantro) so the upper bound is generous; extra lines are trimmed, not
- * rejected, because rejecting a whole week over one long lunch wastes money.
- */
-export const ITEMS_PER_MEAL = { min: 1, max: 8 } as const;
