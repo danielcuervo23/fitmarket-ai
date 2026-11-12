@@ -2,6 +2,16 @@
 
 **Todas aprobadas por el dueño el 2026-11-12.**
 
+## Ajuste 2026-11-12: menos sal y aceite
+
+El dueño aprobó este cambio en principio; las recetas siguen aprobadas. Queda aquí para que lo mire de un vistazo. Las reglas de salud no cambiaron (menos de 2000 mg de sodio al día, grasa hasta 30 %): lo que cambió son las cantidades.
+
+- **Sal: máximo 1 g por porción** (más o menos una pizca grande). Bajaron de 2 g a 1 g: arroz con pollo, fríjoles en olla a presión, garbanzos guisados con papa, lentejas con arroz, lentejas con papa al microondas, pollo guisado con papa, sopa de arveja seca, sopa de lentejas y sopa rápida de verduras con huevo.
+- **Sin sal agregada cuando otro ingrediente ya sala el plato** (atún o sardinas de lata, o 40 g o más de queso): arepa con queso, ensalada de atún con aguacate, papa al microondas con guacamole, pasta con atún, sardinas con papa al microondas y sardinas guisadas con arepa. Los pasos ya no dicen "sal".
+- **Aceite: máximo 5 ml por porción** (una cucharadita). La pasta con tomate y espinaca bajó de 7 ml a 5 ml.
+- **Porciones de proteína más grandes solo si hacen falta.** Para una persona grande que quiere ganar músculo (por ejemplo, 100 kg), la app puede servir hasta 2,5 veces la porción de pollo, carne, pescado, huevo, granos o queso (antes, hasta 2 veces). Lo más grande que puede salir en una comida: 375 g de pollo crudo, 175 g de lentejas secas o 150 g de queso. Con huevo, nunca salen más de 6 huevos en una comida: la receta de 2 huevos puede llegar a 5, y la de 3 huevos se queda en 6. La leche, el yogur y el maní no cambian.
+- **La app puede usar menos aceite, nunca más:** para cualquier persona, puede poner desde la mitad hasta la cantidad que dice la receta, según lo que mejor cuadre con su meta. Antes podía subirlo hasta 1,5 veces.
+
 Estas son las 49 recetas que la app va a usar para armar el menú de la semana. Todas las escribió la IA y el dueño ya les dio el visto bueno. Cada porción es para un adulto; la app ajusta las cantidades según la meta de cada persona.
 
 ## Estado
@@ -448,11 +458,10 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - harina de maíz precocida (arepas): 60 g
 - queso campesino: 40 g (o en su lugar: queso mozzarella: 40 g)
 - mantequilla: 5 g — opcional
-- sal: 1 g
 
 **Pasos:**
 
-1. Mezcla la harina con la sal y agua tibia, poco a poco, hasta tener una masa suave.
+1. Mezcla la harina con agua tibia, poco a poco, hasta tener una masa suave.
 2. Desmorona el queso con los dedos y mezcla la mitad con la masa.
 3. Haz dos bolitas y aplástalas con las manos hasta que queden como discos.
 4. Ponlas en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.
@@ -559,14 +568,13 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - lechuga: 40 g
 - pepino cohombro: 50 g
 - aceite de oliva: 5 ml (o en su lugar: aceite vegetal (canola): 5 ml)
-- sal: 1 g
 
 **Pasos:**
 
 1. Lava la lechuga, el tomate y el pepino, y pícalos.
 2. Escurre el atún (bota el agua de la lata).
 3. Pon todo en un plato hondo con el aguacate en cuadritos.
-4. Échale el aceite y la sal, y revuelve.
+4. Échale el aceite y revuelve.
 
 - [x] Aprobada   - [ ] Cambiar: ______________________
 
@@ -614,13 +622,12 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - tomate chonto: 60 g
 - cebolla cabezona: 20 g
 - cilantro: 5 g — opcional
-- sal: 1 g
 
 **Pasos:**
 
 1. Lava bien la papa y pínchala varias veces con un tenedor.
 2. Ponla en un plato y caliéntala 4 minutos en el microondas; dale la vuelta y caliéntala 3 minutos más.
-3. Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados y la sal.
+3. Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados.
 4. Revisa la papa: si un tenedor entra fácil, está lista; si no, dale 1 minuto más.
 5. Ábrela por la mitad, desmorona el queso adentro y caliéntala 30 segundos para que se derrita.
 6. Ponle encima el guacamole y el cilantro.
@@ -695,7 +702,6 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - tomate chonto: 60 g
 - lechuga: 40 g
 - cebolla cabezona: 20 g
-- sal: 1 g
 
 **Pasos:**
 
@@ -810,11 +816,10 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - cebolla cabezona: 30 g
 - aceite vegetal (canola): 5 ml
 - ajo: 2 g
-- sal: 1 g
 
 **Pasos:**
 
-1. Pon a hervir agua con sal en una olla y cocina la pasta el tiempo que diga el paquete (unos 10 minutos).
+1. Pon a hervir agua en una olla y cocina la pasta el tiempo que diga el paquete (unos 10 minutos).
 2. Mientras tanto, pica la cebolla, el tomate y el ajo en cuadritos.
 3. En una sartén con el aceite, cocina la cebolla y el ajo 2 minutos a fuego medio.
 4. Agrega el tomate y cocina 5 minutos más, revolviendo, hasta que se vuelva salsa.
@@ -866,7 +871,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - tomate chonto: 120 g
 - espinaca: 50 g
 - cebolla cabezona: 30 g
-- aceite de oliva: 7 ml (o en su lugar: aceite vegetal (canola): 7 ml)
+- aceite de oliva: 5 ml (o en su lugar: aceite vegetal (canola): 5 ml)
 - ajo: 3 g
 - sal: 1 g
 - queso campesino: 20 g — opcional
@@ -986,11 +991,10 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - tomate chonto: 80 g
 - cebolla cabezona: 30 g
 - aceite vegetal (canola): 3 ml
-- sal: 1 g
 
 **Pasos:**
 
-1. Prepara la masa de la arepa con harina, sal y agua tibia, y haz un disco con las manos.
+1. Prepara la masa de la arepa con harina y agua tibia, y haz un disco con las manos.
 2. Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.
 3. Pica el tomate y la cebolla en cuadritos.
 4. En otra sartén con el aceite, cocínalos 5 minutos a fuego medio, revolviendo, hasta que se vuelvan salsa.
@@ -1016,7 +1020,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - 2 huevos
 - cebolla larga (junca): 20 g
 - cilantro: 5 g — opcional
-- sal: 2 g
+- sal: 1 g
 
 **Pasos:**
 
@@ -1104,7 +1108,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - zanahoria: 40 g
 - aceite vegetal (canola): 5 ml
 - ajo: 3 g
-- sal: 2 g
+- sal: 1 g
 - cilantro: 5 g — opcional
 
 **Pasos:**
@@ -1135,7 +1139,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - cebolla cabezona: 30 g
 - ajo: 2 g
 - aceite vegetal (canola): 3 ml
-- sal: 2 g
+- sal: 1 g
 - cilantro: 5 g — opcional
 
 **Pasos:**
@@ -1166,7 +1170,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - cebolla cabezona: 30 g
 - aceite vegetal (canola): 5 ml
 - ajo: 3 g
-- sal: 2 g
+- sal: 1 g
 - cilantro: 5 g — opcional
 
 **Pasos:**
@@ -1197,7 +1201,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - cebolla cabezona: 30 g
 - aceite vegetal (canola): 3 ml
 - ajo: 2 g
-- sal: 2 g
+- sal: 1 g
 
 **Pasos:**
 
@@ -1228,7 +1232,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - cebolla cabezona: 30 g
 - ajo: 2 g
 - aceite vegetal (canola): 5 ml
-- sal: 2 g
+- sal: 1 g
 
 **Pasos:**
 
@@ -1258,7 +1262,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - cebolla larga (junca): 25 g
 - ajo: 2 g
 - aceite vegetal (canola): 3 ml
-- sal: 2 g
+- sal: 1 g
 - arroz blanco: 60 g — opcional
 
 **Pasos:**
@@ -1289,7 +1293,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - ½ pimentón
 - ajo: 2 g
 - aceite vegetal (canola): 5 ml
-- sal: 2 g
+- sal: 1 g
 - cilantro: 5 g — opcional
 
 **Pasos:**
@@ -1319,7 +1323,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - ahuyama: 60 g
 - cebolla larga (junca): 20 g
 - ajo: 2 g
-- sal: 2 g
+- sal: 1 g
 - cilantro: 5 g — opcional
 
 **Pasos:**

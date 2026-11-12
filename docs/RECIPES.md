@@ -44,11 +44,19 @@ Enforced by `scripts/recipes/recipeSchema.ts` (zod plus cross-file checks):
   `[]` means no cooking and fits every kitchen.
 - `batch`: `{ ok, keepsDays }`, `keepsDays` 1–4.
 - `lines`: 1–10, at least one not `fixed`. `role` is `protein`, `carb`, `veg`,
-  `fat` or `fixed` (salt, garlic: never scaled). `qty > 0`, and `<= 4` for
+  `fat`, `condiment` (cooking oil: the optimizer may use down to half, never
+  more) or `fixed` (salt, garlic: never scaled). `qty > 0`, and `<= 4` for
   `unit` foods. Alternatives are distinct, differ from the line food and exist
   in `foods.json`. An `inName` line needs a `name` on every alternative.
   `optional` lines are dropped (not blocking) when the food is not allowed.
-- `scale` (optional): per-role `[min, max]` with `0 < min <= 1 <= max <= 3`.
+- `scale` (optional): per-role `[min, max]` with `0 < min <= 1 <= max <= 3`
+  (not for `condiment`). Without one, eligibility raises the protein cap to
+  2.5x when every option of every protein line is protein-dense (meat, fish,
+  eggs, legumes, cheese; not milk, yogurt or peanuts), so a 100 kg muscle user
+  can reach the 1.4 g/kg floor (owner decision 2026-11-12). Never more than 6
+  eggs in a meal: the cap is min(2.5, 6 / eggs), so 2-egg dishes reach 2.5x and
+  3-egg dishes stay at 2x. Largest portions: 375 g raw chicken, 6 eggs, 175 g
+  dry legumes, 150 g cheese.
 - `steps.es` and `steps.en`: same count, 1–8 items, each 1–160 chars.
 
 House rules (checked by `scripts/recipes/coverage.test.mjs` where possible):
@@ -69,6 +77,12 @@ House rules (checked by `scripts/recipes/coverage.test.mjs` where possible):
 - Raw chicken, meat, fish or egg: one short hygiene line ("Lávate las manos
   después de tocar el pollo crudo"). Explain kitchen words the first time
   ("bate: mezcla rápido con un tenedor", "pitar: sonar como un silbido").
+- Salt and oil (owner decision 2026-11-12, `scripts/recipes/saltOil.test.mjs`):
+  salt at most 1 g per portion as a `fixed` line (whole grams are the smallest
+  amount a plan shows, so scaling it lower would be rounded back); no added salt
+  when canned tuna or sardines, or 40 g or more of cheese, already season the
+  dish; cooking oil at most 5 ml per portion with role `condiment`. This keeps
+  "healthy" (sodium < 2000 mg, fat <= 30 %) reachable without loosening the rules.
 
 ## Legumes that soak overnight (owner decision 2026-11-11)
 

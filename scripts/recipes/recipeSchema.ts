@@ -30,7 +30,7 @@ const line = z
   .strictObject({
     food: foodId,
     qty,
-    role: z.enum(["protein", "carb", "veg", "fat", "fixed"]),
+    role: z.enum(["protein", "carb", "veg", "fat", "condiment", "fixed"]),
     optional: z.boolean().optional(),
     inName: z.boolean().optional(),
     alternatives: z.array(alternative).min(1).max(6).optional(),

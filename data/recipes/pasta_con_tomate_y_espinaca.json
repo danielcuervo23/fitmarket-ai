@@ -42,12 +42,12 @@
     },
     {
       "food": "aceite_oliva",
-      "qty": 7,
-      "role": "fat",
+      "qty": 5,
+      "role": "condiment",
       "alternatives": [
         {
           "food": "aceite_vegetal",
-          "qty": 7
+          "qty": 5
         }
       ]
     },

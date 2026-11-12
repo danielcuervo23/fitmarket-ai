@@ -13,7 +13,7 @@
     { "food": "harina_maiz", "qty": 60, "role": "carb" },
     { "food": "tomate_chonto", "qty": 60, "role": "veg" },
     { "food": "cebolla_junca", "qty": 20, "role": "veg" },
-    { "food": "aceite_vegetal", "qty": 5, "role": "fat" },
+    { "food": "aceite_vegetal", "qty": 5, "role": "condiment" },
     { "food": "sal", "qty": 1, "role": "fixed" }
   ],
   "steps": {

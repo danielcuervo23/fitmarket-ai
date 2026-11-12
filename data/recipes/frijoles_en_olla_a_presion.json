@@ -54,11 +54,11 @@
     {
       "food": "aceite_vegetal",
       "qty": 3,
-      "role": "fat"
+      "role": "condiment"
     },
     {
       "food": "sal",
-      "qty": 2,
+      "qty": 1,
       "role": "fixed"
     },
     {

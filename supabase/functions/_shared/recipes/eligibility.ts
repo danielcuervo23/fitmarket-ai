@@ -5,6 +5,7 @@ import { SLOTS, type Slot } from "../planner/types.ts";
 import { SOAK_FOODS } from "./library.generated.ts";
 import {
   COOKING_LEVELS,
+  DEFAULT_ROLE_SCALE,
   type CookingLevel,
   type CookingPrefs,
   type Recipe,
@@ -65,6 +66,58 @@ export function needsSoaking(food: string): boolean {
 /** The soak foods a resolved recipe cooks with (each line's current food), in line order. */
 export function soakFoodsOf(recipe: ResolvedRecipe): string[] {
   return [...new Set(recipe.lines.map((line) => line.food).filter(needsSoaking))];
+}
+
+/**
+ * Protein cap for a dish whose every protein option is protein-dense (owner
+ * decision 2026-11-12): a 100 kg muscle user needs 140 g of protein a day (the
+ * level-1 floor) and 2x portions cannot reach it. 2.5x keeps portions
+ * realistic (at most 375 g raw chicken, 175 g dry lentils, 150 g cheese); 3x
+ * would mean 210 g dry lentils in one meal. The level-2 protein_max rule still
+ * caps the day's protein for everyone.
+ */
+export const PROTEIN_DENSE_MAX_SCALE = 2.5;
+/**
+ * Whole-unit protein (eggs): never more than 6 in one meal (review
+ * 2026-11-12). The cap becomes min(2.5, 6 / units): 2 eggs reach 2.5x (5),
+ * 3 eggs stop at 2x (6). Scales are per role, so this holds the dish's whole
+ * protein role; no library dish mixes eggs with another protein-dense line.
+ */
+export const MAX_EGGS_PER_MEAL = 6;
+const DENSE_DAIRY_MIN_PROTEIN_G = 15;
+
+/**
+ * Meat, fish, eggs and legumes (GABA group "proteicos"), or a dairy with at
+ * least 15 g of protein per 100 g (cheese). Not milk, yogurt or peanuts.
+ */
+function isProteinDense(food: string, catalog: Catalog): boolean {
+  const ingredient = catalog.get(food);
+  const group = ingredient?.micro?.gabaGroup;
+  if (!ingredient || !group) return false;
+  return group === "proteicos" || (group === "lacteos" && ingredient.per100.protein >= DENSE_DAIRY_MIN_PROTEIN_G);
+}
+
+/**
+ * The recipe's scale ranges, with the protein cap raised to
+ * PROTEIN_DENSE_MAX_SCALE when every option of every protein line is
+ * protein-dense, and lowered toward the usual cap so a meal never has more
+ * than MAX_EGGS_PER_MEAL whole units (eggs). A range the recipe sets itself is kept.
+ */
+function resolvedScale(recipe: Recipe, lines: readonly ResolvedLine[], catalog: Catalog): Recipe["scale"] {
+  const own = recipe.scale
+    ? Object.fromEntries(Object.entries(recipe.scale).map(([role, range]) => [role, [...range] as [number, number]]))
+    : undefined;
+  if (own?.protein) return own;
+
+  const [min, usualMax] = DEFAULT_ROLE_SCALE.protein;
+  const options = lines
+    .filter((line) => line.role === "protein")
+    .flatMap((line) => [{ food: line.food, qty: line.qty }, ...(line.alternatives ?? [])]);
+  if (options.length === 0 || !options.every((option) => isProteinDense(option.food, catalog))) return own;
+
+  const units = options.filter((option) => catalog.get(option.food)?.unit === "unit").map((option) => option.qty);
+  const max = Math.max(usualMax, Math.min(PROTEIN_DENSE_MAX_SCALE, ...units.map((qty) => MAX_EGGS_PER_MEAL / qty)));
+  return max > usualMax ? { ...own, protein: [min, max] } : own;
 }
 
 /** In the catalog, with micro-nutrients, allowed, and sold by some chosen store. */
@@ -153,36 +206,38 @@ export function resolveRecipe(recipe: Recipe, ctx: EligibilityContext): Resolved
   // weekday-capable recipe drops its soak alternatives, so none can be chosen
   // on a weekday later.
   if (lines.some((line) => needsSoaking(line.food))) {
-    return { ...ownedCopy(recipe), lines, weekendOnly: true };
+    return withScale({ ...ownedCopy(recipe), lines, weekendOnly: true }, resolvedScale(recipe, lines, ctx.catalog));
   }
 
   const weekdaySafe = weekendOnly
     ? lines
     : lines.map((line) => withAlternatives(line, (line.alternatives ?? []).filter((alt) => !needsSoaking(alt.food))));
 
-  return { ...ownedCopy(recipe), lines: weekdaySafe, weekendOnly };
+  return withScale({ ...ownedCopy(recipe), lines: weekdaySafe, weekendOnly }, resolvedScale(recipe, weekdaySafe, ctx.catalog));
+}
+
+/** The recipe with these scale ranges; the key is left out when there are none. */
+function withScale(recipe: ResolvedRecipe, scale: Recipe["scale"]): ResolvedRecipe {
+  const { scale: _old, ...rest } = recipe;
+  return scale ? { ...rest, scale } : rest;
 }
 
 /**
- * A copy whose arrays and objects belong to the caller, so a later change to a
- * resolved recipe can never hit the deep-frozen library (which would throw).
+ * A copy whose arrays and objects belong to the caller, so a later change to
+ * a resolved recipe can never hit the deep-frozen library (which would throw).
+ * `scale` is left out: resolvedScale builds the resolved recipe's own copy.
  * Copying is cheaper to keep right than readonly types on every consumer.
  */
-function ownedCopy(recipe: Recipe): Recipe {
-  const scale = recipe.scale
-    ? Object.fromEntries(
-        Object.entries(recipe.scale).map(([role, range]) => [role, [...range] as [number, number]]),
-      )
-    : undefined;
+function ownedCopy(recipe: Recipe): Omit<Recipe, "scale"> {
+  const { scale: _scale, ...rest } = recipe;
 
   return {
-    ...recipe,
+    ...rest,
     name: { ...recipe.name },
     slots: [...recipe.slots],
     appliances: [...recipe.appliances],
     batch: { ...recipe.batch },
     steps: { es: [...recipe.steps.es], en: [...recipe.steps.en] },
-    ...(scale ? { scale } : {}),
   };
 }
 

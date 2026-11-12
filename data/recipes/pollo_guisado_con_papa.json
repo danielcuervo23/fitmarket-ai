@@ -22,9 +22,9 @@
     { "food": "tomate_chonto", "qty": 60, "role": "veg" },
     { "food": "cebolla_cabezona", "qty": 40, "role": "veg" },
     { "food": "zanahoria", "qty": 40, "role": "veg" },
-    { "food": "aceite_vegetal", "qty": 5, "role": "fat" },
+    { "food": "aceite_vegetal", "qty": 5, "role": "condiment" },
     { "food": "ajo", "qty": 3, "role": "fixed" },
-    { "food": "sal", "qty": 2, "role": "fixed" },
+    { "food": "sal", "qty": 1, "role": "fixed" },
     { "food": "cilantro", "qty": 5, "role": "fixed", "optional": true }
   ],
   "steps": {
