@@ -869,6 +869,14 @@ test("time budget: no new attempt when less than MIN_COMPOSE_TIME_MS is left", .
 
 **Note from Task 14 (merged before this task):** T14 shipped against the pre-T13 types. When implementing T13: (a) replace the local `GenerationFailure` type in `supabase/functions/_shared/generationResponse.ts` with `GenerateFailure["error"]`, and make `conflicts` required when `code` is `goals_unreachable`; (b) add `allowPartial?: boolean` to `GenerateInput` (the handler already forwards it) — it relaxes only level 2–5 rules, never the budget or restrictions; (c) add an integration test that sends `generatePlan` output through `failureResponse` (old and new client) so the contract is checked end to end.
 
+**As built (2026-11-12, notes for Tasks 17 and 18):**
+- `RecipePicker` (`planner/recipePicker.ts`) is the only "choose recipes" seam; `createAiRecipePicker` is the AI version. `PlannerDeps` also takes `optimizer` (`WeekOptimizer`) and `library`. The solver is prepared before the first model call.
+- `optimizeWeek` always runs with `diagnose: true` (budget numbers for every outcome); full pipeline with a fake AI measured at 14–79 ms wall in Node (7 profiles).
+- "Quiero el plan igual" reuse (owner decision 2026-11-11): migration **016** `partial_plan_results` (one row per user, service-role writes, own-row select/delete RLS, 30 min, fingerprint of every input + recipe library version + Bogotá price day). The retry takes the row before the quota insert (no quota row, no OpenAI call); `planFromPartial` re-validates it. This replaces the Global Constraint "no new table" for this case. Rollout: 016 before the function; without 016 the function simply never reuses.
+- `GenerationErrorCode` does not include `goals_unreachable`; `PipelineErrorCode` does (old webs never get it).
+- Soak reminders follow `cooking.batch` (`assemblePlan` option `batch`).
+- Cost (static price book, 7 one-person profiles): a different dish every day → 37–41 packs, median ≈ 200 000 COP/week; 2–3 dishes per meal sharing foods → 20–22 packs, cheapest level-1 week median 158 000 → 138 000. `MIN_WEEKLY_BUDGET_PER_PERSON_COP` (40 000) unchanged; the data suggests about 130 000.
+
 ---
 
 ### Task 14: Request body, app version and error compatibility in the Edge Function
