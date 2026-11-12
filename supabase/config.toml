@@ -3,8 +3,11 @@
 project_id = "fitmarket-ai"
 
 [functions.generate-weekly-plan]
+# Only signed-in users may call it (the CLI default, written out on purpose).
+verify_jwt = true
 # The LP solver (highs) needs its WebAssembly file at runtime. The bundler only
 # ships JavaScript, so the file is listed here as a static file. It is copied
-# from node_modules before deploying with `npm run functions:wasm` (the copy
-# is not committed). Static files need a Docker-based deploy, not `--use-api`.
+# from node_modules right before deploying: `npm ci && npm run functions:wasm`
+# (the copy is not committed). Static files need a Docker-based deploy; never
+# deploy this function with `--use-api`.
 static_files = ["./functions/generate-weekly-plan/highs.wasm"]

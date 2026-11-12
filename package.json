@@ -15,7 +15,8 @@
     "eval": "node scripts/eval-plans.mjs",
     "prices:import": "node scripts/prices/manual/import.ts",
     "anotador:build": "node scripts/prices/manual/anotador/build.ts",
-    "functions:wasm": "node -e \"require('node:fs').copyFileSync('node_modules/highs/build/highs.wasm','supabase/functions/generate-weekly-plan/highs.wasm')\""
+    "functions:wasm": "node scripts/functions/copyHighsWasm.mjs",
+    "deploy:plan-fn": "npm run functions:wasm && supabase functions deploy generate-weekly-plan"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
