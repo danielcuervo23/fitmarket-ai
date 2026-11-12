@@ -53,3 +53,24 @@ assert.equal(thousandsSuggestion(150_000), null);
 assert.equal(thousandsSuggestion(0), null);
 
 console.log("budgetSuggestion: all checks passed");
+
+// The floor is per person: a household needs 130 000 for each member (like the server).
+{
+  const { minWeeklyBudgetFor, budgetMinimumMessage } = await import("./budgetSuggestion.ts");
+  assert.equal(minWeeklyBudgetFor(1), 130_000);
+  assert.equal(minWeeklyBudgetFor(3), 390_000);
+  assert.equal(minWeeklyBudgetFor(0), 130_000, "invalid sizes count as one person");
+  assert.equal(minWeeklyBudgetFor(Number.NaN), 130_000);
+  assert.equal(minWeeklyBudgetFor(9), 8 * 130_000, "the profile allows at most 8 people");
+
+  assert.equal(budgetIssue(200_000, 2), "too_low");
+  assert.equal(budgetIssue(260_000, 2), null);
+  assert.equal(budgetIssue(130_000), null, "one person by default");
+  assert.equal(thousandsSuggestion(200, 2), null, "200 000 is below a two-person minimum");
+  assert.equal(thousandsSuggestion(300, 2), 300_000);
+
+  assert.deepEqual(budgetMinimumMessage(1), { key: "budget.minimum", amount: 130_000, perPerson: 130_000 });
+  assert.deepEqual(budgetMinimumMessage(3), { key: "budget.minimumHousehold", amount: 390_000, perPerson: 130_000 });
+  assert.match(setup.es["budget.minimumHousehold"], /mínimo de \{amount\} para tu hogar \(\{perPerson\} por persona a la semana\)/);
+  assert.match(setup.en["budget.minimumHousehold"], /minimum of \{amount\} for your household \(\{perPerson\} per person per week\)/);
+}

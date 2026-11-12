@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useHouseholdSize } from "@/hooks/useHouseholdSize";
 import { RefreshCw, Sparkles } from "lucide-react";
 import type { MessageGenerationError } from "@/lib/ai/generateWeeklyPlan";
 import { saveWeeklyBudget } from "@/lib/budget";
@@ -69,6 +70,8 @@ export function GenerationProblemPanel({
   onViewCurrentPlan,
 }: Props) {
   const { t, formatCurrency, formatNumber } = useI18n();
+  // The budget minimum is 130 000 per person in the household.
+  const householdSize = useHouseholdSize();
   const code = error.code ?? "";
 
   const [isSaving, setIsSaving] = useState(false);
@@ -157,13 +160,14 @@ export function GenerationProblemPanel({
           <>
             {saveAction(
               () => saveWeeklyBudget(amount),
-              amount <= 0 || budgetIssue(amount) !== null,
+              amount <= 0 || budgetIssue(amount, householdSize) !== null,
             )}
             {secondary}
           </>
         }
       >
         <BudgetEditor
+          householdSize={householdSize}
           label={t("gen.shortfall.newBudget")}
           value={budgetInput}
           onChange={(value) => {
