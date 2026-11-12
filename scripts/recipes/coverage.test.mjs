@@ -167,6 +167,32 @@ test("every lunch or dinner recipe gives at least 15 g protein at base portions"
   assert.deepEqual(low, []);
 });
 
+// ---- Copy rules for students (docs/RECIPES.md, house rules)
+
+const RAW_FOODS = new Set(["huevo", "pechuga_pollo", "pernil_pollo", "carne_molida_res", "res_sobrebarriga", "lomo_cerdo", "tilapia", "salmon"]);
+
+test("recipes with raw chicken, meat, fish or egg have a hand-washing line", () => {
+  const missing = RECIPES.filter((r) => r.lines.some((l) => RAW_FOODS.has(l.food)))
+    .filter((r) => !r.steps.es.some((step) => /Lávate las manos/.test(step)))
+    .map((r) => r.id);
+  assert.deepEqual(missing, []);
+});
+
+test("the first step that says 'bate' explains it", () => {
+  const unexplained = RECIPES.flatMap((r) => {
+    const first = r.steps.es.find((step) => /\bbat(e|ir)\b/i.test(step));
+    return first && !/mezcla rápido con un tenedor/.test(first) ? [`${r.id}: "${first}"`] : [];
+  });
+  assert.deepEqual(unexplained, []);
+});
+
+test("recipes with cebolla_junca call it 'cebolla larga' in the steps", () => {
+  const missing = RECIPES.filter((r) => r.lines.some((l) => l.food === "cebolla_junca"))
+    .filter((r) => !r.steps.es.some((step) => /cebolla larga/.test(step)))
+    .map((r) => r.id);
+  assert.deepEqual(missing, []);
+});
+
 test("at least 12 batch-friendly lunch or dinner recipes", () => {
   const batch = RECIPES.filter((r) => r.batch.ok && (r.slots.includes("almuerzo") || r.slots.includes("cena")));
   assert.ok(batch.length >= 12, `${batch.length}`);

@@ -11,7 +11,7 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-export const RECIPE_LIBRARY_VERSION = "1a4c152743d4";
+export const RECIPE_LIBRARY_VERSION = "bc13cca30ebf";
 
 export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   {
@@ -197,17 +197,17 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "es": [
         "Pon el arroz en una olla con el doble de agua y un poquito de sal.",
         "Cuando hierva, baja el fuego, tapa la olla y deja 20 minutos.",
-        "Mientras tanto, pica el tomate y la cebolla en cuadritos.",
+        "Mientras tanto, pica el tomate y la cebolla larga en cuadritos.",
         "En una sartén con el aceite, cocina el tomate y la cebolla 3 minutos.",
-        "Rompe los huevos en la sartén y revuelve hasta que no estén líquidos.",
+        "Rompe los huevos en la sartén y revuelve hasta que no estén líquidos. Lávate las manos después.",
         "Sirve el arroz y pon los huevos con tomate encima."
       ],
       "en": [
         "Put the rice in a pot with twice as much water and a pinch of salt.",
         "When it boils, lower the heat, cover the pot and leave it 20 minutes.",
-        "Meanwhile, chop the tomato and the onion into small cubes.",
+        "Meanwhile, chop the tomato and the spring onion into small cubes.",
         "In a pan with the oil, cook the tomato and onion for 3 minutes.",
-        "Crack the eggs into the pan and stir until they are no longer runny.",
+        "Crack the eggs into the pan and stir until they are no longer runny. Wash your hands afterwards.",
         "Serve the rice and put the eggs with tomato on top."
       ]
     }
@@ -1514,20 +1514,20 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "Mezcla la harina con un poco de sal y agua tibia, poco a poco, hasta tener una masa suave.",
-        "Haz una bola con la masa y aplástala con las manos hasta que quede como un disco.",
+        "Mezcla la harina con sal y agua tibia hasta tener una masa suave; haz una bola y aplástala como un disco.",
         "Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
-        "Pica el tomate y la cebolla en cuadritos.",
+        "Pica el tomate y la cebolla larga en cuadritos.",
         "En otra sartén con el aceite, cocina el tomate y la cebolla 3 minutos, revolviendo.",
-        "Bate los huevos en un plato, échalos a la sartén y revuelve hasta que no estén líquidos."
+        "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos (bate: mezcla rápido con un tenedor), échalos a la sartén y revuelve hasta que no estén líquidos."
       ],
       "en": [
-        "Mix the flour with a little salt and warm water, bit by bit, until you get a soft dough.",
-        "Roll the dough into a ball and press it with your hands into a disc.",
+        "Mix the flour with salt and warm water until you get a soft dough; roll it into a ball and press it into a disc.",
         "Cook the arepa in a dry pan over medium heat, 5 minutes on each side.",
-        "Chop the tomato and the onion into small cubes.",
+        "Chop the tomato and the spring onion into small cubes.",
         "In another pan with the oil, cook the tomato and onion for 3 minutes, stirring.",
-        "Beat the eggs on a plate, pour them into the pan and stir until they are no longer runny."
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs (mix fast with a fork), pour them into the pan and stir until they are no longer runny."
       ]
     }
   },
