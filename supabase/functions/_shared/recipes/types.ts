@@ -29,11 +29,16 @@ export type CookingLevel = "basic" | "comfortable" | "enjoys";
 
 export const COOKING_LEVELS: readonly CookingLevel[] = ["basic", "comfortable", "enjoys"];
 
-/** How the optimizer may treat a line: scale it by role, or keep it fixed (salt, garlic). */
-export type IngredientRole = "protein" | "carb" | "veg" | "fat" | "fixed";
+/**
+ * How the optimizer may treat a line: scale it by role, or keep it fixed (salt,
+ * garlic). "condiment" is cooking oil: it may shrink to half, never grow (owner
+ * decision 2026-11-12). Salt stays fixed: at 1 g a portion, whole-gram rounding
+ * would undo any smaller amount.
+ */
+export type IngredientRole = "protein" | "carb" | "veg" | "fat" | "condiment" | "fixed";
 export type ScalableRole = Exclude<IngredientRole, "fixed">;
 
-export const SCALABLE_ROLES: readonly ScalableRole[] = ["protein", "carb", "veg", "fat"];
+export const SCALABLE_ROLES: readonly ScalableRole[] = ["protein", "carb", "veg", "fat", "condiment"];
 
 export interface RecipeAlternative {
   food: string;
@@ -66,7 +71,7 @@ export interface Recipe {
   /** Can be cooked once for several days; keepsDays is 1..4. */
   batch: { ok: boolean; keepsDays: number };
   lines: RecipeLine[];
-  /** Per-role scale range [min, max] overriding DEFAULT_ROLE_SCALE. */
+  /** Per-role scale range [min, max] overriding DEFAULT_ROLE_SCALE (never for condiment). */
   scale?: Partial<Record<ScalableRole, [number, number]>>;
   steps: { es: string[]; en: string[] };
 }
@@ -76,6 +81,7 @@ export const DEFAULT_ROLE_SCALE: Readonly<Record<ScalableRole, readonly [number,
   carb: Object.freeze([0.5, 2] as const),
   veg: Object.freeze([0.75, 2.5] as const),
   fat: Object.freeze([0.5, 1.5] as const),
+  condiment: Object.freeze([0.5, 1] as const),
 });
 
 export interface CookingPrefs {

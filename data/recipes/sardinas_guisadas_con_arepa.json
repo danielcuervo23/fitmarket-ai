@@ -43,17 +43,12 @@
     {
       "food": "aceite_vegetal",
       "qty": 3,
-      "role": "fat"
-    },
-    {
-      "food": "sal",
-      "qty": 1,
-      "role": "fixed"
+      "role": "condiment"
     }
   ],
   "steps": {
     "es": [
-      "Prepara la masa de la arepa con harina, sal y agua tibia, y haz un disco con las manos.",
+      "Prepara la masa de la arepa con harina y agua tibia, y haz un disco con las manos.",
       "Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
       "Pica el tomate y la cebolla en cuadritos.",
       "En otra sartén con el aceite, cocínalos 5 minutos a fuego medio, revolviendo, hasta que se vuelvan salsa.",
@@ -61,7 +56,7 @@
       "Sirve las sardinas encima de la arepa."
     ],
     "en": [
-      "Make the arepa dough with flour, salt and warm water, and shape a disc with your hands.",
+      "Make the arepa dough with flour and warm water, and shape a disc with your hands.",
       "Cook it in a dry pan over medium heat, 5 minutes on each side.",
       "Dice the tomato and onion.",
       "In another pan with the oil, cook them 5 minutes over medium heat, stirring, until they turn into a sauce.",

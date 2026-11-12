@@ -43,22 +43,17 @@
     {
       "food": "aceite_vegetal",
       "qty": 5,
-      "role": "fat"
+      "role": "condiment"
     },
     {
       "food": "ajo",
       "qty": 2,
       "role": "fixed"
-    },
-    {
-      "food": "sal",
-      "qty": 1,
-      "role": "fixed"
     }
   ],
   "steps": {
     "es": [
-      "Pon a hervir agua con sal en una olla y cocina la pasta el tiempo que diga el paquete (unos 10 minutos).",
+      "Pon a hervir agua en una olla y cocina la pasta el tiempo que diga el paquete (unos 10 minutos).",
       "Mientras tanto, pica la cebolla, el tomate y el ajo en cuadritos.",
       "En una sartén con el aceite, cocina la cebolla y el ajo 2 minutos a fuego medio.",
       "Agrega el tomate y cocina 5 minutos más, revolviendo, hasta que se vuelva salsa.",
@@ -66,7 +61,7 @@
       "Escurre la pasta (sácale el agua con un colador) y mézclala con la salsa."
     ],
     "en": [
-      "Boil salted water in a pot and cook the pasta for the time on the package (about 10 minutes).",
+      "Boil water in a pot and cook the pasta for the time on the package (about 10 minutes).",
       "Meanwhile, dice the onion, tomato and garlic.",
       "In a pan with the oil, cook the onion and garlic for 2 minutes over medium heat.",
       "Add the tomato and cook 5 more minutes, stirring, until it turns into a sauce.",

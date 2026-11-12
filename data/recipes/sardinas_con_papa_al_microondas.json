@@ -44,11 +44,6 @@
       "food": "cebolla_cabezona",
       "qty": 20,
       "role": "veg"
-    },
-    {
-      "food": "sal",
-      "qty": 1,
-      "role": "fixed"
     }
   ],
   "steps": {

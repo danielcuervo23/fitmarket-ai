@@ -11,7 +11,7 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-export const RECIPE_LIBRARY_VERSION = "d90eba286c7f";
+export const RECIPE_LIBRARY_VERSION = "51b9729bee32";
 
 export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   {
@@ -116,23 +116,18 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "qty": 5,
         "role": "fat",
         "optional": true
-      },
-      {
-        "food": "sal",
-        "qty": 1,
-        "role": "fixed"
       }
     ],
     "steps": {
       "es": [
-        "Mezcla la harina con la sal y agua tibia, poco a poco, hasta tener una masa suave.",
+        "Mezcla la harina con agua tibia, poco a poco, hasta tener una masa suave.",
         "Desmorona el queso con los dedos y mezcla la mitad con la masa.",
         "Haz dos bolitas y aplástalas con las manos hasta que queden como discos.",
         "Ponlas en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
         "Ábrelas por un lado y mete el resto del queso y, si quieres, la mantequilla."
       ],
       "en": [
-        "Mix the flour with the salt and warm water, bit by bit, until you get a soft dough.",
+        "Mix the flour with warm water, bit by bit, until you get a soft dough.",
         "Crumble the cheese with your fingers and mix half of it into the dough.",
         "Make two small balls and press them with your hands into discs.",
         "Cook them in a dry pan over medium heat, 5 minutes on each side.",
@@ -185,7 +180,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -278,11 +273,11 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       }
     ],
@@ -719,7 +714,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 3,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -940,7 +935,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_oliva",
         "qty": 5,
-        "role": "fat",
+        "role": "condiment",
         "alternatives": [
           {
             "food": "aceite_vegetal",
@@ -1025,18 +1020,13 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_oliva",
         "qty": 5,
-        "role": "fat",
+        "role": "condiment",
         "alternatives": [
           {
             "food": "aceite_vegetal",
             "qty": 5
           }
         ]
-      },
-      {
-        "food": "sal",
-        "qty": 1,
-        "role": "fixed"
       }
     ],
     "steps": {
@@ -1044,13 +1034,13 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Lava la lechuga, el tomate y el pepino, y pícalos.",
         "Escurre el atún (bota el agua de la lata).",
         "Pon todo en un plato hondo con el aguacate en cuadritos.",
-        "Échale el aceite y la sal, y revuelve."
+        "Échale el aceite y revuelve."
       ],
       "en": [
         "Wash the lettuce, tomato and cucumber, and chop them.",
         "Drain the tuna (pour off the water from the can).",
         "Put everything in a bowl with the avocado in cubes.",
-        "Add the oil and salt, and stir."
+        "Add the oil and stir."
       ]
     }
   },
@@ -1169,7 +1159,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -1250,11 +1240,11 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 3,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       },
       {
@@ -1426,11 +1416,11 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       },
       {
@@ -1504,7 +1494,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -1572,7 +1562,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -1747,7 +1737,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "ajo",
@@ -1756,7 +1746,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       },
       {
@@ -1835,7 +1825,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 3,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "ajo",
@@ -1844,7 +1834,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       }
     ],
@@ -2103,18 +2093,13 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "qty": 5,
         "role": "fixed",
         "optional": true
-      },
-      {
-        "food": "sal",
-        "qty": 1,
-        "role": "fixed"
       }
     ],
     "steps": {
       "es": [
         "Lava bien la papa y pínchala varias veces con un tenedor.",
         "Ponla en un plato y caliéntala 4 minutos en el microondas; dale la vuelta y caliéntala 3 minutos más.",
-        "Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados y la sal.",
+        "Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados.",
         "Revisa la papa: si un tenedor entra fácil, está lista; si no, dale 1 minuto más.",
         "Ábrela por la mitad, desmorona el queso adentro y caliéntala 30 segundos para que se derrita.",
         "Ponle encima el guacamole y el cilantro."
@@ -2122,7 +2107,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "en": [
         "Wash the potato well and prick it several times with a fork.",
         "Put it on a plate and microwave it 4 minutes; turn it over and microwave 3 minutes more.",
-        "Meanwhile, mash the avocado and mix it with the chopped tomato and onion and the salt.",
+        "Meanwhile, mash the avocado and mix it with the chopped tomato and onion.",
         "Check the potato: if a fork goes in easily, it is ready; if not, give it 1 more minute.",
         "Cut it open, crumble the cheese inside and microwave it 30 seconds so it melts.",
         "Top it with the guacamole and cilantro."
@@ -2174,7 +2159,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -2246,22 +2231,17 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "ajo",
         "qty": 2,
         "role": "fixed"
-      },
-      {
-        "food": "sal",
-        "qty": 1,
-        "role": "fixed"
       }
     ],
     "steps": {
       "es": [
-        "Pon a hervir agua con sal en una olla y cocina la pasta el tiempo que diga el paquete (unos 10 minutos).",
+        "Pon a hervir agua en una olla y cocina la pasta el tiempo que diga el paquete (unos 10 minutos).",
         "Mientras tanto, pica la cebolla, el tomate y el ajo en cuadritos.",
         "En una sartén con el aceite, cocina la cebolla y el ajo 2 minutos a fuego medio.",
         "Agrega el tomate y cocina 5 minutos más, revolviendo, hasta que se vuelva salsa.",
@@ -2269,7 +2249,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Escurre la pasta (sácale el agua con un colador) y mézclala con la salsa."
       ],
       "en": [
-        "Boil salted water in a pot and cook the pasta for the time on the package (about 10 minutes).",
+        "Boil water in a pot and cook the pasta for the time on the package (about 10 minutes).",
         "Meanwhile, dice the onion, tomato and garlic.",
         "In a pan with the oil, cook the onion and garlic for 2 minutes over medium heat.",
         "Add the tomato and cook 5 more minutes, stirring, until it turns into a sauce.",
@@ -2328,7 +2308,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -2399,12 +2379,12 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "aceite_oliva",
-        "qty": 7,
-        "role": "fat",
+        "qty": 5,
+        "role": "condiment",
         "alternatives": [
           {
             "food": "aceite_vegetal",
-            "qty": 7
+            "qty": 5
           }
         ]
       },
@@ -2505,7 +2485,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -2599,7 +2579,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "ajo",
@@ -2608,7 +2588,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       },
       {
@@ -2687,7 +2667,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "ajo",
@@ -2775,7 +2755,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
@@ -2987,7 +2967,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_oliva",
         "qty": 5,
-        "role": "fat",
+        "role": "condiment",
         "alternatives": [
           {
             "food": "aceite_vegetal",
@@ -3117,11 +3097,6 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "food": "cebolla_cabezona",
         "qty": 20,
         "role": "veg"
-      },
-      {
-        "food": "sal",
-        "qty": 1,
-        "role": "fixed"
       }
     ],
     "steps": {
@@ -3186,17 +3161,12 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 3,
-        "role": "fat"
-      },
-      {
-        "food": "sal",
-        "qty": 1,
-        "role": "fixed"
+        "role": "condiment"
       }
     ],
     "steps": {
       "es": [
-        "Prepara la masa de la arepa con harina, sal y agua tibia, y haz un disco con las manos.",
+        "Prepara la masa de la arepa con harina y agua tibia, y haz un disco con las manos.",
         "Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
         "Pica el tomate y la cebolla en cuadritos.",
         "En otra sartén con el aceite, cocínalos 5 minutos a fuego medio, revolviendo, hasta que se vuelvan salsa.",
@@ -3204,7 +3174,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Sirve las sardinas encima de la arepa."
       ],
       "en": [
-        "Make the arepa dough with flour, salt and warm water, and shape a disc with your hands.",
+        "Make the arepa dough with flour and warm water, and shape a disc with your hands.",
         "Cook it in a dry pan over medium heat, 5 minutes on each side.",
         "Dice the tomato and onion.",
         "In another pan with the oil, cook them 5 minutes over medium heat, stirring, until they turn into a sauce.",
@@ -3267,7 +3237,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       },
       {
@@ -3351,11 +3321,11 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 3,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       },
       {
@@ -3444,7 +3414,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "sal",
-        "qty": 2,
+        "qty": 1,
         "role": "fixed"
       }
     ],
@@ -3517,7 +3487,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 5,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "ajo",
@@ -3599,7 +3569,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       {
         "food": "aceite_vegetal",
         "qty": 3,
-        "role": "fat"
+        "role": "condiment"
       },
       {
         "food": "sal",

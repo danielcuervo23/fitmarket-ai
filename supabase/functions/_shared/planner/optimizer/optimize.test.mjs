@@ -405,6 +405,17 @@ const MENU = {
   snacks: ["fruta_con_almendras", "sandwich_de_queso_y_tomate", "salpicon_de_frutas", "ensalada_de_frutas_con_mani", "palitos_de_verdura_con_guacamole", "pan_con_aguacate_y_tomate", "batido_de_banano_y_mani"],
 };
 const libraryWeek = weekOf((day, slot) => MENU[slot][DAYS.indexOf(day)]);
+/**
+ * The same 28 recipes arranged so no day stacks the fattest dishes (tortilla with avocado,
+ * guacamole, peanut snacks): a week a person would plan for "healthy".
+ */
+const HEALTHY_MENU = {
+  desayuno: ["tostadas_francesas_con_fruta", "changua", "avena_con_banano", "arepa_con_queso", "huevos_pericos_con_arepa", "yogur_con_fruta", "batido_de_fresa_y_avena"],
+  almuerzo: ["sopa_rapida_de_verduras_con_huevo", "pechuga_a_la_plancha_con_arepa", "lentejas_con_arroz", "sopa_de_lentejas", "pollo_guisado_con_papa", "garbanzos_guisados_con_papa", "frijoles_en_olla_a_presion"],
+  cena: ["pasta_con_atun", "sardinas_guisadas_con_arepa", "tortilla_de_verduras_con_aguacate", "pollo_salteado_con_quinua", "tilapia_con_arepa_y_ensalada", "arroz_con_pollo", "huevos_revueltos_con_espinaca"],
+  snacks: ["ensalada_de_frutas_con_mani", "salpicon_de_frutas", "palitos_de_verdura_con_guacamole", "pan_con_aguacate_y_tomate", "batido_de_banano_y_mani", "fruta_con_almendras", "sandwich_de_queso_y_tomate"],
+};
+const healthyWeek = weekOf((day, slot) => HEALTHY_MENU[slot][DAYS.indexOf(day)]);
 
 function libraryInput({ goals = ["healthy"], weightKg = 70, budgetCop = 400_000, householdSize = 1, stores = ["D1", "Exito"], ...over } = {}) {
   const profile = { age: 25, weightKg, heightCm: 175, activity: "moderate", sex: "male" };
@@ -429,28 +440,32 @@ function libraryInput({ goals = ["healthy"], weightKg = 70, budgetCop = 400_000,
 const SOAK = new Set(["frijol", "garbanzo", "arveja_seca"]);
 const WEEKDAYS = DAYS.slice(0, 5);
 
-test("the library week fixture is valid: 28 distinct recipes, weekend dishes only on the weekend", () => {
-  const ids = DAYS.flatMap((day) => SLOTS.map((slot) => libraryWeek[day][slot]));
-  assert.equal(new Set(ids).size, 28);
-  for (const id of ids) assert.ok(resolved.has(id), id);
-  for (const day of WEEKDAYS) for (const slot of SLOTS) assert.equal(resolved.get(libraryWeek[day][slot]).weekendOnly, false, `${day}.${slot}`);
+test("the library week fixtures are valid: 28 distinct recipes, weekend dishes only on the weekend", () => {
+  for (const week of [libraryWeek, healthyWeek]) {
+    const ids = DAYS.flatMap((day) => SLOTS.map((slot) => week[day][slot]));
+    assert.equal(new Set(ids).size, 28);
+    for (const id of ids) assert.ok(resolved.has(id), id);
+    for (const day of WEEKDAYS) for (const slot of SLOTS) assert.equal(resolved.get(week[day][slot]).weekendOnly, false, `${day}.${slot}`);
+  }
 });
 
-// Note: with today's library no week meets "healthy" (sodium < 2000 mg and fat <= 30 % fail on
-// fixed salt and oil lines), so the "every rule met" cases use maintenance.
-test("generous budget: optimal, every rule met, cost <= budget", () => {
-  const input = libraryInput({ goals: [], budgetCop: 400_000 });
-  const r = optimizeWeek(input);
+// Healthy is reachable since the 2026-11-12 recipe change (less salt and oil; oil may halve).
+test("generous budget: optimal, every healthy rule met, cost <= budget", () => {
+  for (const weightKg of [60, 70, 85]) {
+    const input = { ...libraryInput({ goals: ["healthy"], weightKg, budgetCop: 400_000 }), recipeWeek: healthyWeek };
+    const r = optimizeWeek(input);
 
-  assert.equal(r.status, "optimal", JSON.stringify(r.shortfalls));
-  assert.deepEqual(evaluateWeek(r.week, input.rules, STATIC_CATALOG), []);
-  assert.ok(r.costCop <= 400_000);
-  assert.equal(weekCost(r.week, input.householdFactor, input.stores, STATIC_CATALOG, STATIC_PRICE_BOOK), r.costCop);
+    assert.equal(r.status, "optimal", `${weightKg} kg: ${JSON.stringify(r.shortfalls)}`);
+    assert.deepEqual(evaluateWeek(r.week, input.rules, STATIC_CATALOG), []);
+    assert.ok(r.costCop <= 400_000);
+    assert.equal(weekCost(r.week, input.householdFactor, input.stores, STATIC_CATALOG, STATIC_PRICE_BOOK), r.costCop);
+  }
 });
 
 test("cost is the minimum: removing budget pressure never lowers it", () => {
-  const withBudget = optimizeWeek(libraryInput({ goals: [], budgetCop: 400_000 }));
-  const unlimited = optimizeWeek(libraryInput({ goals: [], budgetCop: 50_000_000 }));
+  const healthy = (budgetCop) => ({ ...libraryInput({ goals: ["healthy"], budgetCop }), recipeWeek: healthyWeek });
+  const withBudget = optimizeWeek(healthy(400_000));
+  const unlimited = optimizeWeek(healthy(50_000_000));
   assert.equal(withBudget.status, "optimal");
   assert.equal(withBudget.costCop, unlimited.costCop);
 });
@@ -561,12 +576,14 @@ test("tight budget for a muscle goal: relaxed with a protein_min shortfall and i
 });
 
 test("tight budget: relaxed, with a required budget that works", () => {
-  const r = optimizeWeek(libraryInput({ goals: [], budgetCop: 175_000, diagnose: true }));
+  // Between the cheapest safe week (184 000 COP) and the week that meets every rule (187 000 COP).
+  // Oil no longer grows past its recipe amount, so cheap oil kcal no longer widen this window.
+  const r = optimizeWeek(libraryInput({ goals: [], budgetCop: 185_000, diagnose: true }));
 
   assert.equal(r.status, "relaxed", r.status);
   assert.ok(r.shortfalls.some((s) => s.rule === "kcal_range"), JSON.stringify(r.shortfalls));
-  assert.ok(r.costCop <= 175_000);
-  assert.ok(r.requiredBudgetCop > 175_000 && r.requiredBudgetCop % 1000 === 0, `${r.requiredBudgetCop}`);
+  assert.ok(r.costCop <= 185_000);
+  assert.ok(r.requiredBudgetCop > 185_000 && r.requiredBudgetCop % 1000 === 0, `${r.requiredBudgetCop}`);
   const richer = optimizeWeek(libraryInput({ goals: [], budgetCop: r.requiredBudgetCop }));
   assert.ok(richer.week !== null && !richer.shortfalls.some((s) => s.rule === "kcal_range"), JSON.stringify(richer.shortfalls));
 });

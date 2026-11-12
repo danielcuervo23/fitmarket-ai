@@ -116,6 +116,16 @@ test("a recipe scale override replaces the default bounds", () => {
   assert.deepEqual(built.model.constraints["x|lun.cena|carb"], { min: 0.5, max: 2 });
 });
 
+test("cooking oil is a condiment: its scale may drop to half, never grow (owner decision 2026-11-12)", () => {
+  const built = buildModel(input());
+  const { constraints, variables } = built.model;
+
+  // lentejas_con_arroz cooks with 5 ml of oil per portion.
+  assert.deepEqual(constraints["x|lun.almuerzo|condiment"], { min: 0.5, max: 1 });
+  near(variables["x|lun.almuerzo|condiment"]["pack|aceite_vegetal"], -5);
+  assert.equal(variables["x|lun.almuerzo|fat"], undefined);
+});
+
 test("the chosen alternative is the food that enters the model", () => {
   // Soak legumes are weekend-only, so a weekday recipe has none; use a plain alternative.
   const pollo = MENU.cena;
@@ -149,12 +159,12 @@ test("fixed lines move to the right-hand side", () => {
   const built = buildModel(input({ rules }));
   const { constraints, variables } = built.model;
 
-  // sal is fixed in lentejas (2 g) and pollo (2 g): 4 g a day, 28 g a week, no scale variable touches it.
-  assert.deepEqual(constraints["pack|sal"], { min: 28 });
+  // sal is fixed in lentejas (1 g) and pollo (1 g): 2 g a day, 14 g a week, no scale variable touches it.
+  assert.deepEqual(constraints["pack|sal"], { min: 14 });
   assert.equal(Object.keys(variables).filter((name) => variables[name]["pack|sal"] !== undefined).join(), "p|sal");
 
   // The day's fixed kcal (panela, ajo, sal, cilantro) is subtracted from the kcal bounds.
-  const fixedKcal = [["panela", 5], ["ajo", 6], ["sal", 4], ["cilantro", 10]]
+  const fixedKcal = [["panela", 5], ["ajo", 6], ["sal", 2], ["cilantro", 10]]
     .reduce((sum, [id, qty]) => sum + nutritionOf(STATIC_CATALOG.get(id), qty).kcal, 0);
   const safety = rules.linear.find((rule) => rule.code === "kcal_safety");
   near(constraints["r|kcal_safety|lun|-"].min, safety.min - fixedKcal, "min");
@@ -285,7 +295,7 @@ test("safety_only keeps level 1 and drops levels 2 to 5", () => {
 
 // Fixed fiber of a day of MENU (panela, ajo, sal, cilantro).
 function fixedFiber() {
-  return [["panela", 5], ["ajo", 6], ["sal", 4], ["cilantro", 10]]
+  return [["panela", 5], ["ajo", 6], ["sal", 2], ["cilantro", 10]]
     .reduce((sum, [id, qty]) => sum + STATIC_CATALOG.get(id).micro.fiberG * qty / 100, 0);
 }
 
