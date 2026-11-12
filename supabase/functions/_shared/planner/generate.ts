@@ -569,7 +569,7 @@ function readMeal(raw: unknown, context: Context, day: Day, slot: Slot): Compose
   if (!recipe || !recipe.slots.includes(slot) || (recipe.weekendOnly && day !== "sab" && day !== "dom")) return null;
   if (typeof name.es !== "string" || typeof name.en !== "string") return null;
   if (name.es.length > MAX_NAME_LENGTH || name.en.length > MAX_NAME_LENGTH) return null;
-  // One item per recipe line at most (a recipe meal may hold more than ITEMS_PER_MEAL.max).
+  // One item per recipe line at most.
   if (items.length < 1 || items.length > recipe.lines.length) return null;
 
   const parsed: MealItem[] = [];
