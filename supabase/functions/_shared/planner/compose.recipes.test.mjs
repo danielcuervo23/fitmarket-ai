@@ -7,7 +7,9 @@ import { eligibleRecipes } from "../recipes/eligibility.ts";
 import { RECIPES } from "../recipes/library.generated.ts";
 import { APPLIANCES, DEFAULT_COOKING } from "../recipes/types.ts";
 import {
+  HIGH_FAT_KCAL_SHARE,
   RECIPE_COMPOSER_SYSTEM_PROMPT,
+  isHighFatDish,
   buildRecipeComposerPrompt,
   capRepeats,
   parseRecipeComposition,
@@ -578,4 +580,44 @@ test("schema refuses enum strings longer than OpenAI accepts (15000 characters)"
 
   assert.throws(() => recipeResponseFormat(long), (error) => error instanceof RangeError && /characters/.test(error.message));
   assert.doesNotThrow(() => recipeResponseFormat({ ...long, desayuno: ids(70, "d"), snacks: ids(70, "s") })); // 340 x 40 = 13600
+});
+
+// Owner decision 2026-11-12: fewer different packs make a cheaper list. The AI
+// is asked to share ingredients and repeat dishes (within the cap of 3).
+test("system prompt asks for shared ingredients and repeated dishes to cut packs", () => {
+  assert.match(RECIPE_COMPOSER_SYSTEM_PROMPT, /share (the same )?main ingredients/i);
+  assert.match(RECIPE_COMPOSER_SYSTEM_PROMPT, /repeat/i);
+  assert.match(RECIPE_COMPOSER_SYSTEM_PROMPT, /fewer different (packs|products)/i);
+});
+
+test("the user prompt asks for at most about 3 dishes per meal when the budget is tight or the goal is save", () => {
+  const base = { targets: { kcal: 2000, proteinG: { min: 60, max: 120, target: 80 } }, goals: ["healthy"], recipes: [], cooking: DEFAULT_COOKING, catalog: STATIC_CATALOG, prices: fakePrices, stores: [], unmatchedText: [] };
+  const tight = buildRecipeComposerPrompt({ ...base, budgetPerPersonCop: 120_000 });
+  const save = buildRecipeComposerPrompt({ ...base, goals: ["save"], budgetPerPersonCop: 400_000 });
+  const roomy = buildRecipeComposerPrompt({ ...base, budgetPerPersonCop: 400_000 });
+  assert.match(tight, /2-3 different dishes per meal/);
+  assert.match(save, /2-3 different dishes per meal/);
+  assert.doesNotMatch(roomy, /2-3 different dishes per meal/);
+});
+
+// Fat stacking (salt/oil review 2026-11-12): a day with several avocado, peanut,
+// almond or egg dishes misses fat_max. "High-fat" comes from the catalog's fat data.
+test("isHighFatDish: fat gives at least HIGH_FAT_KCAL_SHARE of the dish's base kcal", () => {
+  assert.equal(HIGH_FAT_KCAL_SHARE, 0.45);
+  const byId = new Map(RECIPES.map((r) => [r.id, r]));
+  assert.equal(isHighFatDish(byId.get("ensalada_de_aguacate_y_mani"), STATIC_CATALOG), true);
+  assert.equal(isHighFatDish(byId.get("tortilla_de_verduras_con_aguacate"), STATIC_CATALOG), true);
+  assert.equal(isHighFatDish(byId.get("lentejas_con_arroz"), STATIC_CATALOG), false);
+  assert.equal(isHighFatDish(byId.get("avena_con_banano"), STATIC_CATALOG), false);
+});
+
+test("prompt marks high-fat recipes and asks for at most one per day", () => {
+  assert.match(RECIPE_COMPOSER_SYSTEM_PROMPT, /at most one dish marked "high fat" per day/);
+  const recipes = eligibleRecipes(RECIPES.filter((r) => ["ensalada_de_aguacate_y_mani", "lentejas_con_arroz"].includes(r.id)), {
+    rules: buildRestrictionRules([], STATIC_CATALOG), catalog: STATIC_CATALOG, prices: fakePrices, stores: [], cooking: COOKING,
+  });
+  const prompt = buildRecipeComposerPrompt({ ...input(), recipes });
+  const line = (id) => prompt.split("\n").find((l) => l.startsWith(`${id} |`));
+  assert.match(line("ensalada_de_aguacate_y_mani"), /\| high fat$/);
+  assert.doesNotMatch(line("lentejas_con_arroz"), /high fat/);
 });

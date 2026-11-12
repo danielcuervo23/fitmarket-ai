@@ -1,19 +1,9 @@
-import type { GenerationErrorCode } from "./errors.ts";
 import type { GenerationRequestBody } from "./generationRequest.ts";
 import { supportsGoalsUnreachable } from "./generationRequest.ts";
 import type { GenerateFailure } from "./planner/generate.ts";
-import type { Shortfall } from "./planner/rules/ruleSet.ts";
 
-/**
- * A generation failure as the pipeline reports it. Written as a superset of
- * `GenerateFailure["error"]` so it already accepts the `goals_unreachable`
- * fields that Task 13 adds (conflicts, canForce) and keeps compiling after.
- */
-export type GenerationFailure = Omit<GenerateFailure["error"], "code"> & {
-  code: GenerationErrorCode | "goals_unreachable";
-  conflicts?: readonly Shortfall[];
-  canForce?: boolean;
-};
+/** A generation failure as the pipeline reports it (`conflicts` is required for goals_unreachable). */
+export type GenerationFailure = GenerateFailure["error"];
 
 export interface FailureResponse {
   status: number;
@@ -39,7 +29,7 @@ export function failureResponse(
         payload: {
           error: message,
           code,
-          conflicts: failure.conflicts ?? [],
+          conflicts: failure.conflicts ?? [], // required by the type; defensive at runtime
           canForce: true,
           ...(budget ? { budgetOption: budget } : {}),
         },

@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useHouseholdSize } from "@/hooks/useHouseholdSize";
 import { RefreshCw } from "lucide-react";
 import type { BudgetTooLowGenerationError } from "@/lib/ai/generateWeeklyPlan";
 import {
   budgetIssue,
-  MIN_WEEKLY_BUDGET_COP,
+  minWeeklyBudgetFor,
   parseBudgetInput,
   suggestBudget,
 } from "@/lib/budgetSuggestion";
@@ -31,19 +32,21 @@ export function BudgetShortfallPanel({
   onAdjustSettings,
 }: Props) {
   const { t, formatCurrency, formatNumber } = useI18n();
+  // The budget minimum is 130 000 per person in the household.
+  const householdSize = useHouseholdSize();
   const recommended = suggestBudget(error.currentBudget, error.requiredBudget);
   const [input, setInput] = useState(formatNumber(recommended));
   const [isSaving, setIsSaving] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 
   const amount = parseBudgetInput(input);
-  const canSubmit = amount > error.currentBudget && budgetIssue(amount) === null;
+  const canSubmit = amount > error.currentBudget && budgetIssue(amount, householdSize) === null;
 
   const options = [
     { label: `${t("gen.shortfall.recommended")} · ${formatCurrency(recommended)}`, value: recommended },
     { label: `+${formatCurrency(10_000)}`, value: error.currentBudget + 10_000 },
     { label: `+${formatCurrency(20_000)}`, value: error.currentBudget + 20_000 },
-  ].filter((option) => option.value >= MIN_WEEKLY_BUDGET_COP);
+  ].filter((option) => option.value >= minWeeklyBudgetFor(householdSize));
 
   const handleSubmit = async () => {
     setErrorKey(null);
@@ -105,6 +108,7 @@ export function BudgetShortfallPanel({
       </Card>
 
       <BudgetEditor
+        householdSize={householdSize}
         label={t("gen.shortfall.newBudget")}
         value={input}
         onChange={(value) => {

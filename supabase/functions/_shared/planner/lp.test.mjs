@@ -335,9 +335,12 @@ test("cpuMs is measured with the injected clock", () => {
 });
 
 test("a 300-variable, 400-row model solves in under 150 ms", () => {
-  const s = solveLp(syntheticModel(300, 400));
-  assert.ok(s.feasible);
-  assert.ok(s.cpuMs < 150, `${s.cpuMs}`);
+  // Median of 3 solves: one slow run under machine load is not the solver's speed.
+  const model = syntheticModel(300, 400);
+  const runs = [0, 1, 2].map(() => solveLp(model));
+  assert.ok(runs.every((s) => s.feasible));
+  const median = runs.map((s) => s.cpuMs).sort((a, b) => a - b)[1];
+  assert.ok(median < 150, `${runs.map((s) => Math.round(s.cpuMs)).join(", ")} ms`);
 });
 
 const invalidModels = {

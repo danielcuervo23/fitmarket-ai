@@ -1,4 +1,5 @@
 import { useId, useMemo, useState } from "react";
+import { useHouseholdSize } from "@/hooks/useHouseholdSize";
 import { RefreshCw, Target, Wallet } from "lucide-react";
 import type { GoalsUnreachableGenerationError } from "@/lib/ai/generateWeeklyPlan";
 import {
@@ -52,6 +53,8 @@ export function GoalsUnreachablePanel({
   onAdjustSettings,
 }: Props) {
   const { t, locale, formatCurrency, formatNumber } = useI18n();
+  // The budget minimum is 130 000 per person in the household.
+  const householdSize = useHouseholdSize();
   const forceHelpId = useId();
   const optionsHeadingId = useId();
   const listHeadingId = useId();
@@ -91,11 +94,11 @@ export function GoalsUnreachablePanel({
     return result;
   }, [error.conflicts, locale, t]);
 
-  const introKey = unreachableIntroKey({ hasBudget: budget !== null, canForce });
+  const introKey = unreachableIntroKey({ hasBudget: amounts !== null, canForce });
 
   const amount = parseBudgetInput(input);
   const canSaveBudget =
-    budget !== null && amount > budget.currentBudget && budgetIssue(amount) === null;
+    budget !== null && amount > budget.currentBudget && budgetIssue(amount, householdSize) === null;
 
   const handleSaveBudget = async () => {
     setErrorKey(null);
@@ -185,6 +188,7 @@ export function GoalsUnreachablePanel({
 
             {budgetOpen && (
               <BudgetEditor
+                householdSize={householdSize}
                 label={t("gen.shortfall.newBudget")}
                 value={input}
                 onChange={(value) => {

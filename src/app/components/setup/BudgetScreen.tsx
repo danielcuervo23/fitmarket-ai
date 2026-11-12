@@ -3,9 +3,10 @@ import { ChevronRight } from "lucide-react";
 import { saveWeeklyBudget } from "@/lib/budget";
 import {
   budgetIssue,
-  MIN_WEEKLY_BUDGET_COP,
+  budgetMinimumMessage,
   thousandsSuggestion,
 } from "@/lib/budgetSuggestion";
+import { useHouseholdSize } from "@/hooks/useHouseholdSize";
 import type { ErrorKey } from "@/lib/errors";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -24,7 +25,8 @@ interface Props {
   onBack: () => void;
 }
 
-const PRESETS = [50_000, 100_000, 150_000, 200_000] as const;
+// All at or above the one-person minimum (130 000); bigger households see the minimum message.
+const PRESETS = [130_000, 150_000, 200_000, 250_000] as const;
 const MAX_BUDGET_COP = 20_000_000;
 
 export function BudgetScreen({ onNext, onBack }: Props) {
@@ -41,11 +43,14 @@ export function BudgetScreen({ onNext, onBack }: Props) {
     MAX_BUDGET_COP,
   );
 
-  const issue = usingCustom ? budgetIssue(customAmount) : null;
-  const suggestion = usingCustom ? thousandsSuggestion(customAmount) : null;
+  // The household was asked on the profile screen, before this one.
+  const householdSize = useHouseholdSize();
+  const minimum = budgetMinimumMessage(householdSize);
+  const issue = budgetIssue(usingCustom ? customAmount : budget, householdSize);
+  const suggestion = usingCustom ? thousandsSuggestion(customAmount, householdSize) : null;
   const issueText =
     issue === "too_low"
-      ? t("budget.minimum", { amount: formatCurrency(MIN_WEEKLY_BUDGET_COP) })
+      ? t(minimum.key, { amount: formatCurrency(minimum.amount), perPerson: formatCurrency(minimum.perPerson) })
       : issue === "too_high"
         ? t("budget.tooHigh")
         : null;

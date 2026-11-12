@@ -1,4 +1,4 @@
-import type { GenerationErrorCode } from "./errors.ts";
+import type { GenerationErrorCode, PipelineErrorCode } from "./errors.ts";
 import type { GenerationUsage } from "./planner/callBudget.ts";
 
 /**
@@ -14,12 +14,17 @@ const REFUNDABLE_CODES: ReadonlySet<GenerationErrorCode> = new Set([
   "rate_limited",
 ]);
 
-/** True when a failed generation must not use up a daily try. */
+/**
+ * True when a failed generation must not use up a daily try. `refundable`
+ * marks our own failures the pipeline knows happened before any OpenAI call
+ * (e.g. the solver did not load); it never refunds a call that may be billed.
+ */
 export function shouldRefund(
-  code: GenerationErrorCode,
+  code: PipelineErrorCode,
   usage: GenerationUsage | undefined,
+  refundable = false,
 ): boolean {
-  if (!REFUNDABLE_CODES.has(code)) {
+  if (code === "goals_unreachable" || !(refundable || REFUNDABLE_CODES.has(code))) {
     return false;
   }
 

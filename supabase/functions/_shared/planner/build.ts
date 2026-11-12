@@ -579,14 +579,18 @@ const SOAK_REMINDER: Partial<Record<Day, NoticeCode>> = {
 /**
  * Reminders to soak dried legumes the evening before (owner decision
  * 2026-11-11). Only recipe meals count; eligibility keeps soak foods off
- * weekdays, so only Saturday and Sunday can need one. A Sunday meal from a
- * batch recipe (per `recipes`) already served on Saturday is that pot's
- * leftover, not a new cooking, so it needs no Saturday-night reminder.
+ * weekdays, so only Saturday and Sunday can need one. When the user cooks
+ * in batches (`options.batch`, default true for callers that do not know),
+ * a Sunday meal from a batch recipe (per `recipes`) already served on
+ * Saturday is that pot's leftover, not a new cooking, so it needs no
+ * Saturday-night reminder; a user who does not cook in batches cooks it again.
  */
 export function soakNotices(
   week: ComposedWeek,
   recipes?: ReadonlyMap<string, ResolvedRecipe>,
+  options: { batch?: boolean } = {},
 ): NoticeCode[] {
+  const batch = options.batch ?? true;
   const notices: NoticeCode[] = [];
 
   for (const day of DAYS) {
@@ -596,7 +600,7 @@ export function soakNotices(
       return (
         meal.recipeId !== undefined &&
         meal.items.some((item) => needsSoaking(item.id)) &&
-        !isBatchLeftover(week, day, meal.recipeId, recipes)
+        !(batch && isBatchLeftover(week, day, meal.recipeId, recipes))
       );
     });
 
@@ -638,6 +642,8 @@ export function assemblePlan(
     compliance?: PlanCompliance;
     /** Adult portions bought per menu portion (default householdSize). */
     householdFactor?: number;
+    /** The user cooks in batches (soak reminders); default true. */
+    batch?: boolean;
   },
 ): BuiltPlan {
   const { householdSize, stores, targets } = options;
@@ -700,7 +706,7 @@ export function assemblePlan(
   }
 
   const fromRecipes = options.recipes ? recipeFields(week, options.recipes) : null;
-  const soak = fromRecipes ? soakNotices(week, options.recipes) : [];
+  const soak = fromRecipes ? soakNotices(week, options.recipes, { batch: options.batch }) : [];
   const notices =
     options.notices || soak.length > 0 ? [...new Set([...(options.notices ?? []), ...soak])] : null;
 
