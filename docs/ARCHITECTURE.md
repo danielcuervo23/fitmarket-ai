@@ -205,7 +205,7 @@ finished week against them.
 When two levels clash, the lower number wins: the optimizer pays a penalty for
 breaking a level 2-5 rule (`PENALTY` in `optimizer/model.ts`, bigger for lower
 levels) and treats level 1 and the budget as hard constraints. The exact
-values are in the Plan 2 document, section "Rule values".
+values are in `docs/superpowers/plans/2026-11-05-plan-2-reglas-optimizador-recetas.md`, section "Rule values".
 
 ### Optimizer ("el contador")
 

@@ -76,7 +76,7 @@ recipe ids from the recipe library**; the server computes the rest:
    free text) from the list the AI sees, so a restriction is enforced by
    construction and in any language.
 3. `recipes/eligibility.ts` keeps only the simple recipes (`data/recipes/`) that fit the restrictions, kitchen, cooking time and weekend-only soaking. The AI picks one recipe id per day and meal (strict JSON schema).
-4. `rules/` turns the profile and goals into safety, goal and habit rules, and `optimizer/` (HiGHS, a linear-programming solver) sets the portions and swaps for the lowest cost, never over budget. If some goals cannot be met the app says exactly what to change ("goals_unreachable") and offers "Quiero el plan igual". If even the safety rules or the budget cannot be met, the user is told the real amount needed.
+4. `rules/` turns the profile and goals into safety, goal and habit rules, and `optimizer/` (HiGHS, a linear-programming solver) sets the portions and picks cheaper alternatives for the lowest cost, never over budget. If some goals cannot be met the app says exactly what to change ("goals_unreachable") and offers "Quiero el plan igual". If even the safety rules or the budget cannot be met, the user is told the real amount needed.
 5. Menu and shopping list are rendered in Spanish and English.
 
 Prices in `catalog.ts` are national references (regular prices, not
