@@ -1,6 +1,6 @@
 {
   "id": "colada_de_avena",
-  "status": "pending_owner_ok",
+  "status": "approved",
   "source": "ai_draft",
   "name": { "es": "Colada de avena", "en": "Colombian oat drink (colada)" },
   "slots": ["desayuno", "snacks"],

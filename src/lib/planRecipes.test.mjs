@@ -188,6 +188,8 @@ for (const info of [
   { ...lentils, name: "Lentejas" },
   { ...lentils, minutes: "40" },
   { ...lentils, minutes: Number.NaN },
+  { ...lentils, minutes: 0 },
+  { ...lentils, minutes: -5 },
   { ...lentils, appliances: "estufa" },
   { ...lentils, steps: { es: "Lava las lentejas.", en: ["Rinse."] } },
   { ...lentils, steps: { es: [1, 2], en: ["Rinse."] } },

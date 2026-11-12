@@ -1,6 +1,6 @@
 {
   "id": "arroz_con_huevo_y_tomate",
-  "status": "pending_owner_ok",
+  "status": "approved",
   "source": "ai_draft",
   "name": { "es": "Arroz con huevo y tomate", "en": "Rice with egg and tomato" },
   "slots": ["almuerzo", "cena"],

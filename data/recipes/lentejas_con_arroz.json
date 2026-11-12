@@ -1,6 +1,6 @@
 {
   "id": "lentejas_con_arroz",
-  "status": "pending_owner_ok",
+  "status": "approved",
   "source": "ai_draft",
   "name": { "es": "Lentejas con arroz", "en": "Lentils with rice" },
   "slots": ["almuerzo", "cena"],

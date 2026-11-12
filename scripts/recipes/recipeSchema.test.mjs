@@ -30,9 +30,9 @@ test("the six seed recipes exist and are valid", () => {
   assert.deepEqual(validateRecipes(loadAll(), foodIds, foodUnits), []);
 });
 
-test("every seed is an AI draft waiting for the owner's OK", () => {
+test("every recipe is an AI draft approved by the owner (2026-11-12)", () => {
   for (const recipe of loadAll()) {
-    assert.equal(recipe.status, "pending_owner_ok", recipe.id);
+    assert.equal(recipe.status, "approved", recipe.id);
     assert.equal(recipe.source, "ai_draft", recipe.id);
   }
 });

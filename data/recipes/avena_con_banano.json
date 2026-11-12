@@ -1,6 +1,6 @@
 {
   "id": "avena_con_banano",
-  "status": "pending_owner_ok",
+  "status": "approved",
   "source": "ai_draft",
   "name": { "es": "Avena con banano", "en": "Oatmeal with banana" },
   "slots": ["desayuno", "snacks"],

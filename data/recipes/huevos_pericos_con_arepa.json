@@ -1,6 +1,6 @@
 {
   "id": "huevos_pericos_con_arepa",
-  "status": "pending_owner_ok",
+  "status": "approved",
   "source": "ai_draft",
   "name": { "es": "Huevos pericos con arepa", "en": "Scrambled eggs with tomato and onion, with arepa" },
   "slots": ["desayuno", "cena"],

@@ -320,3 +320,30 @@ test("a resolved recipe owns its arrays: changing them never touches the frozen 
 
   assert.equal(JSON.stringify(RECIPES), before);
 });
+
+test("a line without alternatives stays without the key (weekday and weekend)", () => {
+  const avena = byId("avena_con_banano");
+  const weekday = resolveRecipe(avena, ctx());
+  assert.equal(weekday.weekendOnly, false);
+  assert.equal("alternatives" in weekday.lines[0], false);
+  assert.deepEqual(weekday.lines[1].alternatives.map((alt) => alt.food), ["leche_deslactosada"]);
+
+  const weekend = resolveRecipe(pollo, ctx());
+  assert.equal(weekend.weekendOnly, true);
+  assert.ok(weekend.lines.every((line) => !("alternatives" in line) || line.alternatives.length > 0));
+});
+
+test("a weekday line whose alternatives all need soaking loses the key", () => {
+  const r = resolveRecipe(lentejas, ctx({ cooking: { weekdayMinutes: 30 } }));
+
+  assert.equal(r.weekendOnly, false);
+  assert.equal(r.lines[0].food, "lentejas");
+  assert.equal("alternatives" in r.lines[0], false);
+});
+
+test("a line whose only alternative is unusable loses the key", () => {
+  const r = resolveRecipe(byId("avena_con_banano"), ctx({ excludedIds: ["leche_deslactosada"] }));
+
+  assert.equal(r.lines[1].food, "leche_entera");
+  assert.equal("alternatives" in r.lines[1], false);
+});
