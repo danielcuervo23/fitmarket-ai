@@ -288,7 +288,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (shouldRefund(outcome.error.code, outcome.usage)) {
+    if (shouldRefund(outcome.error.code, outcome.usage, outcome.refundable === true)) {
       await refund();
     }
 

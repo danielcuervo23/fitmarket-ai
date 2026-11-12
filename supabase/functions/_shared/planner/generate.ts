@@ -94,6 +94,8 @@ export interface GenerateFailure {
   error: GenerateFailureError;
   /** goals_unreachable only: the best week found, every level 1 rule and the budget met. */
   reusable?: PartialWeek;
+  /** Our own failure before any OpenAI call (the solver did not load): give the try back. */
+  refundable?: true;
 }
 
 export type GenerateOutcome = ({ plan: BuiltPlan } | GenerateFailure) & {
@@ -253,7 +255,7 @@ export async function generatePlan(
   if (!(await optimizer.prepare())) {
     logEvent("lp_load_failed", { code: optimizer.loadError() ?? "unknown" });
     reasons.push("optimizer_unavailable");
-    return { error: { code: "generation_failed", message: FAILED_MESSAGE, diagnostics: diagnostics() } };
+    return { error: { code: "generation_failed", message: FAILED_MESSAGE, diagnostics: diagnostics() }, refundable: true };
   }
 
   const now = limits?.now ?? Date.now;

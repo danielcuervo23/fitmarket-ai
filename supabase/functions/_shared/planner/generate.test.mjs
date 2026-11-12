@@ -121,3 +121,25 @@ test("refunds only when OpenAI charged nothing", async () => {
 test("goals_unreachable is never refunded: the try paid for the week kept for reuse", () => {
   assert.equal(shouldRefund("goals_unreachable", { modelCalls: 1, billableCalls: 0, refusedCalls: 0 }), false);
 });
+
+test("a solver that did not load (before any OpenAI call) gives the try back; other generation_failed do not", async () => {
+  const down = await generatePlan(baseInput, rotationModel(), undefined, {
+    optimizer: { prepare: async () => false, loadError: () => "load_timeout", optimize: () => assert.fail("no solve") },
+  });
+  assert.equal(down.error.code, "generation_failed");
+  assert.equal(down.refundable, true);
+  assert.equal(shouldRefund(down.error.code, down.usage, down.refundable), true);
+
+  const infeasible = await generatePlan(baseInput, rotationModel(), undefined, {
+    optimizer: {
+      prepare: async () => true,
+      loadError: () => null,
+      optimize: () => ({ status: "infeasible", week: null, costCop: null, shortfalls: [], relaxations: [], requiredBudgetCop: null, solves: 1, cpuMs: 1 }),
+    },
+  });
+  assert.equal(infeasible.error.code, "generation_failed");
+  assert.equal(infeasible.refundable, undefined);
+  assert.equal(shouldRefund(infeasible.error.code, infeasible.usage, infeasible.refundable), false);
+  // The flag never refunds a billed call.
+  assert.equal(shouldRefund("generation_failed", { modelCalls: 1, billableCalls: 1, refusedCalls: 0 }, true), false);
+});
