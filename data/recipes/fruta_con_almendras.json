@@ -43,25 +43,34 @@
       "alternatives": [
         {
           "food": "nueces",
-          "qty": 20
+          "qty": 20,
+          "name": {
+            "es": "Fruta con nueces",
+            "en": "Fruit with walnuts"
+          }
         },
         {
           "food": "mani",
-          "qty": 20
+          "qty": 20,
+          "name": {
+            "es": "Fruta con maní",
+            "en": "Fruit with peanuts"
+          }
         }
-      ]
+      ],
+      "inName": true
     }
   ],
   "steps": {
     "es": [
       "Lava la fruta.",
       "Pártela en tajadas, si quieres.",
-      "Acompáñala con las almendras (un puñado pequeño)."
+      "Acompáñala con un puñado pequeño de frutos secos o maní."
     ],
     "en": [
       "Wash the fruit.",
       "Cut it into slices, if you like.",
-      "Eat it with the almonds (a small handful)."
+      "Eat it with a small handful of nuts or peanuts."
     ]
   }
 }

@@ -7,8 +7,7 @@
     "en": "Arepa with avocado and tomato"
   },
   "slots": [
-    "desayuno",
-    "cena"
+    "desayuno"
   ],
   "minutes": 20,
   "level": "basic",

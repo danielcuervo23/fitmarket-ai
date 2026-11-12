@@ -63,27 +63,26 @@
     },
     {
       "food": "mani",
-      "qty": 15,
-      "role": "protein",
-      "optional": true
+      "qty": 25,
+      "role": "protein"
     }
   ],
   "steps": {
     "es": [
       "Lava la quinua en un colador con agua, frotándola con la mano (así no queda amarga).",
       "Cocínala en una olla con el doble de agua y un poco de sal, tapada, 15 minutos a fuego bajo.",
-      "Mientras tanto, pica la zanahoria, el calabacín y la cebolla en cuadritos.",
+      "Mientras tanto, pica la zanahoria, la cebolla y la otra verdura en cuadritos.",
       "En una sartén con el aceite, cocina esas verduras 5 minutos, revolviendo.",
       "Agrega la espinaca y revuelve 1 minuto, hasta que se encoja.",
-      "Mezcla las verduras con la quinua y, si quieres, pon maní encima."
+      "Mezcla las verduras con la quinua y pon el maní encima."
     ],
     "en": [
       "Rinse the quinoa in a sieve under water, rubbing it with your hand (so it is not bitter).",
       "Cook it in a pot with twice as much water and a little salt, covered, 15 minutes over low heat.",
-      "Meanwhile, dice the carrot, zucchini and onion.",
+      "Meanwhile, dice the carrot, the onion and the other vegetable.",
       "In a pan with the oil, cook those vegetables for 5 minutes, stirring.",
       "Add the spinach and stir for 1 minute, until it shrinks.",
-      "Mix the vegetables with the quinoa and, if you like, add peanuts on top."
+      "Mix the vegetables with the quinoa and put the peanuts on top."
     ]
   }
 }

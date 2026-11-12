@@ -23,7 +23,7 @@
   "lines": [
     {
       "food": "huevo",
-      "qty": 2,
+      "qty": 3,
       "role": "protein"
     },
     {
@@ -56,18 +56,18 @@
   "steps": {
     "es": [
       "Lava la espinaca y córtala en tiras. Pica el tomate en cuadritos.",
-      "Calienta el aceite en una sartén a fuego medio.",
-      "Echa el tomate y la espinaca y revuelve 2 minutos, hasta que la espinaca se encoja.",
-      "Bate los huevos con la sal en un plato y échalos a la sartén.",
-      "Revuelve hasta que los huevos ya no estén líquidos.",
+      "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+      "Bate los huevos con la sal (bate: mezcla rápido con un tenedor).",
+      "Calienta el aceite en una sartén a fuego medio y echa el tomate y la espinaca; revuelve 2 minutos, hasta que la espinaca se encoja.",
+      "Echa los huevos a la sartén y revuelve hasta que ya no estén líquidos.",
       "Sirve con el pan, si quieres."
     ],
     "en": [
       "Wash the spinach and cut it into strips. Dice the tomato.",
-      "Heat the oil in a pan over medium heat.",
-      "Add the tomato and spinach and stir for 2 minutes, until the spinach shrinks.",
-      "Beat the eggs with the salt on a plate and pour them into the pan.",
-      "Stir until the eggs are no longer runny.",
+      "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+      "Beat the eggs with the salt (mix fast with a fork).",
+      "Heat the oil in a pan over medium heat and add the tomato and spinach; stir 2 minutes, until the spinach shrinks.",
+      "Pour the eggs into the pan and stir until they are no longer runny.",
       "Serve with the bread, if you like."
     ]
   }

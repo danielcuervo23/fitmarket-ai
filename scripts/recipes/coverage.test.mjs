@@ -6,6 +6,7 @@
 // cooking at all; 10-minute weekdays; batch cooking; cheap proteins; legumes,
 // iron sources and 400 g of fruit and vegetables a day.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { STATIC_CATALOG } from "../../supabase/functions/_shared/catalog.ts";
 import { buildRestrictionRules } from "../../supabase/functions/_shared/planner/restrictions.ts";
@@ -106,6 +107,66 @@ test("no recipe step mentions an appliance the recipe does not list", () => {
   }
 });
 
+// A step must work for every food the line can swap to. Simple check: for each
+// line with alternatives, the primary food's catalog name (singular or plural,
+// ignoring accents and case) must not appear in any step. A name that is also
+// part of an alternative's name ("papa" in "papa criolla") is generic, so it is
+// allowed. Steps should say "la fruta", "la grasa", "los granos" instead.
+const plain = (text) => text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+
+const namesOf = (food) => {
+  const ingredient = STATIC_CATALOG.get(food);
+  return [ingredient.name.es, ingredient.plural?.es, food.replaceAll("_", " ")]
+    .filter(Boolean)
+    .map((name) => plain(name.replace(/\s*\(.*\)\s*/g, " ").trim()));
+};
+
+const mentions = (text, name) => {
+  const stem = name.replace(/e?s$/, "");
+  return new RegExp(`\\b(${name}|${stem}|${stem}s|${stem}es)\\b`).test(plain(text));
+};
+
+test("no step names the primary food of a line that has alternatives", () => {
+  const problems = [];
+  for (const recipe of RECIPES) {
+    for (const line of recipe.lines) {
+      const alternatives = line.alternatives ?? [];
+      if (alternatives.length === 0) continue;
+      const altNames = alternatives.flatMap((alt) => namesOf(alt.food));
+      const names = namesOf(line.food).filter((name) => !altNames.some((alt) => mentions(alt, name)));
+      for (const step of recipe.steps.es) {
+        const hit = names.find((name) => mentions(step, name));
+        if (hit) problems.push(`${recipe.id}: "${hit}" in "${step}"`);
+      }
+    }
+  }
+  assert.deepEqual(problems, []);
+});
+
+// Lunch and dinner must feed: at least 15 g of protein at base portions.
+// Optional lines are left out (the user may skip them). Nutrition comes from
+// data/foods/foods.json (protein per 100 g or 100 ml; unit foods use gramsPerUnit).
+const MIN_MAIN_MEAL_PROTEIN_G = 15;
+const FOODS = new Map(
+  JSON.parse(readFileSync(new URL("../../data/foods/foods.json", import.meta.url), "utf8")).map((food) => [food.id, food]),
+);
+
+const baseProtein = (recipe) =>
+  recipe.lines
+    .filter((line) => !line.optional)
+    .reduce((sum, line) => {
+      const food = FOODS.get(line.food);
+      const grams = food.unit === "unit" ? line.qty * food.gramsPerUnit : line.qty;
+      return sum + (grams * food.proteinG) / 100;
+    }, 0);
+
+test("every lunch or dinner recipe gives at least 15 g protein at base portions", () => {
+  const low = RECIPES.filter((r) => r.slots.includes("almuerzo") || r.slots.includes("cena"))
+    .filter((r) => baseProtein(r) < MIN_MAIN_MEAL_PROTEIN_G)
+    .map((r) => `${r.id}: ${baseProtein(r).toFixed(1)} g`);
+  assert.deepEqual(low, []);
+});
+
 test("at least 12 batch-friendly lunch or dinner recipes", () => {
   const batch = RECIPES.filter((r) => r.batch.ok && (r.slots.includes("almuerzo") || r.slots.includes("cena")));
   assert.ok(batch.length >= 12, `${batch.length}`);
@@ -176,10 +237,13 @@ const KNOWN_GAPS = [
   [["lactose", "gluten", "fish", "shellfish"], "noCook"],
 ];
 
+// Pinned on purpose: when a recipe closes one of these gaps this test fails, so
+// the gap moves to MUST_COVER and docs/RECIPES.md is updated with it.
 for (const [restrictions, kitchen] of KNOWN_GAPS) {
-  test(`known gap ${restrictions.join("+")} + ${kitchen}: reported as restrictions_too_strict with counts`, () => {
+  test(`known gap ${restrictions.join("+")} + ${kitchen}: still open, reported as restrictions_too_strict with counts`, () => {
     const coverage = recipeCoverage(usable(restrictions, KITCHENS[kitchen]));
-    if (!coverage.ok) assert.equal(coverage.code, "restrictions_too_strict");
+    assert.equal(coverage.ok, false, `gap closed: move it to MUST_COVER and update docs/RECIPES.md (${JSON.stringify(coverage.availableRecipes)})`);
+    assert.equal(coverage.code, "restrictions_too_strict");
     assert.deepEqual(Object.keys(coverage.availableRecipes).sort(), [...SLOTS].sort());
   });
 }

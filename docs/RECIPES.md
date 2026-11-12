@@ -60,6 +60,15 @@ House rules (checked by `scripts/recipes/coverage.test.mjs` where possible):
   the fridge is not counted, but the first step must say so.
 - A legume or iron source only counts toward the rules from 30 g in the meal, so
   recipes meant to provide one use a real portion.
+- Steps must work for every alternative of a line. Use neutral words ("la fruta",
+  "la grasa", "los granos") instead of the primary food's name; a test fails when
+  a step names the primary food (catalog name, singular or plural) of a line with
+  alternatives. A name shared with an alternative ("papa" / "papa criolla") is allowed.
+- Every recipe that serves `almuerzo` or `cena` gives at least 15 g of protein at
+  base portions, optional lines left out (computed from `data/foods/foods.json`).
+- Raw chicken, meat, fish or egg: one short hygiene line ("Lávate las manos
+  después de tocar el pollo crudo"). Explain kitchen words the first time
+  ("bate: mezcla rápido con un tenedor", "pitar: sonar como un silbido").
 
 ## Status flow
 
@@ -89,10 +98,11 @@ pending_owner_ok  ──(owner approves in docs/recetas-para-revisar.md)──> 
   no-cooking kitchen (none, vegetarian); and for lactose + gluten + fish at 10 minutes;
 - at least 12 batch-friendly lunch/dinner recipes; a 30–60 minute weekend recipe
   in every slot; at least 70 % basic, ≤ 20 min, estufa/licuadora only;
-- cheap proteins, legumes, iron sources and 400 g/day of fruit and vegetables.
+- cheap proteins, legumes, iron sources and 400 g/day of fruit and vegetables;
+- steps never name a swappable primary food; lunch and dinner give >= 15 g protein.
 
-Known gaps (documented in the test; they must come back as
-`restrictions_too_strict` with counts per slot, never a crash):
+Known gaps (pinned in the test's `KNOWN_GAPS`: each must still fail coverage
+and come back as `restrictions_too_strict` with counts per slot, never a crash):
 
 | Profile | Kitchen | Why |
 | --- | --- | --- |
@@ -101,8 +111,8 @@ Known gaps (documented in the test; they must come back as
 | lactose + gluten + fish-free | microwave only, microwave + 10 min, no cooking | too few breakfasts and lunches |
 
 Adding canned (cooked) legumes or gluten-free bread to the catalog would let new
-quick recipes close these gaps. When a gap closes, move it from `KNOWN_GAPS` to
-the must-cover list in the test.
+quick recipes close these gaps. When a recipe closes a gap, its `KNOWN_GAPS`
+test fails on purpose: move the case to `MUST_COVER` and update this table.
 
 Tests that need a fixed recipe set (for example counts in
 `supabase/functions/_shared/recipes/eligibility.test.mjs`) use a frozen copy of

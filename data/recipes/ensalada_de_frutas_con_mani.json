@@ -53,13 +53,13 @@
   "steps": {
     "es": [
       "Lava la fruta y pélala.",
-      "Pica el banano y la papaya en cuadritos.",
+      "Pica el banano y la otra fruta en cuadritos.",
       "Ponlos en un plato hondo y échales el maní encima.",
       "Si quieres algo más llenador, agrega la avena en hojuelas."
     ],
     "en": [
       "Wash and peel the fruit.",
-      "Cut the banana and the papaya into small cubes.",
+      "Cut the banana and the other fruit into small cubes.",
       "Put them in a bowl and sprinkle the peanuts on top.",
       "For something more filling, add the rolled oats."
     ]

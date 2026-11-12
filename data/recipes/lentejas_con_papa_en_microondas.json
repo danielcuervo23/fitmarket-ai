@@ -10,7 +10,7 @@
     "almuerzo",
     "cena"
   ],
-  "minutes": 35,
+  "minutes": 45,
   "level": "basic",
   "appliances": [
     "microondas"
@@ -63,19 +63,19 @@
   ],
   "steps": {
     "es": [
-      "Lava las lentejas y ponlas en un recipiente hondo para microondas con 3 tazas de agua.",
+      "Lava las lentejas y ponlas con 3 tazas de agua en un recipiente grande y hondo para microondas (así no se riega al hervir).",
       "Pica la papa, la zanahoria, el tomate, la cebolla y el ajo en cuadritos, y échalos con el aceite y la sal.",
       "Tapa sin cerrar del todo (deja una rendija para que salga el vapor).",
-      "Calienta 10 minutos en el microondas, saca y revuelve.",
-      "Repite dos veces más (30 minutos en total), revisando que no le falte agua.",
+      "Calienta 10 minutos en el microondas a potencia media, saca y revuelve.",
+      "Repite tres veces más (40 minutos en total), revisando que no le falte agua.",
       "Están listas cuando las lentejas se aplastan fácil con un tenedor. Duran 3 días en la nevera."
     ],
     "en": [
-      "Rinse the lentils and put them in a deep microwave-safe container with 3 cups of water.",
+      "Rinse the lentils and put them with 3 cups of water in a large, deep microwave-safe bowl (so it does not boil over).",
       "Dice the potato, carrot, tomato, onion and garlic, and add them with the oil and salt.",
       "Cover without sealing (leave a gap so the steam can escape).",
-      "Microwave for 10 minutes, take it out and stir.",
-      "Repeat twice more (30 minutes in total), checking that there is still water.",
+      "Microwave at medium power for 10 minutes, take it out and stir.",
+      "Repeat three more times (40 minutes in total), checking that there is still water.",
       "They are ready when the lentils mash easily with a fork. They keep 3 days in the fridge."
     ]
   }

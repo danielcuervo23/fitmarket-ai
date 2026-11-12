@@ -10,7 +10,7 @@
     "desayuno",
     "cena"
   ],
-  "minutes": 5,
+  "minutes": 8,
   "level": "basic",
   "appliances": [
     "microondas"
@@ -22,7 +22,7 @@
   "lines": [
     {
       "food": "huevo",
-      "qty": 2,
+      "qty": 3,
       "role": "protein"
     },
     {
@@ -54,19 +54,19 @@
   ],
   "steps": {
     "es": [
-      "Pica el tomate, la cebolla y la espinaca bien pequeñitos.",
-      "En una taza grande que sirva para microondas, bate los huevos con la sal.",
-      "Agrega los picados y revuelve.",
+      "Pica el tomate, la cebolla larga y la espinaca bien pequeñitos.",
+      "Rompe los huevos en una taza grande que sirva para microondas. Lávate las manos después.",
+      "Bate los huevos con la sal (bate: mezcla rápido con un tenedor) y agrega los picados.",
       "Calienta 1 minuto en el microondas, saca y revuelve con un tenedor.",
-      "Calienta 30 segundos más, hasta que el huevo esté firme (que no quede líquido).",
+      "Calienta 30 segundos más y revuelve. Repite hasta que el huevo esté firme (que no quede líquido).",
       "Cómelos con el pan, si quieres."
     ],
     "en": [
-      "Chop the tomato, onion and spinach very small.",
-      "In a large microwave-safe mug, beat the eggs with the salt.",
-      "Add the chopped vegetables and stir.",
+      "Chop the tomato, spring onion and spinach very small.",
+      "Crack the eggs into a large microwave-safe mug. Wash your hands afterwards.",
+      "Beat the eggs with the salt (mix fast with a fork) and add the chopped vegetables.",
       "Microwave for 1 minute, take it out and stir with a fork.",
-      "Microwave 30 seconds more, until the egg is set (nothing runny left).",
+      "Microwave 30 seconds more and stir. Repeat until the egg is set (nothing runny left).",
       "Eat them with the bread, if you like."
     ]
   }

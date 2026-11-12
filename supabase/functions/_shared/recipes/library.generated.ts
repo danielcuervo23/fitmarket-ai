@@ -11,7 +11,7 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-export const RECIPE_LIBRARY_VERSION = "7965d8d50b9c";
+export const RECIPE_LIBRARY_VERSION = "1a4c152743d4";
 
 export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
   {
@@ -23,8 +23,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "en": "Arepa with avocado and tomato"
     },
     "slots": [
-      "desayuno",
-      "cena"
+      "desayuno"
     ],
     "minutes": 20,
     "level": "basic",
@@ -289,20 +288,20 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "Cocina el pollo en una olla con agua y sal, 25 minutos. Guarda el caldo (el agua donde se cocinó).",
-        "Saca el pollo, déjalo enfriar un poco, quítale el hueso y la piel, y desmenúzalo con las manos en tiras.",
-        "Pica la zanahoria, la habichuela, el pimentón, la cebolla y el ajo en cuadritos.",
-        "En la olla con el aceite, cocina esas verduras 5 minutos, revolviendo.",
-        "Agrega el arroz, el pollo y caldo (el doble del arroz); cuando hierva, tapa y baja el fuego al mínimo 20 minutos.",
-        "Destapa, revuelve con un tenedor y sirve. Dura hasta 3 días en la nevera."
+        "Cocina el pollo en una olla con agua y sal, 25 minutos. Lávate las manos y la tabla después de tocar el pollo crudo.",
+        "Mientras tanto, pica la zanahoria, la habichuela, el pimentón, la cebolla y el ajo en cuadritos.",
+        "Saca el pollo y guarda el caldo (el agua donde se cocinó) en una taza.",
+        "Cuando el pollo se enfríe un poco, desmenúzalo con las manos en tiras, sin el hueso ni la piel.",
+        "En la olla con el aceite, cocina las verduras picadas 5 minutos, revolviendo.",
+        "Agrega el arroz, el pollo y caldo (el doble del arroz); cuando hierva, tapa y deja 20 minutos a fuego mínimo."
       ],
       "en": [
-        "Boil the chicken in a pot with water and salt for 25 minutes. Keep the broth (the cooking water).",
-        "Take the chicken out, let it cool a little, remove the bone and skin, and shred it into strips with your hands.",
-        "Dice the carrot, green beans, bell pepper, onion and garlic.",
-        "In the pot with the oil, cook those vegetables for 5 minutes, stirring.",
-        "Add the rice, the chicken and broth (twice the rice); when it boils, cover and turn the heat to the minimum for 20 minutes.",
-        "Uncover, fluff with a fork and serve. It keeps up to 3 days in the fridge."
+        "Boil the chicken in a pot with water and salt for 25 minutes. Wash your hands and the board after touching raw chicken.",
+        "Meanwhile, dice the carrot, green beans, bell pepper, onion and garlic.",
+        "Take the chicken out and keep the broth (the cooking water) in a cup.",
+        "When the chicken cools a little, shred it into strips with your hands, without the bone or skin.",
+        "In the pot with the oil, cook the chopped vegetables for 5 minutes, stirring.",
+        "Add the rice, the chicken and broth (twice the rice); when it boils, cover and leave 20 minutes on the lowest heat."
       ]
     }
   },
@@ -623,14 +622,23 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "food": "fresa",
         "qty": 120,
         "role": "veg",
+        "inName": true,
         "alternatives": [
           {
             "food": "mora",
-            "qty": 120
+            "qty": 120,
+            "name": {
+              "es": "Batido de mora y avena",
+              "en": "Blackberry and oat smoothie"
+            }
           },
           {
             "food": "mango",
-            "qty": 120
+            "qty": 120,
+            "name": {
+              "es": "Batido de mango y avena",
+              "en": "Mango and oat smoothie"
+            }
           }
         ]
       },
@@ -643,14 +651,14 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "Lava las fresas y quítales las hojitas verdes.",
-        "Pon en la licuadora la leche, las fresas y, si quieres, la avena.",
+        "Lava la fruta y quítale las hojitas o la cáscara, si tiene.",
+        "Pon en la licuadora la leche, la fruta y, si quieres, la avena.",
         "Licúa 1 minuto, hasta que quede suave.",
         "Sírvelo enseguida, sin agregarle azúcar."
       ],
       "en": [
-        "Wash the strawberries and remove the green leaves.",
-        "Put the milk, strawberries and, if you like, the oats in the blender.",
+        "Wash the fruit and remove any leaves or peel.",
+        "Put the milk, the fruit and, if you like, the oats in the blender.",
         "Blend for 1 minute, until smooth.",
         "Serve it right away, without adding sugar."
       ]
@@ -724,7 +732,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Lava las papas criollas y cocínalas enteras en agua con sal, 15 minutos.",
         "Mientras tanto, pica el tomate, la cebolla, el pimentón y el ajo en cuadritos.",
         "En una sartén con el aceite, cocina la cebolla, el pimentón y el ajo 3 minutos.",
-        "Agrega la carne y desbarátala con la cuchara mientras se cocina, hasta que no se vea roja (unos 5 minutos).",
+        "Agrega la carne y desbarátala con la cuchara hasta que no se vea roja (unos 5 minutos). Lávate las manos después de tocarla cruda.",
         "Echa el tomate y la sal, y cocina 5 minutos más.",
         "Sirve la carne con las papas. Lo que sobre dura 3 días en la nevera."
       ],
@@ -732,7 +740,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Wash the small potatoes and boil them whole in salted water for 15 minutes.",
         "Meanwhile, dice the tomato, onion, bell pepper and garlic.",
         "In a pan with the oil, cook the onion, bell pepper and garlic for 3 minutes.",
-        "Add the meat and break it up with the spoon while it cooks, until it is no longer red (about 5 minutes).",
+        "Add the meat and break it up with the spoon until it is no longer red (about 5 minutes). Wash your hands after touching it raw.",
         "Add the tomato and salt, and cook 5 more minutes.",
         "Serve the meat with the potatoes. Leftovers keep 3 days in the fridge."
       ]
@@ -802,14 +810,16 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Pica la cebolla larga y el cilantro bien finitos.",
         "Pon en una olla la leche, media taza de agua, la cebolla y la sal, a fuego medio.",
         "Cuando empiece a hervir (a hacer burbujas), baja el fuego.",
-        "Rompe los huevos uno por uno dentro de la leche, sin revolver, y déjalos 3 minutos hasta que la clara esté blanca.",
+        "Rompe los huevos uno por uno dentro de la leche, sin revolver. Lávate las manos después.",
+        "Déjalos cocinar unos 5 minutos, hasta que la yema esté cuajada (firme).",
         "Sirve en un plato hondo con el cilantro encima y, si quieres, el pan en trocitos."
       ],
       "en": [
         "Finely chop the spring onion and the cilantro.",
         "Put the milk, half a cup of water, the onion and the salt in a pot over medium heat.",
         "When it starts to boil (to bubble), lower the heat.",
-        "Crack the eggs one by one into the milk, without stirring, and leave them 3 minutes until the whites are white.",
+        "Crack the eggs one by one into the milk, without stirring. Wash your hands afterwards.",
+        "Let them cook about 5 minutes, until the yolk is set (firm).",
         "Serve in a bowl with the cilantro on top and, if you like, the bread in small pieces."
       ]
     }
@@ -924,7 +934,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "mani",
-        "qty": 25,
+        "qty": 45,
         "role": "protein"
       },
       {
@@ -1099,13 +1109,13 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "Lava la fruta y pélala.",
-        "Pica el banano y la papaya en cuadritos.",
+        "Pica el banano y la otra fruta en cuadritos.",
         "Ponlos en un plato hondo y échales el maní encima.",
         "Si quieres algo más llenador, agrega la avena en hojuelas."
       ],
       "en": [
         "Wash and peel the fruit.",
-        "Cut the banana and the papaya into small cubes.",
+        "Cut the banana and the other fruit into small cubes.",
         "Put them in a bowl and sprinkle the peanuts on top.",
         "For something more filling, add the rolled oats."
       ]
@@ -1148,7 +1158,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "mani",
-        "qty": 25,
+        "qty": 35,
         "role": "protein"
       },
       {
@@ -1257,19 +1267,19 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "La noche anterior, deja los fríjoles en un recipiente con bastante agua (el doble de lo que ocupan).",
-        "Bota esa agua y pon los fríjoles en la olla a presión con agua nueva que los cubra 3 dedos y el plátano verde en trocitos.",
-        "Tapa bien la olla y ponla a fuego medio. Cuando empiece a pitar, baja el fuego y cuenta 30 minutos.",
+        "Bota esa agua. Pon en la olla a presión los fríjoles, el plátano verde en trocitos y agua nueva que los cubra 3 dedos.",
+        "Tapa bien la olla y ponla a fuego medio.",
+        "Cuando empiece a pitar (a sonar como un silbido), baja el fuego y cuenta 30 minutos.",
         "Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).",
-        "Haz un hogao (salsa casera): cocina en una sartén con el aceite el tomate, la cebolla, el ajo y la zanahoria picados, 5 minutos.",
-        "Échalo a los fríjoles con la sal, hierve 5 minutos sin tapa y sirve, si quieres, con arroz."
+        "Echa a la olla el tomate, la cebolla larga, el ajo y la zanahoria picados, el aceite y la sal. Hierve 10 minutos sin tapa y sirve con arroz, si quieres."
       ],
       "en": [
         "The night before, soak the beans in a bowl with plenty of water (twice their volume).",
-        "Pour off that water and put the beans in the pressure cooker with fresh water three fingers above them and the green plantain in small pieces.",
-        "Close the lid well and put it over medium heat. When it starts to whistle, lower the heat and count 30 minutes.",
+        "Pour off that water. Put the beans, the green plantain in small pieces and fresh water three fingers above them in the pressure cooker.",
+        "Close the lid well and put it over medium heat.",
+        "When it starts to whistle, lower the heat and count 30 minutes.",
         "Turn it off and wait until no more steam comes out before opening it (never open it under pressure).",
-        "Make a hogao (homemade sauce): in a pan with the oil, cook the chopped tomato, onion, garlic and carrot for 5 minutes.",
-        "Add it to the beans with the salt, boil 5 minutes uncovered and serve, if you like, with rice."
+        "Add the chopped tomato, spring onion, garlic and carrot, the oil and the salt to the pot. Boil 10 minutes uncovered and serve with rice, if you like."
       ]
     }
   },
@@ -1315,14 +1325,23 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "food": "almendras",
         "qty": 20,
         "role": "fat",
+        "inName": true,
         "alternatives": [
           {
             "food": "nueces",
-            "qty": 20
+            "qty": 20,
+            "name": {
+              "es": "Fruta con nueces",
+              "en": "Fruit with walnuts"
+            }
           },
           {
             "food": "mani",
-            "qty": 20
+            "qty": 20,
+            "name": {
+              "es": "Fruta con maní",
+              "en": "Fruit with peanuts"
+            }
           }
         ]
       }
@@ -1331,12 +1350,12 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "es": [
         "Lava la fruta.",
         "Pártela en tajadas, si quieres.",
-        "Acompáñala con las almendras (un puñado pequeño)."
+        "Acompáñala con un puñado pequeño de frutos secos o maní."
       ],
       "en": [
         "Wash the fruit.",
         "Cut it into slices, if you like.",
-        "Eat it with the almonds (a small handful)."
+        "Eat it with a small handful of nuts or peanuts."
       ]
     }
   },
@@ -1423,16 +1442,16 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "La noche anterior, deja los garbanzos en un recipiente con bastante agua.",
-        "Bota esa agua y cocínalos en la olla a presión con agua nueva, 25 minutos desde que empiece a pitar.",
+        "La noche anterior, deja los granos en un recipiente con bastante agua.",
+        "Bota esa agua y cocina los granos en la olla a presión con agua nueva, 25 minutos desde que empiece a pitar (a sonar como un silbido).",
         "Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).",
         "Pela la papa y pícala en cuadritos; échala a la olla destapada y cocina 15 minutos, hasta que esté blanda.",
         "Aparte, cocina en una sartén con el aceite el tomate, la cebolla, el pimentón y el ajo picados, 5 minutos.",
         "Mezcla todo con la sal y sirve con cilantro, si quieres."
       ],
       "en": [
-        "The night before, soak the chickpeas in a bowl with plenty of water.",
-        "Pour off that water and cook them in the pressure cooker with fresh water, 25 minutes from when it starts to whistle.",
+        "The night before, soak the legumes in a bowl with plenty of water.",
+        "Pour off that water and cook the legumes in the pressure cooker with fresh water, 25 minutes from when it starts to whistle.",
         "Turn it off and wait until no more steam comes out before opening it (never open it under pressure).",
         "Peel and dice the potato; add it to the open pot and cook 15 minutes, until soft.",
         "Separately, in a pan with the oil, cook the chopped tomato, onion, bell pepper and garlic for 5 minutes.",
@@ -1537,7 +1556,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "lines": [
       {
         "food": "huevo",
-        "qty": 2,
+        "qty": 3,
         "role": "protein"
       },
       {
@@ -1570,18 +1589,18 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "Lava la espinaca y córtala en tiras. Pica el tomate en cuadritos.",
-        "Calienta el aceite en una sartén a fuego medio.",
-        "Echa el tomate y la espinaca y revuelve 2 minutos, hasta que la espinaca se encoja.",
-        "Bate los huevos con la sal en un plato y échalos a la sartén.",
-        "Revuelve hasta que los huevos ya no estén líquidos.",
+        "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos con la sal (bate: mezcla rápido con un tenedor).",
+        "Calienta el aceite en una sartén a fuego medio y echa el tomate y la espinaca; revuelve 2 minutos, hasta que la espinaca se encoja.",
+        "Echa los huevos a la sartén y revuelve hasta que ya no estén líquidos.",
         "Sirve con el pan, si quieres."
       ],
       "en": [
         "Wash the spinach and cut it into strips. Dice the tomato.",
-        "Heat the oil in a pan over medium heat.",
-        "Add the tomato and spinach and stir for 2 minutes, until the spinach shrinks.",
-        "Beat the eggs with the salt on a plate and pour them into the pan.",
-        "Stir until the eggs are no longer runny.",
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs with the salt (mix fast with a fork).",
+        "Heat the oil in a pan over medium heat and add the tomato and spinach; stir 2 minutes, until the spinach shrinks.",
+        "Pour the eggs into the pan and stir until they are no longer runny.",
         "Serve with the bread, if you like."
       ]
     }
@@ -1598,7 +1617,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "desayuno",
       "cena"
     ],
-    "minutes": 5,
+    "minutes": 8,
     "level": "basic",
     "appliances": [
       "microondas"
@@ -1610,7 +1629,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "lines": [
       {
         "food": "huevo",
-        "qty": 2,
+        "qty": 3,
         "role": "protein"
       },
       {
@@ -1642,19 +1661,19 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "Pica el tomate, la cebolla y la espinaca bien pequeñitos.",
-        "En una taza grande que sirva para microondas, bate los huevos con la sal.",
-        "Agrega los picados y revuelve.",
+        "Pica el tomate, la cebolla larga y la espinaca bien pequeñitos.",
+        "Rompe los huevos en una taza grande que sirva para microondas. Lávate las manos después.",
+        "Bate los huevos con la sal (bate: mezcla rápido con un tenedor) y agrega los picados.",
         "Calienta 1 minuto en el microondas, saca y revuelve con un tenedor.",
-        "Calienta 30 segundos más, hasta que el huevo esté firme (que no quede líquido).",
+        "Calienta 30 segundos más y revuelve. Repite hasta que el huevo esté firme (que no quede líquido).",
         "Cómelos con el pan, si quieres."
       ],
       "en": [
-        "Chop the tomato, onion and spinach very small.",
-        "In a large microwave-safe mug, beat the eggs with the salt.",
-        "Add the chopped vegetables and stir.",
+        "Chop the tomato, spring onion and spinach very small.",
+        "Crack the eggs into a large microwave-safe mug. Wash your hands afterwards.",
+        "Beat the eggs with the salt (mix fast with a fork) and add the chopped vegetables.",
         "Microwave for 1 minute, take it out and stir with a fork.",
-        "Microwave 30 seconds more, until the egg is set (nothing runny left).",
+        "Microwave 30 seconds more and stir. Repeat until the egg is set (nothing runny left).",
         "Eat them with the bread, if you like."
       ]
     }
@@ -1750,19 +1769,19 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "Si usas fríjoles o garbanzos, déjalos en agua desde la noche anterior.",
-        "Lava las lentejas y cocínalas en una olla con bastante agua, a fuego medio, unos 30 minutos, hasta que estén blandas.",
+        "Lava los granos y cocínalos en una olla con bastante agua, a fuego medio, hasta que estén blandos (unos 30 minutos).",
         "Mientras tanto, pica la zanahoria, el tomate, la cebolla y el ajo en cuadritos.",
         "En una sartén con el aceite, cocina esos picados 5 minutos y échalos a la olla con la sal.",
         "Aparte, pon el arroz con el doble de agua y un poquito de sal; tapa y cocina 20 minutos a fuego bajo.",
-        "Sirve las lentejas con el arroz y, si quieres, cilantro picado encima."
+        "Sirve los granos con el arroz y, si quieres, cilantro picado encima."
       ],
       "en": [
         "If you use beans or chickpeas, soak them in water the night before.",
-        "Rinse the lentils and cook them in a pot with plenty of water, over medium heat, for about 30 minutes, until soft.",
+        "Rinse the legumes and cook them in a pot with plenty of water, over medium heat, until soft (about 30 minutes).",
         "Meanwhile, chop the carrot, tomato, onion and garlic into small cubes.",
         "In a pan with the oil, cook the chopped vegetables for 5 minutes and add them to the pot with the salt.",
         "Separately, put the rice with twice as much water and a pinch of salt; cover and cook 20 minutes over low heat.",
-        "Serve the lentils with the rice and, if you like, chopped cilantro on top."
+        "Serve the legumes with the rice and, if you like, chopped cilantro on top."
       ]
     }
   },
@@ -1778,7 +1797,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "almuerzo",
       "cena"
     ],
-    "minutes": 35,
+    "minutes": 45,
     "level": "basic",
     "appliances": [
       "microondas"
@@ -1831,19 +1850,19 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "Lava las lentejas y ponlas en un recipiente hondo para microondas con 3 tazas de agua.",
+        "Lava las lentejas y ponlas con 3 tazas de agua en un recipiente grande y hondo para microondas (así no se riega al hervir).",
         "Pica la papa, la zanahoria, el tomate, la cebolla y el ajo en cuadritos, y échalos con el aceite y la sal.",
         "Tapa sin cerrar del todo (deja una rendija para que salga el vapor).",
-        "Calienta 10 minutos en el microondas, saca y revuelve.",
-        "Repite dos veces más (30 minutos en total), revisando que no le falte agua.",
+        "Calienta 10 minutos en el microondas a potencia media, saca y revuelve.",
+        "Repite tres veces más (40 minutos en total), revisando que no le falte agua.",
         "Están listas cuando las lentejas se aplastan fácil con un tenedor. Duran 3 días en la nevera."
       ],
       "en": [
-        "Rinse the lentils and put them in a deep microwave-safe container with 3 cups of water.",
+        "Rinse the lentils and put them with 3 cups of water in a large, deep microwave-safe bowl (so it does not boil over).",
         "Dice the potato, carrot, tomato, onion and garlic, and add them with the oil and salt.",
         "Cover without sealing (leave a gap so the steam can escape).",
-        "Microwave for 10 minutes, take it out and stir.",
-        "Repeat twice more (30 minutes in total), checking that there is still water.",
+        "Microwave at medium power for 10 minutes, take it out and stir.",
+        "Repeat three more times (40 minutes in total), checking that there is still water.",
         "They are ready when the lentils mash easily with a fork. They keep 3 days in the fridge."
       ]
     }
@@ -2031,8 +2050,8 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "status": "pending_owner_ok",
     "source": "ai_draft",
     "name": {
-      "es": "Papa al microondas con guacamole",
-      "en": "Microwave potato with guacamole"
+      "es": "Papa al microondas con queso y guacamole",
+      "en": "Microwave potato with cheese and guacamole"
     },
     "slots": [
       "almuerzo",
@@ -2052,6 +2071,17 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "food": "papa",
         "qty": 200,
         "role": "carb"
+      },
+      {
+        "food": "queso_campesino",
+        "qty": 60,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "queso_mozzarella",
+            "qty": 60
+          }
+        ]
       },
       {
         "food": "aguacate",
@@ -2086,14 +2116,16 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Ponla en un plato y caliéntala 4 minutos en el microondas; dale la vuelta y caliéntala 3 minutos más.",
         "Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados y la sal.",
         "Revisa la papa: si un tenedor entra fácil, está lista; si no, dale 1 minuto más.",
-        "Ábrela por la mitad y rellénala con el guacamole y el cilantro."
+        "Ábrela por la mitad, desmorona el queso adentro y caliéntala 30 segundos para que se derrita.",
+        "Ponle encima el guacamole y el cilantro."
       ],
       "en": [
         "Wash the potato well and prick it several times with a fork.",
         "Put it on a plate and microwave it 4 minutes; turn it over and microwave 3 minutes more.",
         "Meanwhile, mash the avocado and mix it with the chopped tomato and onion and the salt.",
         "Check the potato: if a fork goes in easily, it is ready; if not, give it 1 more minute.",
-        "Cut it open and fill it with the guacamole and cilantro."
+        "Cut it open, crumble the cheese inside and microwave it 30 seconds so it melts.",
+        "Top it with the guacamole and cilantro."
       ]
     }
   },
@@ -2154,15 +2186,17 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "es": [
         "Lava las papas criollas y cocínalas enteras en agua con sal, 15 minutos, hasta que un tenedor entre fácil.",
         "Mientras tanto, pica el tomate y la cebolla larga en cuadritos.",
-        "Haz el hogao (salsa casera): cocina el tomate y la cebolla en el aceite, 5 minutos a fuego medio, revolviendo.",
-        "Bate los huevos, échalos al hogao y revuelve hasta que no estén líquidos.",
+        "Haz el hogao (salsa casera): cocina el tomate y la cebolla larga en el aceite, 5 minutos a fuego medio, revolviendo.",
+        "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos (bate: mezcla rápido con un tenedor), échalos al hogao y revuelve hasta que no estén líquidos.",
         "Escurre las papas y sírvelas con los huevos."
       ],
       "en": [
         "Wash the small potatoes and boil them whole in salted water for 15 minutes, until a fork goes in easily.",
         "Meanwhile, dice the tomato and the spring onion.",
-        "Make the hogao (homemade sauce): cook the tomato and onion in the oil, 5 minutes over medium heat, stirring.",
-        "Beat the eggs, pour them into the sauce and stir until they are no longer runny.",
+        "Make the hogao (homemade sauce): cook the tomato and spring onion in the oil, 5 minutes over medium heat, stirring.",
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs (mix fast with a fork), pour them into the sauce and stir until they are no longer runny.",
         "Drain the potatoes and serve them with the eggs."
       ]
     }
@@ -2307,14 +2341,16 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Pon a hervir agua con sal y cocina la pasta el tiempo que diga el paquete.",
         "Corta la habichuela en trocitos y échala a la olla de la pasta los últimos 5 minutos.",
         "Pica el tomate y la cebolla larga, y cocínalos en una sartén con el aceite 5 minutos.",
-        "Bate los huevos, échalos a la sartén y revuelve hasta que no estén líquidos.",
+        "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos (bate: mezcla rápido con un tenedor), échalos a la sartén y revuelve hasta que no estén líquidos.",
         "Escurre la pasta con la habichuela y mézclala con el huevo y el tomate."
       ],
       "en": [
         "Boil salted water and cook the pasta for the time on the package.",
         "Cut the green beans into small pieces and add them to the pasta pot for the last 5 minutes.",
         "Chop the tomato and spring onion, and cook them in a pan with the oil for 5 minutes.",
-        "Beat the eggs, pour them into the pan and stir until they are no longer runny.",
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs (mix fast with a fork), pour them into the pan and stir until they are no longer runny.",
         "Drain the pasta and green beans and mix them with the egg and tomato."
       ]
     }
@@ -2343,7 +2379,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "lines": [
       {
         "food": "pasta",
-        "qty": 80,
+        "qty": 100,
         "role": "carb"
       },
       {
@@ -2481,7 +2517,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "es": [
         "Prepara la masa: mezcla la harina con sal y agua tibia, haz una bola y aplástala como un disco.",
         "Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
-        "Corta la carne en filetes delgados y échales sal.",
+        "Corta la carne en filetes delgados y échales sal. Lávate las manos y la tabla después de tocar la carne cruda.",
         "Cocínala a la plancha: en otra sartén con muy poco aceite, 4 minutos por cada lado, hasta que por dentro no esté rosada.",
         "Lava y pica la lechuga, el tomate y el pepino para la ensalada.",
         "Sirve la carne con la arepa y la ensalada."
@@ -2489,7 +2525,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "en": [
         "Make the dough: mix the flour with salt and warm water, make a ball and press it into a disc.",
         "Cook the arepa in a dry pan over medium heat, 5 minutes on each side.",
-        "Cut the meat into thin fillets and salt them.",
+        "Cut the meat into thin fillets and salt them. Wash your hands and the board after touching the raw meat.",
         "Pan-grill it: in another pan with very little oil, 4 minutes on each side, until it is no longer pink inside.",
         "Wash and chop the lettuce, tomato and cucumber for the salad.",
         "Serve the meat with the arepa and the salad."
@@ -2587,17 +2623,17 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Pica el tomate, la cebolla y el ajo en cuadritos.",
         "Pela la papa y la zanahoria y córtalas en trozos medianos.",
         "En una olla con el aceite, cocina el tomate, la cebolla y el ajo 5 minutos, revolviendo.",
-        "Agrega el pollo y la sal, y dale vuelta para que se cubra con el tomate.",
-        "Echa la papa, la zanahoria y un vaso de agua, tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda.",
-        "Si cocinas para varios días, guarda lo que sobra en la nevera en un recipiente tapado."
+        "Agrega el pollo y la sal, y dale vuelta para que se cubra. Lávate las manos después de tocar el pollo crudo.",
+        "Echa la papa, la zanahoria y un vaso de agua.",
+        "Tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda. Lo que sobre dura 3 días en la nevera."
       ],
       "en": [
         "Chop the tomato, onion and garlic into small cubes.",
         "Peel the potato and the carrot and cut them into medium pieces.",
         "In a pot with the oil, cook the tomato, onion and garlic for 5 minutes, stirring.",
-        "Add the chicken and the salt, and turn it so it gets covered with the tomato.",
-        "Add the potato, the carrot and a glass of water, cover the pot and leave it 30 minutes over low heat, until the potato is soft.",
-        "If you cook for several days, keep the leftovers in the fridge in a closed container."
+        "Add the chicken and the salt, and turn it so it gets covered. Wash your hands after touching raw chicken.",
+        "Add the potato, the carrot and a glass of water.",
+        "Cover the pot and leave it 30 minutes over low heat, until the potato is soft. Leftovers keep 3 days in the fridge."
       ]
     }
   },
@@ -2667,7 +2703,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "Lava la quinua en un colador y cocínala con el doble de agua y sal, tapada, 15 minutos a fuego bajo.",
-        "Mientras tanto, corta el pollo en tiritas y échale sal.",
+        "Mientras tanto, corta el pollo en tiritas y échale sal. Lávate las manos y la tabla después de tocar el pollo crudo.",
         "Corta el pimentón, la zanahoria y la cebolla en tiras delgadas, y pica el ajo.",
         "Saltea el pollo: en una sartén con el aceite a fuego alto, revuélvelo 6 minutos, hasta que por dentro esté blanco.",
         "Agrega las verduras y revuelve 4 minutos más; deben quedar un poco crocantes (que suenen al morderlas).",
@@ -2675,7 +2711,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       ],
       "en": [
         "Rinse the quinoa in a sieve and cook it with twice as much water and salt, covered, 15 minutes over low heat.",
-        "Meanwhile, cut the chicken into strips and salt it.",
+        "Meanwhile, cut the chicken into strips and salt it. Wash your hands and the board after touching raw chicken.",
         "Cut the bell pepper, carrot and onion into thin strips, and chop the garlic.",
         "Stir-fry the chicken: in a pan with the oil over high heat, stir it 6 minutes, until it is white inside.",
         "Add the vegetables and stir 4 more minutes; they should stay a little crunchy.",
@@ -2748,27 +2784,26 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       },
       {
         "food": "mani",
-        "qty": 15,
-        "role": "protein",
-        "optional": true
+        "qty": 25,
+        "role": "protein"
       }
     ],
     "steps": {
       "es": [
         "Lava la quinua en un colador con agua, frotándola con la mano (así no queda amarga).",
         "Cocínala en una olla con el doble de agua y un poco de sal, tapada, 15 minutos a fuego bajo.",
-        "Mientras tanto, pica la zanahoria, el calabacín y la cebolla en cuadritos.",
+        "Mientras tanto, pica la zanahoria, la cebolla y la otra verdura en cuadritos.",
         "En una sartén con el aceite, cocina esas verduras 5 minutos, revolviendo.",
         "Agrega la espinaca y revuelve 1 minuto, hasta que se encoja.",
-        "Mezcla las verduras con la quinua y, si quieres, pon maní encima."
+        "Mezcla las verduras con la quinua y pon el maní encima."
       ],
       "en": [
         "Rinse the quinoa in a sieve under water, rubbing it with your hand (so it is not bitter).",
         "Cook it in a pot with twice as much water and a little salt, covered, 15 minutes over low heat.",
-        "Meanwhile, dice the carrot, zucchini and onion.",
+        "Meanwhile, dice the carrot, the onion and the other vegetable.",
         "In a pan with the oil, cook those vegetables for 5 minutes, stirring.",
         "Add the spinach and stir for 1 minute, until it shrinks.",
-        "Mix the vegetables with the quinoa and, if you like, add peanuts on top."
+        "Mix the vegetables with the quinoa and put the peanuts on top."
       ]
     }
   },
@@ -2820,13 +2855,13 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "Lava y pela la papaya, la piña y el mango.",
-        "Pícalos en cuadritos pequeños y ponlos en un vaso grande.",
+        "Lava las frutas y pela las que tengan cáscara.",
+        "Pícalas en cuadritos pequeños y ponlas en un vaso grande.",
         "Parte la naranja por la mitad y exprímela encima (apriétala para sacarle el jugo).",
         "Revuelve y cómelo con cuchara."
       ],
       "en": [
-        "Wash and peel the papaya, pineapple and mango.",
+        "Wash the fruit and peel the ones that have skin.",
         "Cut them into small cubes and put them in a large glass.",
         "Cut the orange in half and squeeze it on top (press it to get the juice out).",
         "Stir and eat it with a spoon."
@@ -2838,8 +2873,8 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "status": "pending_owner_ok",
     "source": "ai_draft",
     "name": {
-      "es": "Sándwich de aguacate y verduras",
-      "en": "Avocado and vegetable sandwich"
+      "es": "Sándwich de aguacate, verduras y maní",
+      "en": "Avocado, vegetable and peanut sandwich"
     },
     "slots": [
       "almuerzo",
@@ -2879,6 +2914,11 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "role": "veg"
       },
       {
+        "food": "mani",
+        "qty": 25,
+        "role": "protein"
+      },
+      {
         "food": "sal",
         "qty": 1,
         "role": "fixed"
@@ -2888,13 +2928,13 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "es": [
         "Aplasta el aguacate con un tenedor y échale la sal.",
         "Lava la lechuga, el tomate y el pepino; corta el tomate y el pepino en rodajas.",
-        "Unta el aguacate en el pan.",
+        "Unta el aguacate en el pan y riega el maní encima.",
         "Pon encima la lechuga, el tomate y el pepino, y tapa con otra tajada de pan."
       ],
       "en": [
         "Mash the avocado with a fork and add the salt.",
         "Wash the lettuce, tomato and cucumber; slice the tomato and cucumber.",
-        "Spread the avocado on the bread.",
+        "Spread the avocado on the bread and sprinkle the peanuts on top.",
         "Add the lettuce, tomato and cucumber, and cover with another slice of bread."
       ]
     }
@@ -3160,7 +3200,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
         "Pica el tomate y la cebolla en cuadritos.",
         "En otra sartén con el aceite, cocínalos 5 minutos a fuego medio, revolviendo, hasta que se vuelvan salsa.",
-        "Agrega las sardinas con su salsa, aplástalas un poco y calienta 3 minutos.",
+        "Agrega las sardinas con su salsa o aceite, aplástalas un poco y calienta 3 minutos.",
         "Sirve las sardinas encima de la arepa."
       ],
       "en": [
@@ -3168,7 +3208,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Cook it in a dry pan over medium heat, 5 minutes on each side.",
         "Dice the tomato and onion.",
         "In another pan with the oil, cook them 5 minutes over medium heat, stirring, until they turn into a sauce.",
-        "Add the sardines with their sauce, mash them a little and heat for 3 minutes.",
+        "Add the sardines with their sauce or oil, mash them a little and heat for 3 minutes.",
         "Serve the sardines on top of the arepa."
       ]
     }
@@ -3242,7 +3282,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "La noche anterior, deja la arveja seca en un recipiente con bastante agua.",
         "Bota esa agua y cocina la arveja en una olla con 5 tazas de agua nueva, a fuego medio, 35 minutos.",
         "Mientras tanto, pela y pica en cuadritos la papa, la zanahoria y la ahuyama.",
-        "Échalas a la olla con la cebolla, el ajo picado y la sal, y cocina 20 minutos más.",
+        "Échalas a la olla con la cebolla larga y el ajo picados y la sal, y cocina 20 minutos más.",
         "Está lista cuando la arveja y la papa se aplastan fácil con una cuchara.",
         "Sirve con cilantro. Lo que sobre dura hasta 3 días en la nevera."
       ],
@@ -3250,7 +3290,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "The night before, soak the dried peas in a bowl with plenty of water.",
         "Pour off that water and cook the peas in a pot with 5 cups of fresh water, over medium heat, 35 minutes.",
         "Meanwhile, peel and dice the potato, carrot and pumpkin.",
-        "Add them to the pot with the onion, chopped garlic and salt, and cook 20 more minutes.",
+        "Add them to the pot with the chopped spring onion and garlic and the salt, and cook 20 more minutes.",
         "It is ready when the peas and potato mash easily with a spoon.",
         "Serve with cilantro. Leftovers keep up to 3 days in the fridge."
       ]
@@ -3411,17 +3451,17 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "Pela y pica la papa y la zanahoria en cuadritos pequeños; corta la habichuela y el repollo.",
-        "Ponlos en una olla con 3 tazas de agua, la cebolla picada y la sal, a fuego medio.",
+        "Ponlos en una olla con 3 tazas de agua, la cebolla larga picada y la sal, a fuego medio.",
         "Cocina 12 minutos, hasta que la papa esté blanda.",
-        "Rompe los huevos dentro de la sopa, uno por uno, sin revolver.",
+        "Rompe los huevos dentro de la sopa, uno por uno, sin revolver. Lávate las manos después.",
         "Déjalos 3 minutos, hasta que la clara esté blanca.",
         "Sirve con cilantro picado encima."
       ],
       "en": [
         "Peel and dice the potato and carrot small; cut the green beans and cabbage.",
-        "Put them in a pot with 3 cups of water, the chopped onion and the salt, over medium heat.",
+        "Put them in a pot with 3 cups of water, the chopped spring onion and the salt, over medium heat.",
         "Cook for 12 minutes, until the potato is soft.",
-        "Crack the eggs into the soup, one by one, without stirring.",
+        "Crack the eggs into the soup, one by one, without stirring. Wash your hands afterwards.",
         "Leave them 3 minutes, until the whites are white.",
         "Serve with chopped cilantro on top."
       ]
@@ -3493,7 +3533,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "Prepara la arepa: mezcla harina, sal y agua tibia, haz un disco y ponlo en una sartén sin aceite, 5 minutos por lado.",
-        "Échale sal y ajo machacado (aplastado) al pescado por los dos lados.",
+        "Échale sal y ajo machacado (aplastado) al pescado por los dos lados. Lávate las manos después de tocar el pescado crudo.",
         "En otra sartén con el aceite, a fuego medio, cocina el pescado 3 a 4 minutos por cada lado.",
         "Está listo cuando se deshace fácil con un tenedor.",
         "Lava y pica la lechuga, el tomate y el pepino para la ensalada.",
@@ -3501,7 +3541,7 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       ],
       "en": [
         "Make the arepa: mix flour, salt and warm water, shape a disc and cook it in a dry pan, 5 minutes per side.",
-        "Rub salt and crushed garlic on both sides of the fish.",
+        "Rub salt and crushed garlic on both sides of the fish. Wash your hands after touching the raw fish.",
         "In another pan with the oil, over medium heat, cook the fish 3 to 4 minutes on each side.",
         "It is ready when it flakes easily with a fork.",
         "Wash and chop the lettuce, tomato and cucumber for the salad.",
@@ -3570,19 +3610,19 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "Pica el pimentón, el tomate y la cebolla en cuadritos.",
-        "Bate los huevos con la sal en un plato hondo y mezcla los picados.",
+        "Rompe los huevos en un plato hondo. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos con la sal (bate: mezcla rápido con un tenedor) y mezcla los picados.",
         "Calienta el aceite en una sartén a fuego medio y echa la mezcla.",
         "Tapa y deja 3 minutos sin revolver, hasta que la parte de arriba esté casi firme.",
-        "Dale la vuelta con una espátula y deja 1 minuto más.",
-        "Sirve con el aguacate en tajadas."
+        "Dale la vuelta con una espátula, deja 1 minuto más y sirve con el aguacate en tajadas."
       ],
       "en": [
         "Dice the bell pepper, tomato and onion.",
-        "Beat the eggs with the salt in a bowl and mix in the vegetables.",
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs with the salt (mix fast with a fork) and mix in the vegetables.",
         "Heat the oil in a pan over medium heat and pour in the mix.",
         "Cover and leave 3 minutes without stirring, until the top is almost set.",
-        "Flip it with a spatula and leave 1 more minute.",
-        "Serve with the avocado in slices."
+        "Flip it with a spatula, leave 1 more minute and serve with the avocado in slices."
       ]
     }
   },
@@ -3658,16 +3698,18 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "En un plato hondo, bate el huevo con la leche.",
+        "Rompe el huevo en un plato hondo. Lávate las manos después de tocar el huevo crudo.",
+        "Échale la leche y bate (mezcla rápido con un tenedor) hasta que se una.",
         "Moja cada tajada de pan en la mezcla por los dos lados.",
-        "Calienta la mantequilla en una sartén a fuego medio.",
+        "Calienta la grasa en una sartén a fuego medio.",
         "Cocina el pan 2 minutos por cada lado, hasta que esté dorado (color café claro).",
         "Sirve con la fruta picada encima."
       ],
       "en": [
-        "In a bowl, beat the egg with the milk.",
+        "Crack the egg into a bowl. Wash your hands after touching the raw egg.",
+        "Add the milk and beat it (mix fast with a fork) until blended.",
         "Dip each slice of bread in the mix on both sides.",
-        "Heat the butter in a pan over medium heat.",
+        "Heat the fat in a pan over medium heat.",
         "Cook the bread 2 minutes on each side, until golden (light brown).",
         "Serve with the chopped fruit on top."
       ]

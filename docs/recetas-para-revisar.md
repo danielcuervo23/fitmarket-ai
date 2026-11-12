@@ -2,6 +2,16 @@
 
 Estas son las 49 recetas que la app va a usar para armar el menú de la semana. Todas las escribió la IA y **ninguna se usa con usuarios reales hasta que usted dé el visto bueno**. Cada porción es para un adulto; la app ajusta las cantidades según la meta de cada persona.
 
+## Qué cambió en esta ronda
+
+Después de una revisión interna corregimos varias recetas antes de mostrárselas:
+
+- **Pasos que sirven para todos los cambios.** Si un ingrediente se puede cambiar por otro (por ejemplo, fresa por mango, o mantequilla por aceite), el paso ahora dice "la fruta", "la grasa" o "los granos", para que no diga una cosa y la persona tenga otra.
+- **Más proteína en almuerzos y cenas.** Todo almuerzo o cena trae ahora al menos 15 g de proteína: más maní en las dos ensaladas, maní en el sándwich de aguacate, queso en la papa al microondas, un huevo más en los dos huevos revueltos, más pasta en la pasta con tomate y el maní ya no es opcional en la quinua. La "Arepa con aguacate y tomate" quedó solo como desayuno.
+- **Palabras explicadas.** "Pitar" (cuando la olla suena como un silbido) y "batir" (mezclar rápido con un tenedor).
+- **Higiene.** Las recetas con pollo, carne, pescado o huevo crudo dicen cuándo lavarse las manos.
+- **Pasos más cortos** en el arroz con pollo, los fríjoles y el pollo guisado; la changua se cocina hasta que la yema esté firme; las lentejas al microondas van a potencia media en un recipiente grande (ahora 45 minutos); las sardinas pueden venir en salsa o en aceite.
+
 ## Primero, una pregunta: ¿remojar los granos?
 
 Los fríjoles, los garbanzos y la arveja seca necesitan quedarse en agua **desde la noche anterior** (remojarlos) para que se ablanden. Si no, se demoran horas en la olla. Las lentejas no lo necesitan.
@@ -125,8 +135,8 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 **Pasos:**
 
-1. Lava las fresas y quítales las hojitas verdes.
-2. Pon en la licuadora la leche, las fresas y, si quieres, la avena.
+1. Lava la fruta y quítale las hojitas o la cáscara, si tiene.
+2. Pon en la licuadora la leche, la fruta y, si quieres, la avena.
 3. Licúa 1 minuto, hasta que quede suave.
 4. Sírvelo enseguida, sin agregarle azúcar.
 
@@ -150,41 +160,13 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Pasos:**
 
 1. Lava la fruta y pélala.
-2. Pica el banano y la papaya en cuadritos.
+2. Pica el banano y la otra fruta en cuadritos.
 3. Ponlos en un plato hondo y échales el maní encima.
 4. Si quieres algo más llenador, agrega la avena en hojuelas.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
-### 6. Huevos revueltos en el microondas
-
-- **Tiempo:** 5 minutos
-- **Nivel:** Lo básico
-- **Aparatos:** microondas
-- **Sirve para:** desayuno, cena
-- **Cocinar para varios días:** no
-
-**Ingredientes (una porción de adulto):**
-
-- 2 huevos
-- tomate chonto: 60 g
-- cebolla larga (junca): 15 g
-- espinaca: 30 g
-- sal: 1 g
-- pan tajado: 50 g — opcional
-
-**Pasos:**
-
-1. Pica el tomate, la cebolla y la espinaca bien pequeñitos.
-2. En una taza grande que sirva para microondas, bate los huevos con la sal.
-3. Agrega los picados y revuelve.
-4. Calienta 1 minuto en el microondas, saca y revuelve con un tenedor.
-5. Calienta 30 segundos más, hasta que el huevo esté firme (que no quede líquido).
-6. Cómelos con el pan, si quieres.
-
-- [ ] Aprobada   - [ ] Cambiar: ______________________
-
-### 7. Pan con aguacate y tomate
+### 6. Pan con aguacate y tomate
 
 - **Tiempo:** 5 minutos
 - **Nivel:** Lo básico
@@ -208,7 +190,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
-### 8. Sándwich de queso y tomate
+### 7. Sándwich de queso y tomate
 
 - **Tiempo:** 5 minutos
 - **Nivel:** Lo básico
@@ -231,7 +213,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
-### 9. Yogur con fruta _(de las 6 primeras)_
+### 8. Yogur con fruta _(de las 6 primeras)_
 
 - **Tiempo:** 5 minutos
 - **Nivel:** Lo básico
@@ -251,6 +233,34 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 2. Córtala en cuadritos.
 3. Sirve el yogur en un plato hondo.
 4. Pon la fruta encima y, si quieres, la avena en hojuelas.
+
+- [ ] Aprobada   - [ ] Cambiar: ______________________
+
+### 9. Huevos revueltos en el microondas
+
+- **Tiempo:** 8 minutos
+- **Nivel:** Lo básico
+- **Aparatos:** microondas
+- **Sirve para:** desayuno, cena
+- **Cocinar para varios días:** no
+
+**Ingredientes (una porción de adulto):**
+
+- 3 huevos
+- tomate chonto: 60 g
+- cebolla larga (junca): 15 g
+- espinaca: 30 g
+- sal: 1 g
+- pan tajado: 50 g — opcional
+
+**Pasos:**
+
+1. Pica el tomate, la cebolla larga y la espinaca bien pequeñitos.
+2. Rompe los huevos en una taza grande que sirva para microondas. Lávate las manos después.
+3. Bate los huevos con la sal (bate: mezcla rápido con un tenedor) y agrega los picados.
+4. Calienta 1 minuto en el microondas, saca y revuelve con un tenedor.
+5. Calienta 30 segundos más y revuelve. Repite hasta que el huevo esté firme (que no quede líquido).
+6. Cómelos con el pan, si quieres.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -315,7 +325,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 **Ingredientes (una porción de adulto):**
 
-- 2 huevos
+- 3 huevos
 - espinaca: 60 g
 - tomate chonto: 60 g
 - aceite vegetal (canola): 5 ml
@@ -325,10 +335,10 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Pasos:**
 
 1. Lava la espinaca y córtala en tiras. Pica el tomate en cuadritos.
-2. Calienta el aceite en una sartén a fuego medio.
-3. Echa el tomate y la espinaca y revuelve 2 minutos, hasta que la espinaca se encoja.
-4. Bate los huevos con la sal en un plato y échalos a la sartén.
-5. Revuelve hasta que los huevos ya no estén líquidos.
+2. Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.
+3. Bate los huevos con la sal (bate: mezcla rápido con un tenedor).
+4. Calienta el aceite en una sartén a fuego medio y echa el tomate y la espinaca; revuelve 2 minutos, hasta que la espinaca se encoja.
+5. Echa los huevos a la sartén y revuelve hasta que ya no estén líquidos.
 6. Sirve con el pan, si quieres.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
@@ -355,8 +365,9 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 1. Pica la cebolla larga y el cilantro bien finitos.
 2. Pon en una olla la leche, media taza de agua, la cebolla y la sal, a fuego medio.
 3. Cuando empiece a hervir (a hacer burbujas), baja el fuego.
-4. Rompe los huevos uno por uno dentro de la leche, sin revolver, y déjalos 3 minutos hasta que la clara esté blanca.
-5. Sirve en un plato hondo con el cilantro encima y, si quieres, el pan en trocitos.
+4. Rompe los huevos uno por uno dentro de la leche, sin revolver. Lávate las manos después.
+5. Déjalos cocinar unos 5 minutos, hasta que la yema esté cuajada (firme).
+6. Sirve en un plato hondo con el cilantro encima y, si quieres, el pan en trocitos.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -378,11 +389,12 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 **Pasos:**
 
-1. En un plato hondo, bate el huevo con la leche.
-2. Moja cada tajada de pan en la mezcla por los dos lados.
-3. Calienta la mantequilla en una sartén a fuego medio.
-4. Cocina el pan 2 minutos por cada lado, hasta que esté dorado (color café claro).
-5. Sirve con la fruta picada encima.
+1. Rompe el huevo en un plato hondo. Lávate las manos después de tocar el huevo crudo.
+2. Échale la leche y bate (mezcla rápido con un tenedor) hasta que se una.
+3. Moja cada tajada de pan en la mezcla por los dos lados.
+4. Calienta la grasa en una sartén a fuego medio.
+5. Cocina el pan 2 minutos por cada lado, hasta que esté dorado (color café claro).
+6. Sirve con la fruta picada encima.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -391,7 +403,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - **Tiempo:** 20 minutos
 - **Nivel:** Lo básico
 - **Aparatos:** estufa
-- **Sirve para:** desayuno, cena
+- **Sirve para:** desayuno
 - **Cocinar para varios días:** no
 
 **Ingredientes (una porción de adulto):**
@@ -504,7 +516,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - tomate chonto: 100 g
 - pepino cohombro: 80 g
 - lechuga: 40 g
-- maní: 25 g
+- maní: 45 g
 - aceite de oliva: 5 ml (o en su lugar: aceite vegetal (canola): 5 ml)
 - sal: 1 g
 - pan tajado: 50 g — opcional
@@ -559,7 +571,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - repollo: 80 g
 - zanahoria: 60 g
 - tomate chonto: 50 g
-- maní: 25 g
+- maní: 35 g
 - pan tajado: 50 g
 - aceite vegetal (canola): 5 ml
 - sal: 1 g
@@ -574,7 +586,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
-### 22. Papa al microondas con guacamole
+### 22. Papa al microondas con queso y guacamole
 
 - **Tiempo:** 10 minutos
 - **Nivel:** Lo básico
@@ -585,6 +597,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Ingredientes (una porción de adulto):**
 
 - papa: 200 g
+- queso campesino: 60 g (o en su lugar: queso mozzarella: 60 g)
 - ½ aguacate
 - tomate chonto: 60 g
 - cebolla cabezona: 20 g
@@ -597,11 +610,12 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 2. Ponla en un plato y caliéntala 4 minutos en el microondas; dale la vuelta y caliéntala 3 minutos más.
 3. Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados y la sal.
 4. Revisa la papa: si un tenedor entra fácil, está lista; si no, dale 1 minuto más.
-5. Ábrela por la mitad y rellénala con el guacamole y el cilantro.
+5. Ábrela por la mitad, desmorona el queso adentro y caliéntala 30 segundos para que se derrita.
+6. Ponle encima el guacamole y el cilantro.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
-### 23. Sándwich de aguacate y verduras
+### 23. Sándwich de aguacate, verduras y maní
 
 - **Tiempo:** 10 minutos
 - **Nivel:** Lo básico
@@ -616,13 +630,14 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - tomate chonto: 60 g
 - lechuga: 30 g
 - pepino cohombro: 40 g
+- maní: 25 g
 - sal: 1 g
 
 **Pasos:**
 
 1. Aplasta el aguacate con un tenedor y échale la sal.
 2. Lava la lechuga, el tomate y el pepino; corta el tomate y el pepino en rodajas.
-3. Unta el aguacate en el pan.
+3. Unta el aguacate en el pan y riega el maní encima.
 4. Pon encima la lechuga, el tomate y el pepino, y tapa con otra tajada de pan.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
@@ -701,11 +716,11 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Pasos:**
 
 1. Pica el pimentón, el tomate y la cebolla en cuadritos.
-2. Bate los huevos con la sal en un plato hondo y mezcla los picados.
-3. Calienta el aceite en una sartén a fuego medio y echa la mezcla.
-4. Tapa y deja 3 minutos sin revolver, hasta que la parte de arriba esté casi firme.
-5. Dale la vuelta con una espátula y deja 1 minuto más.
-6. Sirve con el aguacate en tajadas.
+2. Rompe los huevos en un plato hondo. Lávate las manos después de tocar el huevo crudo.
+3. Bate los huevos con la sal (bate: mezcla rápido con un tenedor) y mezcla los picados.
+4. Calienta el aceite en una sartén a fuego medio y echa la mezcla.
+5. Tapa y deja 3 minutos sin revolver, hasta que la parte de arriba esté casi firme.
+6. Dale la vuelta con una espátula, deja 1 minuto más y sirve con el aguacate en tajadas.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -733,7 +748,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 1. Lava las papas criollas y cocínalas enteras en agua con sal, 15 minutos.
 2. Mientras tanto, pica el tomate, la cebolla, el pimentón y el ajo en cuadritos.
 3. En una sartén con el aceite, cocina la cebolla, el pimentón y el ajo 3 minutos.
-4. Agrega la carne y desbarátala con la cuchara mientras se cocina, hasta que no se vea roja (unos 5 minutos).
+4. Agrega la carne y desbarátala con la cuchara hasta que no se vea roja (unos 5 minutos). Lávate las manos después de tocarla cruda.
 5. Echa el tomate y la sal, y cocina 5 minutos más.
 6. Sirve la carne con las papas. Lo que sobre dura 3 días en la nevera.
 
@@ -760,9 +775,10 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 1. Lava las papas criollas y cocínalas enteras en agua con sal, 15 minutos, hasta que un tenedor entre fácil.
 2. Mientras tanto, pica el tomate y la cebolla larga en cuadritos.
-3. Haz el hogao (salsa casera): cocina el tomate y la cebolla en el aceite, 5 minutos a fuego medio, revolviendo.
-4. Bate los huevos, échalos al hogao y revuelve hasta que no estén líquidos.
-5. Escurre las papas y sírvelas con los huevos.
+3. Haz el hogao (salsa casera): cocina el tomate y la cebolla larga en el aceite, 5 minutos a fuego medio, revolviendo.
+4. Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.
+5. Bate los huevos (bate: mezcla rápido con un tenedor), échalos al hogao y revuelve hasta que no estén líquidos.
+6. Escurre las papas y sírvelas con los huevos.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -818,8 +834,9 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 1. Pon a hervir agua con sal y cocina la pasta el tiempo que diga el paquete.
 2. Corta la habichuela en trocitos y échala a la olla de la pasta los últimos 5 minutos.
 3. Pica el tomate y la cebolla larga, y cocínalos en una sartén con el aceite 5 minutos.
-4. Bate los huevos, échalos a la sartén y revuelve hasta que no estén líquidos.
-5. Escurre la pasta con la habichuela y mézclala con el huevo y el tomate.
+4. Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.
+5. Bate los huevos (bate: mezcla rápido con un tenedor), échalos a la sartén y revuelve hasta que no estén líquidos.
+6. Escurre la pasta con la habichuela y mézclala con el huevo y el tomate.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -833,7 +850,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 **Ingredientes (una porción de adulto):**
 
-- pasta: 80 g
+- pasta: 100 g
 - tomate chonto: 120 g
 - espinaca: 50 g
 - cebolla cabezona: 30 g
@@ -875,7 +892,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 1. Prepara la masa: mezcla la harina con sal y agua tibia, haz una bola y aplástala como un disco.
 2. Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.
-3. Corta la carne en filetes delgados y échales sal.
+3. Corta la carne en filetes delgados y échales sal. Lávate las manos y la tabla después de tocar la carne cruda.
 4. Cocínala a la plancha: en otra sartén con muy poco aceite, 4 minutos por cada lado, hasta que por dentro no esté rosada.
 5. Lava y pica la lechuga, el tomate y el pepino para la ensalada.
 6. Sirve la carne con la arepa y la ensalada.
@@ -904,7 +921,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Pasos:**
 
 1. Lava la quinua en un colador y cocínala con el doble de agua y sal, tapada, 15 minutos a fuego bajo.
-2. Mientras tanto, corta el pollo en tiritas y échale sal.
+2. Mientras tanto, corta el pollo en tiritas y échale sal. Lávate las manos y la tabla después de tocar el pollo crudo.
 3. Corta el pimentón, la zanahoria y la cebolla en tiras delgadas, y pica el ajo.
 4. Saltea el pollo: en una sartén con el aceite a fuego alto, revuélvelo 6 minutos, hasta que por dentro esté blanco.
 5. Agrega las verduras y revuelve 4 minutos más; deben quedar un poco crocantes (que suenen al morderlas).
@@ -929,16 +946,16 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 - cebolla cabezona: 30 g
 - aceite vegetal (canola): 5 ml
 - sal: 1 g
-- maní: 15 g — opcional
+- maní: 25 g
 
 **Pasos:**
 
 1. Lava la quinua en un colador con agua, frotándola con la mano (así no queda amarga).
 2. Cocínala en una olla con el doble de agua y un poco de sal, tapada, 15 minutos a fuego bajo.
-3. Mientras tanto, pica la zanahoria, el calabacín y la cebolla en cuadritos.
+3. Mientras tanto, pica la zanahoria, la cebolla y la otra verdura en cuadritos.
 4. En una sartén con el aceite, cocina esas verduras 5 minutos, revolviendo.
 5. Agrega la espinaca y revuelve 1 minuto, hasta que se encoja.
-6. Mezcla las verduras con la quinua y, si quieres, pon maní encima.
+6. Mezcla las verduras con la quinua y pon el maní encima.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -965,7 +982,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 2. Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.
 3. Pica el tomate y la cebolla en cuadritos.
 4. En otra sartén con el aceite, cocínalos 5 minutos a fuego medio, revolviendo, hasta que se vuelvan salsa.
-5. Agrega las sardinas con su salsa, aplástalas un poco y calienta 3 minutos.
+5. Agrega las sardinas con su salsa o aceite, aplástalas un poco y calienta 3 minutos.
 6. Sirve las sardinas encima de la arepa.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
@@ -992,9 +1009,9 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Pasos:**
 
 1. Pela y pica la papa y la zanahoria en cuadritos pequeños; corta la habichuela y el repollo.
-2. Ponlos en una olla con 3 tazas de agua, la cebolla picada y la sal, a fuego medio.
+2. Ponlos en una olla con 3 tazas de agua, la cebolla larga picada y la sal, a fuego medio.
 3. Cocina 12 minutos, hasta que la papa esté blanda.
-4. Rompe los huevos dentro de la sopa, uno por uno, sin revolver.
+4. Rompe los huevos dentro de la sopa, uno por uno, sin revolver. Lávate las manos después.
 5. Déjalos 3 minutos, hasta que la clara esté blanca.
 6. Sirve con cilantro picado encima.
 
@@ -1022,7 +1039,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Pasos:**
 
 1. Prepara la arepa: mezcla harina, sal y agua tibia, haz un disco y ponlo en una sartén sin aceite, 5 minutos por lado.
-2. Échale sal y ajo machacado (aplastado) al pescado por los dos lados.
+2. Échale sal y ajo machacado (aplastado) al pescado por los dos lados. Lávate las manos después de tocar el pescado crudo.
 3. En otra sartén con el aceite, a fuego medio, cocina el pescado 3 a 4 minutos por cada lado.
 4. Está listo cuando se deshace fácil con un tenedor.
 5. Lava y pica la lechuga, el tomate y el pepino para la ensalada.
@@ -1058,37 +1075,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
-### 39. Lentejas con papa en el microondas
-
-- **Tiempo:** 35 minutos (pensada para fin de semana o días con más tiempo)
-- **Nivel:** Lo básico
-- **Aparatos:** microondas
-- **Sirve para:** almuerzo, cena
-- **Cocinar para varios días:** sí, dura 3 días en la nevera
-
-**Ingredientes (una porción de adulto):**
-
-- lentejas: 70 g
-- papa: 120 g
-- zanahoria: 40 g
-- tomate chonto: 60 g
-- cebolla cabezona: 30 g
-- aceite vegetal (canola): 3 ml
-- ajo: 2 g
-- sal: 2 g
-
-**Pasos:**
-
-1. Lava las lentejas y ponlas en un recipiente hondo para microondas con 3 tazas de agua.
-2. Pica la papa, la zanahoria, el tomate, la cebolla y el ajo en cuadritos, y échalos con el aceite y la sal.
-3. Tapa sin cerrar del todo (deja una rendija para que salga el vapor).
-4. Calienta 10 minutos en el microondas, saca y revuelve.
-5. Repite dos veces más (30 minutos en total), revisando que no le falte agua.
-6. Están listas cuando las lentejas se aplastan fácil con un tenedor. Duran 3 días en la nevera.
-
-- [ ] Aprobada   - [ ] Cambiar: ______________________
-
-### 40. Pollo guisado con papa _(de las 6 primeras)_
+### 39. Pollo guisado con papa _(de las 6 primeras)_
 
 - **Tiempo:** 40 minutos (pensada para fin de semana o días con más tiempo)
 - **Nivel:** Lo básico
@@ -1113,13 +1100,13 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 1. Pica el tomate, la cebolla y el ajo en cuadritos.
 2. Pela la papa y la zanahoria y córtalas en trozos medianos.
 3. En una olla con el aceite, cocina el tomate, la cebolla y el ajo 5 minutos, revolviendo.
-4. Agrega el pollo y la sal, y dale vuelta para que se cubra con el tomate.
-5. Echa la papa, la zanahoria y un vaso de agua, tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda.
-6. Si cocinas para varios días, guarda lo que sobra en la nevera en un recipiente tapado.
+4. Agrega el pollo y la sal, y dale vuelta para que se cubra. Lávate las manos después de tocar el pollo crudo.
+5. Echa la papa, la zanahoria y un vaso de agua.
+6. Tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda. Lo que sobre dura 3 días en la nevera.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
-### 41. Sopa de lentejas con verduras
+### 40. Sopa de lentejas con verduras
 
 - **Tiempo:** 40 minutos (pensada para fin de semana o días con más tiempo)
 - **Nivel:** Lo básico
@@ -1150,7 +1137,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
-### 42. Lentejas con arroz _(de las 6 primeras)_
+### 41. Lentejas con arroz _(de las 6 primeras)_
 
 - **Tiempo:** 45 minutos (pensada para fin de semana o días con más tiempo)
 - **Nivel:** Lo básico
@@ -1173,11 +1160,41 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Pasos:**
 
 1. Si usas fríjoles o garbanzos, déjalos en agua desde la noche anterior.
-2. Lava las lentejas y cocínalas en una olla con bastante agua, a fuego medio, unos 30 minutos, hasta que estén blandas.
+2. Lava los granos y cocínalos en una olla con bastante agua, a fuego medio, hasta que estén blandos (unos 30 minutos).
 3. Mientras tanto, pica la zanahoria, el tomate, la cebolla y el ajo en cuadritos.
 4. En una sartén con el aceite, cocina esos picados 5 minutos y échalos a la olla con la sal.
 5. Aparte, pon el arroz con el doble de agua y un poquito de sal; tapa y cocina 20 minutos a fuego bajo.
-6. Sirve las lentejas con el arroz y, si quieres, cilantro picado encima.
+6. Sirve los granos con el arroz y, si quieres, cilantro picado encima.
+
+- [ ] Aprobada   - [ ] Cambiar: ______________________
+
+### 42. Lentejas con papa en el microondas
+
+- **Tiempo:** 45 minutos (pensada para fin de semana o días con más tiempo)
+- **Nivel:** Lo básico
+- **Aparatos:** microondas
+- **Sirve para:** almuerzo, cena
+- **Cocinar para varios días:** sí, dura 3 días en la nevera
+
+**Ingredientes (una porción de adulto):**
+
+- lentejas: 70 g
+- papa: 120 g
+- zanahoria: 40 g
+- tomate chonto: 60 g
+- cebolla cabezona: 30 g
+- aceite vegetal (canola): 3 ml
+- ajo: 2 g
+- sal: 2 g
+
+**Pasos:**
+
+1. Lava las lentejas y ponlas con 3 tazas de agua en un recipiente grande y hondo para microondas (así no se riega al hervir).
+2. Pica la papa, la zanahoria, el tomate, la cebolla y el ajo en cuadritos, y échalos con el aceite y la sal.
+3. Tapa sin cerrar del todo (deja una rendija para que salga el vapor).
+4. Calienta 10 minutos en el microondas a potencia media, saca y revuelve.
+5. Repite tres veces más (40 minutos en total), revisando que no le falte agua.
+6. Están listas cuando las lentejas se aplastan fácil con un tenedor. Duran 3 días en la nevera.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -1203,12 +1220,12 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 **Pasos:**
 
-1. Cocina el pollo en una olla con agua y sal, 25 minutos. Guarda el caldo (el agua donde se cocinó).
-2. Saca el pollo, déjalo enfriar un poco, quítale el hueso y la piel, y desmenúzalo con las manos en tiras.
-3. Pica la zanahoria, la habichuela, el pimentón, la cebolla y el ajo en cuadritos.
-4. En la olla con el aceite, cocina esas verduras 5 minutos, revolviendo.
-5. Agrega el arroz, el pollo y caldo (el doble del arroz); cuando hierva, tapa y baja el fuego al mínimo 20 minutos.
-6. Destapa, revuelve con un tenedor y sirve. Dura hasta 3 días en la nevera.
+1. Cocina el pollo en una olla con agua y sal, 25 minutos. Lávate las manos y la tabla después de tocar el pollo crudo.
+2. Mientras tanto, pica la zanahoria, la habichuela, el pimentón, la cebolla y el ajo en cuadritos.
+3. Saca el pollo y guarda el caldo (el agua donde se cocinó) en una taza.
+4. Cuando el pollo se enfríe un poco, desmenúzalo con las manos en tiras, sin el hueso ni la piel.
+5. En la olla con el aceite, cocina las verduras picadas 5 minutos, revolviendo.
+6. Agrega el arroz, el pollo y caldo (el doble del arroz); cuando hierva, tapa y deja 20 minutos a fuego mínimo.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -1235,11 +1252,11 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 **Pasos:**
 
 1. La noche anterior, deja los fríjoles en un recipiente con bastante agua (el doble de lo que ocupan).
-2. Bota esa agua y pon los fríjoles en la olla a presión con agua nueva que los cubra 3 dedos y el plátano verde en trocitos.
-3. Tapa bien la olla y ponla a fuego medio. Cuando empiece a pitar, baja el fuego y cuenta 30 minutos.
-4. Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).
-5. Haz un hogao (salsa casera): cocina en una sartén con el aceite el tomate, la cebolla, el ajo y la zanahoria picados, 5 minutos.
-6. Échalo a los fríjoles con la sal, hierve 5 minutos sin tapa y sirve, si quieres, con arroz.
+2. Bota esa agua. Pon en la olla a presión los fríjoles, el plátano verde en trocitos y agua nueva que los cubra 3 dedos.
+3. Tapa bien la olla y ponla a fuego medio.
+4. Cuando empiece a pitar (a sonar como un silbido), baja el fuego y cuenta 30 minutos.
+5. Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).
+6. Echa a la olla el tomate, la cebolla larga, el ajo y la zanahoria picados, el aceite y la sal. Hierve 10 minutos sin tapa y sirve con arroz, si quieres.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -1265,8 +1282,8 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 **Pasos:**
 
-1. La noche anterior, deja los garbanzos en un recipiente con bastante agua.
-2. Bota esa agua y cocínalos en la olla a presión con agua nueva, 25 minutos desde que empiece a pitar.
+1. La noche anterior, deja los granos en un recipiente con bastante agua.
+2. Bota esa agua y cocina los granos en la olla a presión con agua nueva, 25 minutos desde que empiece a pitar (a sonar como un silbido).
 3. Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).
 4. Pela la papa y pícala en cuadritos; échala a la olla destapada y cocina 15 minutos, hasta que esté blanda.
 5. Aparte, cocina en una sartén con el aceite el tomate, la cebolla, el pimentón y el ajo picados, 5 minutos.
@@ -1298,7 +1315,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 1. La noche anterior, deja la arveja seca en un recipiente con bastante agua.
 2. Bota esa agua y cocina la arveja en una olla con 5 tazas de agua nueva, a fuego medio, 35 minutos.
 3. Mientras tanto, pela y pica en cuadritos la papa, la zanahoria y la ahuyama.
-4. Échalas a la olla con la cebolla, el ajo picado y la sal, y cocina 20 minutos más.
+4. Échalas a la olla con la cebolla larga y el ajo picados y la sal, y cocina 20 minutos más.
 5. Está lista cuando la arveja y la papa se aplastan fácil con una cuchara.
 6. Sirve con cilantro. Lo que sobre dura hasta 3 días en la nevera.
 
@@ -1323,7 +1340,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 1. Lava la fruta.
 2. Pártela en tajadas, si quieres.
-3. Acompáñala con las almendras (un puñado pequeño).
+3. Acompáñala con un puñado pequeño de frutos secos o maní.
 
 - [ ] Aprobada   - [ ] Cambiar: ______________________
 
@@ -1369,8 +1386,8 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 
 **Pasos:**
 
-1. Lava y pela la papaya, la piña y el mango.
-2. Pícalos en cuadritos pequeños y ponlos en un vaso grande.
+1. Lava las frutas y pela las que tengan cáscara.
+2. Pícalas en cuadritos pequeños y ponlas en un vaso grande.
 3. Parte la naranja por la mitad y exprímela encima (apriétala para sacarle el jugo).
 4. Revuelve y cómelo con cuchara.
 

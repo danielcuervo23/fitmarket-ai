@@ -3,8 +3,8 @@
   "status": "pending_owner_ok",
   "source": "ai_draft",
   "name": {
-    "es": "Sándwich de aguacate y verduras",
-    "en": "Avocado and vegetable sandwich"
+    "es": "Sándwich de aguacate, verduras y maní",
+    "en": "Avocado, vegetable and peanut sandwich"
   },
   "slots": [
     "almuerzo",
@@ -44,6 +44,11 @@
       "role": "veg"
     },
     {
+      "food": "mani",
+      "qty": 25,
+      "role": "protein"
+    },
+    {
       "food": "sal",
       "qty": 1,
       "role": "fixed"
@@ -53,13 +58,13 @@
     "es": [
       "Aplasta el aguacate con un tenedor y échale la sal.",
       "Lava la lechuga, el tomate y el pepino; corta el tomate y el pepino en rodajas.",
-      "Unta el aguacate en el pan.",
+      "Unta el aguacate en el pan y riega el maní encima.",
       "Pon encima la lechuga, el tomate y el pepino, y tapa con otra tajada de pan."
     ],
     "en": [
       "Mash the avocado with a fork and add the salt.",
       "Wash the lettuce, tomato and cucumber; slice the tomato and cucumber.",
-      "Spread the avocado on the bread.",
+      "Spread the avocado on the bread and sprinkle the peanuts on top.",
       "Add the lettuce, tomato and cucumber, and cover with another slice of bread."
     ]
   }

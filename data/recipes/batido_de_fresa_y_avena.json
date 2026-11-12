@@ -38,13 +38,22 @@
       "alternatives": [
         {
           "food": "mora",
-          "qty": 120
+          "qty": 120,
+          "name": {
+            "es": "Batido de mora y avena",
+            "en": "Blackberry and oat smoothie"
+          }
         },
         {
           "food": "mango",
-          "qty": 120
+          "qty": 120,
+          "name": {
+            "es": "Batido de mango y avena",
+            "en": "Mango and oat smoothie"
+          }
         }
-      ]
+      ],
+      "inName": true
     },
     {
       "food": "avena",
@@ -55,14 +64,14 @@
   ],
   "steps": {
     "es": [
-      "Lava las fresas y quítales las hojitas verdes.",
-      "Pon en la licuadora la leche, las fresas y, si quieres, la avena.",
+      "Lava la fruta y quítale las hojitas o la cáscara, si tiene.",
+      "Pon en la licuadora la leche, la fruta y, si quieres, la avena.",
       "Licúa 1 minuto, hasta que quede suave.",
       "Sírvelo enseguida, sin agregarle azúcar."
     ],
     "en": [
-      "Wash the strawberries and remove the green leaves.",
-      "Put the milk, strawberries and, if you like, the oats in the blender.",
+      "Wash the fruit and remove any leaves or peel.",
+      "Put the milk, the fruit and, if you like, the oats in the blender.",
       "Blend for 1 minute, until smooth.",
       "Serve it right away, without adding sugar."
     ]
