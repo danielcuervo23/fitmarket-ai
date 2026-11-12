@@ -117,16 +117,29 @@ test("a recipe scale override replaces the default bounds", () => {
 });
 
 test("the chosen alternative is the food that enters the model", () => {
+  // Soak legumes are weekend-only, so a weekday recipe has none; use a plain alternative.
+  const pollo = MENU.cena;
+  const index = pollo.lines.findIndex((line) => line.food === "pernil_pollo");
+  const meals = weekMeals().map((meal) =>
+    meal.slot === "cena" ? { ...meal, choice: { ...meal.choice, [index]: "pechuga_pollo" } } : meal);
+  const built = buildModel(input({ meals }));
+  const pechugaQty = pollo.lines[index].alternatives.find((alt) => alt.food === "pechuga_pollo").qty;
+
+  assert.equal(built.model.variables["p|pernil_pollo"], undefined);
+  near(built.model.variables["x|lun.cena|protein"]["pack|pechuga_pollo"], -pechugaQty);
+  assert.equal(built.packVar("pechuga_pollo"), "p|pechuga_pollo");
+});
+
+test("a weekday recipe has no soak alternative, so choosing one is rejected", () => {
+  // Owner rule 2026-11-11: frijol and garbanzo never reach a weekday recipe.
   const lentejas = MENU.almuerzo;
   const index = lentejas.lines.findIndex((line) => line.food === "lentejas");
+  assert.equal(lentejas.weekendOnly, false);
+  assert.deepEqual(lentejas.lines[index].alternatives ?? [], []);
+
   const meals = weekMeals().map((meal) =>
     meal.slot === "almuerzo" ? { ...meal, choice: { ...meal.choice, [index]: "frijol" } } : meal);
-  const built = buildModel(input({ meals }));
-  const frijolQty = lentejas.lines[index].alternatives.find((alt) => alt.food === "frijol").qty;
-
-  assert.equal(built.model.variables["p|lentejas"], undefined);
-  near(built.model.variables["x|lun.almuerzo|protein"]["pack|frijol"], -frijolQty);
-  assert.equal(built.packVar("frijol"), "p|frijol");
+  assert.throws(() => buildModel(input({ meals })), { name: "RangeError", message: /no option frijol/ });
 });
 
 // ---- Fixed lines, packs and budget
