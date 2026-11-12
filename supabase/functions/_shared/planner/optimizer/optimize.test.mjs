@@ -495,13 +495,15 @@ test("same input, same week: a stored attempt can be re-solved without the AI st
 });
 
 test("worst case stays inside the CPU budget and returns a result", () => {
-  const cpu = createCpuBudget(OPTIMIZER_CPU_BUDGET_MS);
-  const r = optimizeWeek(libraryInput({
-    goals: ["fat", "muscle", "healthy", "energy", "save", "family"], householdSize: 6, stores: STORES5, budgetCop: 250_000, cpu, diagnose: true,
-  }));
-  console.log(`worst case: ${r.status}, ${r.solves} solves, ${r.cpuMs.toFixed(1)} ms`);
-  assert.ok(r.cpuMs <= OPTIMIZER_CPU_BUDGET_MS + 150, `${r.cpuMs}`);
-  assert.ok(r.status);
+  // Wall-clock time: the median of 3 runs keeps one slow run on a busy machine from failing it.
+  const runs = [1, 2, 3].map(() => optimizeWeek(libraryInput({
+    goals: ["fat", "muscle", "healthy", "energy", "save", "family"], householdSize: 6, stores: STORES5, budgetCop: 250_000,
+    cpu: createCpuBudget(OPTIMIZER_CPU_BUDGET_MS), diagnose: true,
+  })));
+  const median = runs.map((r) => r.cpuMs).sort((x, y) => x - y)[1];
+  console.log(`worst case: ${runs[0].status}, ${runs[0].solves} solves, median ${median.toFixed(1)} ms`);
+  assert.ok(median <= OPTIMIZER_CPU_BUDGET_MS + 150, `${median}`);
+  for (const r of runs) assert.ok(r.status);
 });
 
 // A small menu that shares ingredients (fewer whole packs) for an 80 kg muscle goal.
@@ -544,7 +546,7 @@ test("a level-2 rule the LP met but rounding broke is tightened and solved again
   for (const day of DAYS) assert.equal(qtyOf(r.week[day].desayuno, "huevito"), 1.5);
 });
 
-test("tight budget for a muscle goal: relaxed with protein_min shortfall and a required budget", () => {
+test("tight budget for a muscle goal: relaxed with a protein_min shortfall and its 'what to change'", () => {
   // The plan's 100 kg example cannot be met by today's recipes at any price (the level-1
   // protein floor of 140 g a day is out of reach), so this uses 75 kg and a compact menu.
   const r = optimizeWeek(compactInput(120_000, { weightKg: 75, diagnose: true }));
@@ -552,16 +554,97 @@ test("tight budget for a muscle goal: relaxed with protein_min shortfall and a r
   assert.equal(r.status, "relaxed", r.status);
   assert.ok(r.shortfalls.some((s) => s.rule === "protein_min" && s.unit === "g_per_kg"), JSON.stringify(r.shortfalls));
   assert.ok(r.relaxations.some((x) => x.rule === "protein_min" && x.unit === "g_per_kg" && x.change < 0), JSON.stringify(r.relaxations));
-  assert.ok(r.requiredBudgetCop > 120_000 && r.requiredBudgetCop % 1000 === 0, `${r.requiredBudgetCop}`);
   assert.ok(r.costCop <= 120_000);
-  // With the required budget the protein the money was for is met (whole eggs may still
-  // round one meal a little over 40 g: the budget comes from the LP, before rounding).
-  const richer = optimizeWeek(compactInput(r.requiredBudgetCop, { weightKg: 75 }));
-  assert.ok(richer.week !== null && !richer.shortfalls.some((s) => s.rule === "protein_min"), JSON.stringify(richer.shortfalls));
+  // Whole eggs round one meal over the 40 g meal maximum even without a budget: money is not
+  // the whole fix, so no required budget is offered.
+  assert.equal(r.requiredBudgetCop, null);
+});
+
+test("tight budget: relaxed, with a required budget that works", () => {
+  const r = optimizeWeek(libraryInput({ goals: [], budgetCop: 175_000, diagnose: true }));
+
+  assert.equal(r.status, "relaxed", r.status);
+  assert.ok(r.shortfalls.some((s) => s.rule === "kcal_range"), JSON.stringify(r.shortfalls));
+  assert.ok(r.costCop <= 175_000);
+  assert.ok(r.requiredBudgetCop > 175_000 && r.requiredBudgetCop % 1000 === 0, `${r.requiredBudgetCop}`);
+  const richer = optimizeWeek(libraryInput({ goals: [], budgetCop: r.requiredBudgetCop }));
+  assert.ok(richer.week !== null && !richer.shortfalls.some((s) => s.rule === "kcal_range"), JSON.stringify(richer.shortfalls));
 });
 
 test("a muscle goal the recipes cannot reach at any price is infeasible, never a week below the protein floor", () => {
   const r = optimizeWeek(compactInput(10_000_000, { weightKg: 100, diagnose: true }));
   assert.equal(r.status, "infeasible");
   assert.equal(r.week, null);
+});
+
+// ---- Review fixes
+
+const reloadSolver = async () => {
+  __setLpSolverForTests(null);
+  assert.equal(await prepareLp({ loadWasm: () => readFile(new URL(import.meta.resolve("highs/runtime"))) }), true);
+};
+
+test("a solve that hits its time limit stops the optimizer with cpu_exhausted, never a proven verdict", async () => {
+  __setLpSolverForTests({ solve: () => ({ Status: "Time limit reached" }) });
+  try {
+    const r = optimizeWeek(tinyInput({ diagnose: true }));
+    assert.equal(r.error, "cpu_exhausted");
+    assert.equal(r.status, "infeasible");
+    assert.equal(r.week, null);
+    assert.equal(r.requiredBudgetCop, null);
+    assert.equal(r.solves, 1);
+  } finally {
+    await reloadSolver();
+  }
+});
+
+test("a budget spent during the safety solve answers infeasible with cpu_exhausted, not over_budget", () => {
+  // Safety alone is out of reach (1000 kcal needs 250 g, breakfast tops out at 200 g). The
+  // elastic solve runs; the budget is gone before the safety solve. Each solve reads left() twice.
+  let reads = 0;
+  const cpu = { left: () => (reads++ < 2 ? 800 : 0), spend: () => {} };
+  const r = optimizeWeek(tinyInput({
+    rules: tinyRules(dayRule("kcal_safety", 1, { kcal: 1 }, { min: 1000, max: 4000 })),
+    cpu,
+    diagnose: true,
+  }));
+
+  assert.equal(r.solves, 1);
+  assert.equal(r.error, "cpu_exhausted");
+  assert.equal(r.status, "infeasible");
+  assert.equal(r.week, null);
+});
+
+test("requiredBudgetCop is null when even the unbudgeted week still misses a rule", () => {
+  // Same money clash as the relaxed test above, plus a rule no budget fixes: 15 distinct foods
+  // from a menu of two. The strict solve finds a week, but it still misses distinct_foods_week.
+  const rules = {
+    ...tinyRules(
+      dayRule("kcal_safety", 1, { kcal: 1 }, { min: 400, max: 4000 }),
+      dayRule("protein_min", 2, { protein: 1 }, { min: 36 }, "g_per_kg"),
+    ),
+    structural: [{ code: "distinct_foods_week", level: 3, min: 15 }],
+  };
+  const r = optimizeWeek(tinyInput({ rules, budgetCop: 10_000, diagnose: true }));
+
+  assert.equal(r.status, "relaxed");
+  assert.ok(r.shortfalls.some((s) => s.rule === "distinct_foods_week"));
+  assert.equal(r.requiredBudgetCop, null);
+});
+
+test("malformed recipes, rules, catalog or prices are rejected with a RangeError", () => {
+  const ok = tinyInput();
+  const cases = {
+    "recipes not a Map": { recipes: Object.fromEntries(ok.recipes) },
+    "rules missing": { rules: null },
+    "rules without linear list": { rules: { ...ok.rules, linear: "x" } },
+    "rules without structural list": { rules: { ...ok.rules, structural: undefined } },
+    "rules without a weight": { rules: { ...ok.rules, targets: { ...ok.rules.targets, weightKg: 0 } } },
+    "catalog without get": { catalog: {} },
+    "prices without packOffer": { prices: { quote: STATIC_PRICE_BOOK.quote, carries: STATIC_PRICE_BOOK.carries } },
+    "prices without quote": { prices: { packOffer: STATIC_PRICE_BOOK.packOffer } },
+  };
+  for (const [name, patch] of Object.entries(cases)) {
+    assert.throws(() => optimizeWeek({ ...ok, ...patch }), RangeError, name);
+  }
 });

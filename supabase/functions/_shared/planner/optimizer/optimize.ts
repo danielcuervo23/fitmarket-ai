@@ -118,10 +118,15 @@ export interface OptimizeResult {
   shortfalls: Shortfall[];
   /** Status `relaxed` only: how far each relaxed rule had to move inside the budget. */
   relaxations: Relaxation[];
-  /** Budget that meets every rule (relaxed) or only safety (over_budget); rounded up to 1000. */
+  /**
+   * Rounded up to 1000. over_budget: what the cheapest safe week costs. relaxed: a budget
+   * that works (the strict week with these foods meets every rule after rounding), not
+   * necessarily the minimum; null when no budget fixes the shortfalls.
+   */
   requiredBudgetCop: number | null;
   solves: number;
   cpuMs: number;
+  /** Read before `status`: when set, the run stopped early and `infeasible` means "no week", not proven. */
   error?: OptimizeError;
 }
 
@@ -201,6 +206,17 @@ function validatedMeals(input: OptimizeInput): Slotted[] {
   if (!Array.isArray(input.stores) || !input.stores.every((store) => typeof store === "string")) fail("stores must be a list");
   if (typeof input.cpu?.left !== "function" || typeof input.cpu?.spend !== "function") fail("cpu budget missing");
   if (typeof input.recipeWeek !== "object" || input.recipeWeek === null) fail("recipeWeek missing");
+  if (!(input.recipes instanceof Map)) fail("recipes must be a Map");
+  const rules = input.rules;
+  if (
+    typeof rules !== "object" || rules === null ||
+    !Array.isArray(rules.linear) || !Array.isArray(rules.structural) ||
+    !isFiniteNumber(rules.targets?.weightKg) || rules.targets.weightKg <= 0
+  ) {
+    fail("invalid rule set");
+  }
+  if (typeof input.catalog?.get !== "function") fail("invalid catalog");
+  if (typeof input.prices?.packOffer !== "function" || typeof input.prices?.quote !== "function") fail("invalid price book");
 
   const meals: Slotted[] = [];
   for (const day of DAYS) {
@@ -255,7 +271,9 @@ function solve(run: Run, built: BuiltModel): LpSolution | null {
   tick(run);
 
   if (solution.error === "time_limit") {
-    if (!(run.input.cpu.left() > 0)) run.stop = "cpu_exhausted";
+    // No verdict: the model may well be feasible. Treat it as the budget running out,
+    // so nothing downstream reads it as "infeasible".
+    run.stop = "cpu_exhausted";
     return null;
   }
   if (solution.error !== undefined) {
@@ -684,12 +702,10 @@ export function optimizeWeek(input: OptimizeInput): OptimizeResult {
   let best = attempt(run, plan, primary, "elastic", input.budgetCop);
   const cheapest = needsMore(best) ? cheapestChoices(run, plan) : primary;
   if (!sameChoices(cheapest, primary)) best = better(best, attempt(run, plan, cheapest, "elastic", input.budgetCop));
-  const stoppedEarly = run.stop !== null;
-
   // No elastic week survived rounding. The cheapest safe week (no budget row)
   // both rescues budgets it fits and prices the diagnosis when it does not.
   let safe: Candidate | null = null;
-  if (best === null && !stoppedEarly) {
+  if (best === null && run.stop === null) {
     safe = cheapestSafe(run, plan, [cheapest, primary]);
     if (safe !== null && safe.costCop <= input.budgetCop) {
       // Give the elastic LP only the money the safe week leaves over, so its packs round inside the budget.
@@ -700,9 +716,9 @@ export function optimizeWeek(input: OptimizeInput): OptimizeResult {
 
   let result: Omit<OptimizeResult, "solves" | "cpuMs">;
   if (best === null) {
-    const proven = !stoppedEarly && run.stop === null;
+    // Callers read `error` first: with it, "infeasible" only means "no week", nothing was proven.
     result = {
-      status: stoppedEarly || (proven && safe === null) ? "infeasible" : "over_budget",
+      status: run.stop !== null || safe === null ? "infeasible" : "over_budget",
       week: null,
       costCop: null,
       shortfalls: [],
@@ -714,8 +730,10 @@ export function optimizeWeek(input: OptimizeInput): OptimizeResult {
     };
   } else {
     const relaxed = best.shortfalls.length > 0;
+    // A budget that works (every rule met after rounding, with this week's foods), not
+    // the minimum; null when the strict week still misses a rule (money is not the fix).
     const required = relaxed && input.diagnose ? attempt(run, plan, best.choices, "strict", null) : null;
-    const requiredCop = required === null ? null : roundUpToThousand(required.costCop);
+    const requiredCop = required === null || required.shortfalls.length > 0 ? null : roundUpToThousand(required.costCop);
     result = {
       status: relaxed ? "relaxed" : "optimal",
       week: best.week,
