@@ -125,6 +125,16 @@ test("intro names only the options the panel actually offers", () => {
   }
 });
 
+test("protein lines only point to actions the app offers: budget and avoided foods in the profile", () => {
+  for (const key of ["gen.conflict.protein_min", "gen.conflict.protein_muscle_floor"]) {
+    assert.match(errors.es[key], /revisar los alimentos que evitas en tu perfil/, key);
+    assert.match(errors.en[key], /review the foods you avoid in your profile/, key);
+    // The app has no screen for picking meals.
+    assert.doesNotMatch(errors.es[key], /escoger|elegir|comidas con/i, key);
+    assert.doesNotMatch(errors.en[key], /\b(pick|choose|meals with)\b/i, key);
+  }
+});
+
 test("protein lines give a real action, never 'bajar tu meta'", () => {
   for (const key of ["gen.conflict.protein_min", "gen.conflict.protein_muscle_floor"]) {
     assert.match(errors.es[key], /Prueba subir tu presupuesto/, key);
@@ -248,6 +258,6 @@ test("panel copy, Spanish first (owner-approved changes of 2026-11-12)", () => {
   assert.equal(errors.es["gen.conflict.fiber_min"], "Fibra: llegas a {achieved} de {target} g al día");
   assert.equal(
     errors.es["gen.conflict.protein_min"],
-    "Proteína: llegas a {achieved} de {target} g por kilo al día. Prueba subir tu presupuesto o escoger más comidas con pollo, huevo, atún o lentejas.",
+    "Proteína: llegas a {achieved} de {target} g por kilo al día. Con tu presupuesto y tus restricciones no alcanza. Prueba subir tu presupuesto o revisar los alimentos que evitas en tu perfil.",
   );
 });

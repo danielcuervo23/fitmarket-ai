@@ -105,12 +105,12 @@ export const errors = defineMessages({
     "gen.conflict.protein_safety_max":
       "Límite seguro de proteína: tienes {achieved} g por kilo y el límite es {target}",
     "gen.conflict.protein_muscle_floor":
-      "Proteína para ganar músculo: llegas a {achieved} de {target} g por kilo al día. Prueba subir tu presupuesto o escoger más comidas con pollo, huevo, atún o lentejas.",
+      "Proteína para ganar músculo: llegas a {achieved} de {target} g por kilo al día. Con tu presupuesto y tus restricciones no alcanza. Prueba subir tu presupuesto o revisar los alimentos que evitas en tu perfil.",
     "gen.conflict.kcal_range": "Calorías: llegas a {achieved} de {target} al día",
     "gen.conflict.kcal_range.over":
       "Calorías: tienes {achieved} al día y lo máximo que buscamos es {target}",
     "gen.conflict.protein_min":
-      "Proteína: llegas a {achieved} de {target} g por kilo al día. Prueba subir tu presupuesto o escoger más comidas con pollo, huevo, atún o lentejas.",
+      "Proteína: llegas a {achieved} de {target} g por kilo al día. Con tu presupuesto y tus restricciones no alcanza. Prueba subir tu presupuesto o revisar los alimentos que evitas en tu perfil.",
     "gen.conflict.protein_max":
       "Máximo de proteína: tienes {achieved} g por kilo y el máximo es {target}",
     "gen.conflict.carbs_min_muscle":
@@ -242,12 +242,12 @@ export const errors = defineMessages({
     "gen.conflict.protein_safety_max":
       "Safe protein limit: you have {achieved} g per kilo and the limit is {target}",
     "gen.conflict.protein_muscle_floor":
-      "Protein to build muscle: you reach {achieved} of {target} g per kilo a day. Try raising your budget or picking more meals with chicken, eggs, tuna or lentils.",
+      "Protein to build muscle: you reach {achieved} of {target} g per kilo a day. Your budget and restrictions don't allow more. Try raising your budget or review the foods you avoid in your profile.",
     "gen.conflict.kcal_range": "Calories: you reach {achieved} of {target} a day",
     "gen.conflict.kcal_range.over":
       "Calories: you have {achieved} a day and the most we aim for is {target}",
     "gen.conflict.protein_min":
-      "Protein: you reach {achieved} of {target} g per kilo a day. Try raising your budget or picking more meals with chicken, eggs, tuna or lentils.",
+      "Protein: you reach {achieved} of {target} g per kilo a day. Your budget and restrictions don't allow more. Try raising your budget or review the foods you avoid in your profile.",
     "gen.conflict.protein_max":
       "Protein maximum: you have {achieved} g per kilo and the maximum is {target}",
     "gen.conflict.carbs_min_muscle":
