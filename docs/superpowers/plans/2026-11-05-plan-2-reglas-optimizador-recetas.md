@@ -4,9 +4,9 @@
 
 **Goal:** The plan the user receives meets the measurable rules of their goals (or says exactly what to change), at the lowest cost with their supermarkets' prices, built only from simple Colombian recipes that fit their time, skill and kitchen.
 
-**Architecture:** The AI ("el cocinero") stops inventing dishes: it picks one recipe id per day and meal from a recipe library that lives in the repo (`data/recipes/*.json`, validated and compiled into a TypeScript module). Pure, tested code turns the profile and goals into a `RuleSet` (levels 1 to 5, section 3 of the spec). A linear-programming optimizer ("el contador", `javascript-lp-solver`) then scales each recipe's ingredient roles and picks interchangeable ingredients to meet the rules at minimum cost with the `PriceBook`. Level 1 (safety) and the budget are hard constraints; levels 2 to 5 have penalised slack, so one solve tells us whether the plan meets every rule and, if not, which rules clash and by how much. The function answers with a plan, the new `goals_unreachable` error (with what to change and a "Quiero el plan igual" option that relaxes only levels 2 to 5), or `budget_too_low`. Old web versions keep working: new plan fields are optional and the new error falls back to an existing code when the app does not send a version that understands it.
+**Architecture:** The AI ("el cocinero") stops inventing dishes: it picks one recipe id per day and meal from a recipe library that lives in the repo (`data/recipes/*.json`, validated and compiled into a TypeScript module). Pure, tested code turns the profile and goals into a `RuleSet` (levels 1 to 5, section 3 of the spec). A linear-programming optimizer ("el contador", `highs`) then scales each recipe's ingredient roles and picks interchangeable ingredients to meet the rules at minimum cost with the `PriceBook`. Level 1 (safety) and the budget are hard constraints; levels 2 to 5 have penalised slack, so one solve tells us whether the plan meets every rule and, if not, which rules clash and by how much. The function answers with a plan, the new `goals_unreachable` error (with what to change and a "Quiero el plan igual" option that relaxes only levels 2 to 5), or `budget_too_low`. Old web versions keep working: new plan fields are optional and the new error falls back to an existing code when the app does not send a version that understands it.
 
-**Tech Stack:** React 18 + Vite, Supabase (Postgres + RLS, Edge Functions on Deno), TypeScript with erasable syntax only, `node --test` (`*.test.mjs` importing `.ts` directly, Node 24 locally / 22 in CI), `zod` 4.6.7 (scripts and the shared plan schema), `javascript-lp-solver` 0.4.24 (new), OpenAI strict JSON schema.
+**Tech Stack:** React 18 + Vite, Supabase (Postgres + RLS, Edge Functions on Deno), TypeScript with erasable syntax only, `node --test` (`*.test.mjs` importing `.ts` directly, Node 24 locally / 22 in CI), `zod` 4.6.7 (scripts and the shared plan schema), `highs` 1.15.4 (new; HiGHS LP solver compiled to WebAssembly, MIT, owner OK 2026-11-05), OpenAI strict JSON schema.
 
 **Spec:** `docs/superpowers/specs/2026-11-04-comidas-y-precios-design.md`, latest version at commit `1cb89bd` of branch `docs/spec-comidas-precios` (worktree `C:\Users\juand\Downloads\FitMarket-wt-spec`). This plan implements phases 2 and 3 (sections 3, 6.4, 6.5, the "Recetas sencillas", "Cocinar una vez para varios días", "Salud", "Hogar", "Versiones viejas" and "Revisión de recetas" decisions of sections 5 and 8). Phase 1 (Plan 1) is done on branch `feat/plan-1-catalogo-precios`; this plan starts from it.
 
@@ -533,16 +533,17 @@ test("choosing an alternative of a non-inName line keeps the name", ...);
 
 ---
 
-### Task 8: LP solver adapter (`javascript-lp-solver`)
+### Task 8: LP solver adapter (`highs`)
 
 **Files:**
-- Modify: `package.json` (dependency `"javascript-lp-solver": "0.4.24"`; test glob `"supabase/functions/_shared/**/*.test.mjs"` replacing the two `_shared` globs)
-- Create: `supabase/functions/generate-weekly-plan/deno.json` — `{ "imports": { "javascript-lp-solver": "npm:javascript-lp-solver@0.4.24" } }`
+- Modify: `package.json` (dependency `"highs": "1.15.4"`; script `functions:wasm` that copies `node_modules/highs/build/highs.wasm` into the function folder before deploying; test glob `"supabase/functions/_shared/**/*.test.mjs"` replacing the two `_shared` globs)
+- Create: `supabase/functions/generate-weekly-plan/deno.json` — `{ "imports": { "highs": "npm:highs@1.15.4" } }`
+- Create: `supabase/config.toml` — `[functions.generate-weekly-plan] static_files = ["./functions/generate-weekly-plan/highs.wasm"]` (the WASM copy is git-ignored; static files need a Docker-based deploy, not `--use-api`)
+- Modify: `.gitignore` (the copied `highs.wasm`)
 - Create: `supabase/functions/_shared/planner/lp.ts`
-- Create: `supabase/functions/_shared/planner/javascript-lp-solver.d.ts` (ambient `declare module` with the `Solve` signature used)
-- Test: `supabase/functions/_shared/planner/lp.test.mjs`
+- Test: `supabase/functions/_shared/planner/lp.test.mjs`, `supabase/functions/_shared/planner/lp.deploy.test.mjs` (deno.json, config.toml and package.json agree)
 
-**Library choice (decided):** `javascript-lp-solver` 0.4.24 — pure JavaScript, MIT, no dependencies, about 100 KB, the same bare import works in Node (from `node_modules`) and in Deno (through the function's `deno.json` import map), and nothing to instantiate at cold start. Our model is small (about 112 role-scale variables, up to 60 pack variables and up to 150 slack variables; 400 rows), which a dense simplex solves in tens of milliseconds. Rejected: `glpk.js` (GPL-3.0, incompatible with shipping inside an MIT app, plus a large WASM file) and `highs` WASM (MIT and faster on big models, but a 2–3 MB WASM file whose compilation counts against the 2 s Edge Function CPU limit at every cold start, and WASM asset loading in Supabase's Deno bundler adds deploy risk for no gain at this size). The adapter keeps the library behind one function so it can be swapped by changing one file.
+**Library choice (decided, owner OK 2026-11-05):** `highs` 1.15.4 — the HiGHS solver compiled to WebAssembly, MIT, about 3.5 MB of WASM. A benchmark on 2026-11-05 ran 14 planner-shaped models (different seeds), a synthetic 300×400 model and the classic diet LP through every candidate: only `highs` gave the correct feasible/infeasible verdict every time, at 9–24 ms median per solve. Rejected: `yalps` 0.6.4 (falsely reported "cycled" on 4 of the 14 planner models), `javascript-lp-solver` 1.0.3 (far too slow) and 0.4.24 (a false "infeasible"), and `glpk.js` (GPL-3.0, incompatible with an MIT app). Cost of the choice: the WASM must be loaded once per instance (`prepareLp`, about 40–50 ms CPU in Node) and shipped as a static file of the function; a staging smoke test (load + one solve, CPU < 900 ms) is a required rollout step. The adapter keeps the library behind one file so it can be swapped by changing that file.
 
 **Interfaces:**
 - Produces:
@@ -555,7 +556,9 @@ export interface LpModel {
   variables: Record<string, Record<string, number>>; // all variables are >= 0
 }
 export interface LpSolution { feasible: boolean; bounded: boolean; objective: number; values: Record<string, number>; cpuMs: number }
-export function solveLp(model: LpModel, now?: () => number): LpSolution; // values default to 0 for variables absent in the result
+export function prepareLp(options?: { loadWasm?: () => Promise<ArrayBuffer | ArrayBufferView> }): Promise<boolean>; // loads highs once per instance; concurrent callers share the load; false (never a rejection) when it failed, and the next call retries
+export function solveLp(model: LpModel, now?: () => number): LpSolution; // synchronous; values default to 0 for variables absent in the result; before prepareLp succeeded → feasible false, error "solver_error"
+// LpSolution also carries error?: "invalid_model" | "solver_error" | "invalid_result" | "time_limit"; solveLp never throws
 ```
 
 - [ ] **Step 1: Write the failing tests**
@@ -572,9 +575,9 @@ test("a 300-variable, 400-row model solves in under 150 ms", () => {
 ```
 
 - [ ] **Step 2: Run and see them fail** — module and dependency missing.
-- [ ] **Step 3: Implement.** `npm install javascript-lp-solver@0.4.24 --save-exact`; `solveLp` wraps `Solve`, measures `cpuMs` with `performance.now()` (synchronous call ≈ CPU), and never throws (exceptions → `feasible: false`). If the Deno CLI is available, also run `deno check supabase/functions/generate-weekly-plan/index.ts`; otherwise this is verified in staging (rollout step 2).
+- [ ] **Step 3: Implement.** `npm install highs@1.15.4 --save-exact`; `prepareLp` instantiates the WASM bytes through Emscripten's `instantiateWasm` hook (highs 1.15.4 ignores its typed `wasmBinary` option); `solveLp` validates the model, writes CPLEX LP text with generated names only (`x0…`, `c0…`, so catalog or user text never enters it), calls `solve`, checks the answer shape at runtime and maps names back; it measures `cpuMs` with `performance.now()` (synchronous call ≈ CPU), and never throws (exceptions → `feasible: false`). If the Deno CLI is available, also run `deno check supabase/functions/generate-weekly-plan/index.ts`; otherwise this is verified in staging (rollout step 2).
 - [ ] **Step 4: Run and see them pass**, then `npm run check` (the wider glob now runs the wave A tests in subfolders).
-- [ ] **Step 5: Commit** — `feat(planner): LP solver adapter with javascript-lp-solver`
+- [ ] **Step 5: Commit** — `feat(planner): LP solver adapter with highs`
 
 ---
 
@@ -819,7 +822,7 @@ export interface GenerateFailure { error: {
   canForce?: boolean;               // goals_unreachable only: true
 } }
 ```
-Pipeline: (1) budget floor 40 000 COP per person, unchanged; (2) `buildTargets` + `buildRuleSet`; (3) `eligibleRecipes`; any slot `< MIN_RECIPES_PER_SLOT` → `restrictions_too_strict` with `availableRecipes`; (4) up to 3 attempts: compose (with day fill as today, using `recipeResponseFormat`), parse, `repairWeekendOnly`, `optimizeWeek` (`diagnose` only on the last usable attempt or when time is short); `relaxed` with time left (`canStart(1, MIN_COMPOSE_TIME_MS)`) → retry with feedback built from the shortfalls (`fiber_min`/`fruit_veg_min` → "pick more recipes with vegetables, legumes or fruit"; `protein_min` → "more protein-rich recipes"; `legumes_week` → "at least 2 legume dishes"; `distinct_foods_week` → "more variety"; `gaba_groups_day` → "each day needs 4 food groups"; `iron_sources_week` → "legumes, red meat or spinach in 5 meals"; `sodium_max` → "fewer canned or salty dishes"; `free_sugar_max` → "fewer sweetened dishes"); keep the best result (fewest weighted shortfalls, then cost); (5) decide: `optimal` → plan with `compliance: { status: "full", unmet: [] }`; `relaxed` + `allowPartial` → plan with `compliance.status = "partial"`; `relaxed` → `goals_unreachable` with `conflicts`, `canForce: true`, and `budget` when `requiredBudgetCop` exists; `over_budget` → `budget_too_low` with `requiredBudgetCop`; `infeasible` → `generation_failed` with reason `optimizer_infeasible`. (6) `assemblePlan` with recipes, `notices` from the targets, and `householdFactor`. No rename calls: names come from the recipes. One `CpuBudget` per request.
+Pipeline: (1) budget floor 40 000 COP per person, unchanged; (2) `buildTargets` + `buildRuleSet`; (3) `eligibleRecipes`; any slot `< MIN_RECIPES_PER_SLOT` → `restrictions_too_strict` with `availableRecipes`; (4) up to 3 attempts: compose (with day fill as today, using `recipeResponseFormat`), parse, `repairWeekendOnly`, `optimizeWeek` (`diagnose` only on the last usable attempt or when time is short); `relaxed` with time left (`canStart(1, MIN_COMPOSE_TIME_MS)`) → retry with feedback built from the shortfalls (`fiber_min`/`fruit_veg_min` → "pick more recipes with vegetables, legumes or fruit"; `protein_min` → "more protein-rich recipes"; `legumes_week` → "at least 2 legume dishes"; `distinct_foods_week` → "more variety"; `gaba_groups_day` → "each day needs 4 food groups"; `iron_sources_week` → "legumes, red meat or spinach in 5 meals"; `sodium_max` → "fewer canned or salty dishes"; `free_sugar_max` → "fewer sweetened dishes"); keep the best result (fewest weighted shortfalls, then cost); (5) decide: `optimal` → plan with `compliance: { status: "full", unmet: [] }`; `relaxed` + `allowPartial` → plan with `compliance.status = "partial"`; `relaxed` → `goals_unreachable` with `conflicts`, `canForce: true`, and `budget` when `requiredBudgetCop` exists; `over_budget` → `budget_too_low` with `requiredBudgetCop`; `infeasible` → `generation_failed` with reason `optimizer_infeasible`. (6) `assemblePlan` with recipes, `notices` from the targets, and `householdFactor`. No rename calls: names come from the recipes. One `CpuBudget` per request. Before the first `optimizeWeek`, `await prepareLp()` (T8; cached per instance); `false` → `generation_failed` with reason `optimizer_unavailable`.
 
 - [ ] **Step 1: Write the failing tests** (fake model returns recipe ids; no OpenAI)
 
@@ -973,11 +976,11 @@ Each meal shows the recipe name, "{minutes} min", the level ("Lo básico" / "Me 
 
 **Files:**
 - Modify: `docs/ARCHITECTURE.md` ("How a plan is generated" rewritten: rules, recipes, optimizer, `goals_unreachable`, compatibility; folder map adds `data/recipes/`, `_shared/recipes/`, `planner/rules/`, `planner/optimizer/`; "Known limits" updated)
-- Create: `docs/ROLLOUT-plan-2.md` (same format as `docs/ROLLOUT-plan-1.md`: who, check, undo; "¿lo hago?" before every production step)
+- Create or extend: `docs/ROLLOUT-plan-2.md` (T8 already created it with the solver smoke test; same format as `docs/ROLLOUT-plan-1.md`: who, check, undo; "¿lo hago?" before every production step)
 
 Rollout content (in order):
 1. **Staging:** apply migration 015; run `supabase/tests/cooking_prefs_checks.sql`; run the Supabase security and performance advisors.
-2. **Staging function:** deploy `generate-weekly-plan` with its `deno.json`; check the logs show `optimizer_result` and that `optimizer_cpu_ms` p95 stays under 900 over 20 generations (5 goal mixes × 4 profiles); check an old-web request (`{}`) gets `budget_too_low` or `goal_incoherent`, never `goals_unreachable`.
+2. **Staging function:** run `npm run functions:wasm`, then deploy `generate-weekly-plan` with its `deno.json` and the `highs.wasm` static file (Docker-based deploy); first the solver smoke test from T8 (load + one solve, CPU < 900 ms); check the logs show `optimizer_result` and that `optimizer_cpu_ms` p95 stays under 900 over 20 generations (5 goal mixes × 4 profiles); check an old-web request (`{}`) gets `budget_too_low` or `goal_incoherent`, never `goals_unreachable`.
 3. **Owner reviews recipes:** a sample of 12 (3 per slot, chosen across restriction profiles); each approved recipe changes to `approved`; corrections go by PR. Production waits for the owner's "listo".
 4. **Production, in order:** migration 015 → Edge Function → web (version 0.1.0). Each step: what to check and how to undo (015 is additive; redeploy the previous function; redeploy the previous web).
 5. **After launch:** watch `goals_unreachable` and `restrictions_too_strict` rates for a week; if a slot has few recipes for a frequent profile, add recipes.
