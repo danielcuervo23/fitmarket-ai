@@ -1,0 +1,60 @@
+{
+  "id": "palitos_de_verdura_con_guacamole",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Palitos de verdura con guacamole",
+    "en": "Vegetable sticks with guacamole"
+  },
+  "slots": [
+    "snacks"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "zanahoria",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "pepino",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "aguacate",
+      "qty": 0.5,
+      "role": "fat"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la zanahoria y el pepino. Pela la zanahoria.",
+      "Córtalos en palitos largos, como dedos.",
+      "Aplasta el aguacate con un tenedor y mézclalo con el tomate picado y la sal: eso es el guacamole.",
+      "Unta los palitos en el guacamole."
+    ],
+    "en": [
+      "Wash the carrot and the cucumber. Peel the carrot.",
+      "Cut them into long sticks, like fingers.",
+      "Mash the avocado with a fork and mix it with the chopped tomato and salt: that is the guacamole.",
+      "Dip the sticks in the guacamole."
+    ]
+  }
+}

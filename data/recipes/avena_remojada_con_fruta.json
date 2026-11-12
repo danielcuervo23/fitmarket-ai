@@ -1,0 +1,73 @@
+{
+  "id": "avena_remojada_con_fruta",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Avena remojada con fruta (sin cocinar)",
+    "en": "Overnight oats with fruit (no cooking)"
+  },
+  "slots": [
+    "desayuno",
+    "snacks"
+  ],
+  "minutes": 5,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": true,
+    "keepsDays": 2
+  },
+  "lines": [
+    {
+      "food": "avena",
+      "qty": 50,
+      "role": "carb"
+    },
+    {
+      "food": "leche_entera",
+      "qty": 150,
+      "role": "protein",
+      "alternatives": [
+        {
+          "food": "leche_deslactosada",
+          "qty": 150
+        }
+      ]
+    },
+    {
+      "food": "fresa",
+      "qty": 80,
+      "role": "veg",
+      "alternatives": [
+        {
+          "food": "mango",
+          "qty": 80
+        },
+        {
+          "food": "papaya",
+          "qty": 80
+        },
+        {
+          "food": "banano",
+          "qty": 1
+        }
+      ]
+    }
+  ],
+  "steps": {
+    "es": [
+      "La noche anterior, pon la avena en un vaso o frasco con tapa.",
+      "Échale la leche y revuelve bien.",
+      "Tápalo y déjalo en la nevera toda la noche: la avena se ablanda sola, sin cocinarla.",
+      "En la mañana, lava y pica la fruta en cuadritos.",
+      "Ponla encima de la avena y cómetela fría."
+    ],
+    "en": [
+      "The night before, put the oats in a glass or jar with a lid.",
+      "Pour in the milk and stir well.",
+      "Cover it and leave it in the fridge overnight: the oats soften by themselves, without cooking.",
+      "In the morning, wash the fruit and cut it into small cubes.",
+      "Put it on top of the oats and eat it cold."
+    ]
+  }
+}

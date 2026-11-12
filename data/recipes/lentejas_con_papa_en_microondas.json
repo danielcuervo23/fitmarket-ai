@@ -1,0 +1,82 @@
+{
+  "id": "lentejas_con_papa_en_microondas",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Lentejas con papa en el microondas",
+    "en": "Microwave lentils with potato"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 45,
+  "level": "basic",
+  "appliances": [
+    "microondas"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 3
+  },
+  "lines": [
+    {
+      "food": "lentejas",
+      "qty": 70,
+      "role": "protein"
+    },
+    {
+      "food": "papa",
+      "qty": 120,
+      "role": "carb"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 3,
+      "role": "fat"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "sal",
+      "qty": 2,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava las lentejas y ponlas con 3 tazas de agua en un recipiente grande y hondo para microondas (así no se riega al hervir).",
+      "Pica la papa, la zanahoria, el tomate, la cebolla y el ajo en cuadritos, y échalos con el aceite y la sal.",
+      "Tapa sin cerrar del todo (deja una rendija para que salga el vapor).",
+      "Calienta 10 minutos en el microondas a potencia media, saca y revuelve.",
+      "Repite tres veces más (40 minutos en total), revisando que no le falte agua.",
+      "Están listas cuando las lentejas se aplastan fácil con un tenedor. Duran 3 días en la nevera."
+    ],
+    "en": [
+      "Rinse the lentils and put them with 3 cups of water in a large, deep microwave-safe bowl (so it does not boil over).",
+      "Dice the potato, carrot, tomato, onion and garlic, and add them with the oil and salt.",
+      "Cover without sealing (leave a gap so the steam can escape).",
+      "Microwave at medium power for 10 minutes, take it out and stir.",
+      "Repeat three more times (40 minutes in total), checking that there is still water.",
+      "They are ready when the lentils mash easily with a fork. They keep 3 days in the fridge."
+    ]
+  }
+}

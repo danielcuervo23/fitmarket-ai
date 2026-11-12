@@ -1,0 +1,72 @@
+{
+  "id": "sandwich_de_atun",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Sándwich de atún",
+    "en": "Tuna sandwich"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "pan_tajado",
+      "qty": 75,
+      "role": "carb"
+    },
+    {
+      "food": "atun_lata",
+      "qty": 80,
+      "role": "protein"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "lechuga",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 15,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_oliva",
+      "qty": 5,
+      "role": "fat",
+      "alternatives": [
+        {
+          "food": "aceite_vegetal",
+          "qty": 5
+        }
+      ]
+    }
+  ],
+  "steps": {
+    "es": [
+      "Escurre el atún (bota el agua de la lata) y ponlo en un plato.",
+      "Pica la cebolla muy finita y mézclala con el atún y el aceite.",
+      "Lava la lechuga y corta el tomate en rodajas.",
+      "Arma el sándwich: pan, lechuga, atún, tomate y otra tajada de pan."
+    ],
+    "en": [
+      "Drain the tuna (pour off the water from the can) and put it on a plate.",
+      "Chop the onion very finely and mix it with the tuna and the oil.",
+      "Wash the lettuce and slice the tomato.",
+      "Build the sandwich: bread, lettuce, tuna, tomato and another slice of bread."
+    ]
+  }
+}

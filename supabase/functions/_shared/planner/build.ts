@@ -8,7 +8,7 @@ import {
   type ShoppingCategory,
 } from "../catalog.ts";
 import type { NutritionTargets } from "../nutrition.ts";
-import type { ResolvedRecipe } from "../recipes/eligibility.ts";
+import { needsSoaking, type ResolvedRecipe } from "../recipes/eligibility.ts";
 import { RECIPE_LIBRARY_VERSION } from "../recipes/library.generated.ts";
 import type { Appliance, CookingLevel } from "../recipes/types.ts";
 import type { PriceBook, PriceSource } from "./priceBook.ts";
@@ -570,6 +570,33 @@ function recipeFields(
   return { meal_recipes, recipes };
 }
 
+/** The evening before each weekend day: soak days only ever fall on Saturday or Sunday. */
+const SOAK_REMINDER: Partial<Record<Day, NoticeCode>> = {
+  sab: "soak_friday_night",
+  dom: "soak_saturday_night",
+};
+
+/**
+ * Reminders to soak dried legumes the evening before (owner decision
+ * 2026-11-11). Only recipe meals count; eligibility keeps soak foods off
+ * weekdays, so only Saturday and Sunday can need one.
+ */
+export function soakNotices(week: ComposedWeek): NoticeCode[] {
+  const notices: NoticeCode[] = [];
+
+  for (const day of DAYS) {
+    const code = SOAK_REMINDER[day];
+    const soaks = SLOTS.some((slot) => {
+      const meal = week[day][slot];
+      return meal.recipeId !== undefined && meal.items.some((item) => needsSoaking(item.id));
+    });
+
+    if (code && soaks) notices.push(code);
+  }
+
+  return notices;
+}
+
 export function assemblePlan(
   week: ComposedWeek,
   options: {
@@ -646,6 +673,9 @@ export function assemblePlan(
   }
 
   const fromRecipes = options.recipes ? recipeFields(week, options.recipes) : null;
+  const soak = fromRecipes ? soakNotices(week) : [];
+  const notices =
+    options.notices || soak.length > 0 ? [...new Set([...(options.notices ?? []), ...soak])] : null;
 
   return {
     summary: {
@@ -661,7 +691,7 @@ export function assemblePlan(
     dish_names,
     shopping_list,
     ...(fromRecipes ?? {}),
-    ...(options.notices ? { notices: [...options.notices] } : {}),
+    ...(notices ? { notices } : {}),
     ...(options.compliance ? { compliance: consistentCompliance(options.compliance) } : {}),
   };
 }

@@ -1,0 +1,71 @@
+{
+  "id": "sandwich_de_aguacate_y_tomate",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Sándwich de aguacate, verduras y maní",
+    "en": "Avocado, vegetable and peanut sandwich"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "pan_tajado",
+      "qty": 75,
+      "role": "carb"
+    },
+    {
+      "food": "aguacate",
+      "qty": 0.5,
+      "role": "fat"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "lechuga",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "pepino",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "mani",
+      "qty": 25,
+      "role": "protein"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Aplasta el aguacate con un tenedor y échale la sal.",
+      "Lava la lechuga, el tomate y el pepino; corta el tomate y el pepino en rodajas.",
+      "Unta el aguacate en el pan y riega el maní encima.",
+      "Pon encima la lechuga, el tomate y el pepino, y tapa con otra tajada de pan."
+    ],
+    "en": [
+      "Mash the avocado with a fork and add the salt.",
+      "Wash the lettuce, tomato and cucumber; slice the tomato and cucumber.",
+      "Spread the avocado on the bread and sprinkle the peanuts on top.",
+      "Add the lettuce, tomato and cucumber, and cover with another slice of bread."
+    ]
+  }
+}

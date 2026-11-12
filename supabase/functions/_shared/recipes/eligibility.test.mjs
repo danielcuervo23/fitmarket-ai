@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { STATIC_CATALOG, createCatalog } from "../catalog.ts";
 import { buildRestrictionRules, isAllowed } from "../planner/restrictions.ts";
@@ -17,6 +18,30 @@ import { RECIPES } from "./library.generated.ts";
 import { DEFAULT_COOKING } from "./types.ts";
 
 const byId = (id) => RECIPES.find((recipe) => recipe.id === id);
+
+/**
+ * The 6 seed recipes, read from their JSON files and deep-frozen. Tests that
+ * count recipes use this fixed set, so adding library recipes cannot change
+ * them; the live library's coverage is tested in scripts/recipes/coverage.test.mjs.
+ */
+const SEED_IDS = [
+  "arroz_con_huevo_y_tomate",
+  "avena_con_banano",
+  "huevos_pericos_con_arepa",
+  "lentejas_con_arroz",
+  "pollo_guisado_con_papa",
+  "yogur_con_fruta",
+];
+const deepFreeze = (value) => {
+  if (value && typeof value === "object") {
+    Object.values(value).forEach(deepFreeze);
+    Object.freeze(value);
+  }
+  return value;
+};
+const SEED_RECIPES = deepFreeze(
+  SEED_IDS.map((id) => JSON.parse(readFileSync(new URL(`../../../../data/recipes/${id}.json`, import.meta.url), "utf8"))),
+);
 const lentejas = byId("lentejas_con_arroz");
 const pericos = byId("huevos_pericos_con_arepa");
 const yogur = byId("yogur_con_fruta");
@@ -209,7 +234,7 @@ test("library data is never mutated (it is deep-frozen)", () => {
 });
 
 test("countBySlot counts slot membership and always has every slot", () => {
-  const counts = countBySlot(eligibleRecipes(RECIPES, ctx({ cooking: { weekdayMinutes: 30 } })));
+  const counts = countBySlot(eligibleRecipes(SEED_RECIPES, ctx({ cooking: { weekdayMinutes: 30 } })));
 
   assert.deepEqual(Object.keys(counts).sort(), [...SLOTS].sort());
   assert.equal(counts.desayuno, 3); // avena, pericos, yogur
@@ -221,7 +246,7 @@ test("countBySlot counts slot membership and always has every slot", () => {
 
 test("vegan + microwave only: restrictions_too_strict with availableRecipes, no forbidden food", () => {
   const context = ctx({ restrictions: ["vegan"], cooking: { appliances: ["microondas"] } });
-  const eligible = eligibleRecipes(RECIPES, context);
+  const eligible = eligibleRecipes(SEED_RECIPES, context);
 
   assert.deepEqual(eligible, []);
   assert.deepEqual(recipeCoverage(eligible), {
@@ -234,7 +259,7 @@ test("vegan + microwave only: restrictions_too_strict with availableRecipes, no 
 
 test("lactose + gluten + fish at 10 minutes: too strict, counts per slot, only allowed foods", () => {
   const context = ctx({ restrictions: ["lactose", "gluten", "fish", "shellfish"], cooking: { weekdayMinutes: 10 } });
-  const eligible = eligibleRecipes(RECIPES, context);
+  const eligible = eligibleRecipes(SEED_RECIPES, context);
   const coverage = recipeCoverage(eligible);
 
   assert.equal(coverage.ok, false);

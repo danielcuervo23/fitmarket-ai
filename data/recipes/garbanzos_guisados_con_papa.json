@@ -1,0 +1,100 @@
+{
+  "id": "garbanzos_guisados_con_papa",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Garbanzos guisados con papa",
+    "en": "Stewed chickpeas with potato"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 55,
+  "level": "comfortable",
+  "appliances": [
+    "estufa",
+    "olla_presion"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 4
+  },
+  "lines": [
+    {
+      "food": "garbanzo",
+      "qty": 70,
+      "role": "protein",
+      "inName": true,
+      "alternatives": [
+        {
+          "food": "arveja_seca",
+          "qty": 70,
+          "name": {
+            "es": "Arvejas guisadas con papa",
+            "en": "Stewed dried peas with potato"
+          }
+        }
+      ]
+    },
+    {
+      "food": "papa",
+      "qty": 120,
+      "role": "carb"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "pimenton",
+      "qty": 0.5,
+      "role": "veg"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "fat"
+    },
+    {
+      "food": "sal",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "cilantro",
+      "qty": 5,
+      "role": "fixed",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "La noche anterior, deja los granos en un recipiente con bastante agua.",
+      "Bota esa agua y cocina los granos en la olla a presión con agua nueva, 25 minutos desde que empiece a pitar (a sonar como un silbido).",
+      "Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).",
+      "Pela la papa y pícala en cuadritos; échala a la olla destapada y cocina 15 minutos, hasta que esté blanda.",
+      "Aparte, cocina en una sartén con el aceite el tomate, la cebolla, el pimentón y el ajo picados, 5 minutos.",
+      "Mezcla todo con la sal y sirve con cilantro, si quieres."
+    ],
+    "en": [
+      "The night before, soak the legumes in a bowl with plenty of water.",
+      "Pour off that water and cook the legumes in the pressure cooker with fresh water, 25 minutes from when it starts to whistle.",
+      "Turn it off and wait until no more steam comes out before opening it (never open it under pressure).",
+      "Peel and dice the potato; add it to the open pot and cook 15 minutes, until soft.",
+      "Separately, in a pan with the oil, cook the chopped tomato, onion, bell pepper and garlic for 5 minutes.",
+      "Mix everything with the salt and serve with cilantro, if you like."
+    ]
+  }
+}

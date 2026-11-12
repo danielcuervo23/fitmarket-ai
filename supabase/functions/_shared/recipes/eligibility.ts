@@ -2,6 +2,7 @@ import type { Catalog } from "../catalog.ts";
 import type { PriceBook } from "../planner/priceBook.ts";
 import { isAllowed, type RestrictionRules } from "../planner/restrictions.ts";
 import { SLOTS, type Slot } from "../planner/types.ts";
+import { SOAK_FOODS } from "./library.generated.ts";
 import {
   COOKING_LEVELS,
   type CookingLevel,
@@ -53,6 +54,18 @@ export function weekdayMinutesCap(minutes: CookingPrefs["weekdayMinutes"]): numb
 }
 
 const levelRank = (level: CookingLevel): number => COOKING_LEVELS.indexOf(level);
+
+const SOAK: ReadonlySet<string> = new Set(SOAK_FOODS);
+
+/** Dried legume that must soak overnight (needsSoaking in foods.json; never lentejas). */
+export function needsSoaking(food: string): boolean {
+  return SOAK.has(food);
+}
+
+/** The soak foods a resolved recipe cooks with (each line's current food), in line order. */
+export function soakFoodsOf(recipe: ResolvedRecipe): string[] {
+  return [...new Set(recipe.lines.map((line) => line.food).filter(needsSoaking))];
+}
 
 /** In the catalog, with micro-nutrients, allowed, and sold by some chosen store. */
 function isUsableFood(food: string, ctx: EligibilityContext): boolean {
@@ -126,7 +139,19 @@ export function resolveRecipe(recipe: Recipe, ctx: EligibilityContext): Resolved
     return null;
   }
 
-  return { ...ownedCopy(recipe), lines, weekendOnly };
+  // Owner decision 2026-11-11: dried legumes that soak overnight are cooked
+  // only on Saturday or Sunday. A recipe that cooks one is weekend-only; a
+  // weekday-capable recipe drops its soak alternatives, so none can be chosen
+  // on a weekday later.
+  if (lines.some((line) => needsSoaking(line.food))) {
+    return { ...ownedCopy(recipe), lines, weekendOnly: true };
+  }
+
+  const weekdaySafe = weekendOnly
+    ? lines
+    : lines.map((line) => ({ ...line, alternatives: (line.alternatives ?? []).filter((alt) => !needsSoaking(alt.food)) }));
+
+  return { ...ownedCopy(recipe), lines: weekdaySafe, weekendOnly };
 }
 
 /**

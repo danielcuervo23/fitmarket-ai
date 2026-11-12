@@ -11,9 +11,135 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-export const RECIPE_LIBRARY_VERSION = "634ec86b4f72";
+export const RECIPE_LIBRARY_VERSION = "bc13cca30ebf";
 
 export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
+  {
+    "id": "arepa_con_aguacate_y_tomate",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Arepa con aguacate y tomate",
+      "en": "Arepa with avocado and tomato"
+    },
+    "slots": [
+      "desayuno"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "harina_maiz",
+        "qty": 60,
+        "role": "carb"
+      },
+      {
+        "food": "aguacate",
+        "qty": 0.5,
+        "role": "fat"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Mezcla la harina con la sal y agua tibia, poco a poco, hasta tener una masa suave.",
+        "Haz una bola y aplástala con las manos hasta que quede como un disco.",
+        "Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
+        "Mientras tanto, aplasta el aguacate con un tenedor y pica el tomate.",
+        "Abre la arepa y rellénala con el aguacate y el tomate."
+      ],
+      "en": [
+        "Mix the flour with the salt and warm water, bit by bit, until you get a soft dough.",
+        "Make a ball and press it with your hands into a disc.",
+        "Cook it in a dry pan over medium heat, 5 minutes on each side.",
+        "Meanwhile, mash the avocado with a fork and chop the tomato.",
+        "Open the arepa and fill it with the avocado and tomato."
+      ]
+    }
+  },
+  {
+    "id": "arepa_con_queso",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Arepa con queso",
+      "en": "Arepa with cheese"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "harina_maiz",
+        "qty": 60,
+        "role": "carb"
+      },
+      {
+        "food": "queso_campesino",
+        "qty": 40,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "queso_mozzarella",
+            "qty": 40
+          }
+        ]
+      },
+      {
+        "food": "mantequilla",
+        "qty": 5,
+        "role": "fat",
+        "optional": true
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Mezcla la harina con la sal y agua tibia, poco a poco, hasta tener una masa suave.",
+        "Desmorona el queso con los dedos y mezcla la mitad con la masa.",
+        "Haz dos bolitas y aplástalas con las manos hasta que queden como discos.",
+        "Ponlas en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
+        "Ábrelas por un lado y mete el resto del queso y, si quieres, la mantequilla."
+      ],
+      "en": [
+        "Mix the flour with the salt and warm water, bit by bit, until you get a soft dough.",
+        "Crumble the cheese with your fingers and mix half of it into the dough.",
+        "Make two small balls and press them with your hands into discs.",
+        "Cook them in a dry pan over medium heat, 5 minutes on each side.",
+        "Open them on one side and fill them with the rest of the cheese and, if you like, the butter."
+      ]
+    }
+  },
   {
     "id": "arroz_con_huevo_y_tomate",
     "status": "pending_owner_ok",
@@ -71,18 +197,111 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
       "es": [
         "Pon el arroz en una olla con el doble de agua y un poquito de sal.",
         "Cuando hierva, baja el fuego, tapa la olla y deja 20 minutos.",
-        "Mientras tanto, pica el tomate y la cebolla en cuadritos.",
+        "Mientras tanto, pica el tomate y la cebolla larga en cuadritos.",
         "En una sartén con el aceite, cocina el tomate y la cebolla 3 minutos.",
-        "Rompe los huevos en la sartén y revuelve hasta que no estén líquidos.",
+        "Rompe los huevos en la sartén y revuelve hasta que no estén líquidos. Lávate las manos después.",
         "Sirve el arroz y pon los huevos con tomate encima."
       ],
       "en": [
         "Put the rice in a pot with twice as much water and a pinch of salt.",
         "When it boils, lower the heat, cover the pot and leave it 20 minutes.",
-        "Meanwhile, chop the tomato and the onion into small cubes.",
+        "Meanwhile, chop the tomato and the spring onion into small cubes.",
         "In a pan with the oil, cook the tomato and onion for 3 minutes.",
-        "Crack the eggs into the pan and stir until they are no longer runny.",
+        "Crack the eggs into the pan and stir until they are no longer runny. Wash your hands afterwards.",
         "Serve the rice and put the eggs with tomato on top."
+      ]
+    }
+  },
+  {
+    "id": "arroz_con_pollo",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Arroz con pollo",
+      "en": "Chicken with rice"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 50,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 3
+    },
+    "lines": [
+      {
+        "food": "pernil_pollo",
+        "qty": 130,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "pechuga_pollo",
+            "qty": 110
+          }
+        ]
+      },
+      {
+        "food": "arroz_blanco",
+        "qty": 70,
+        "role": "carb"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "habichuela",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "pimenton",
+        "qty": 0.5,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 2,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Cocina el pollo en una olla con agua y sal, 25 minutos. Lávate las manos y la tabla después de tocar el pollo crudo.",
+        "Mientras tanto, pica la zanahoria, la habichuela, el pimentón, la cebolla y el ajo en cuadritos.",
+        "Saca el pollo y guarda el caldo (el agua donde se cocinó) en una taza.",
+        "Cuando el pollo se enfríe un poco, desmenúzalo con las manos en tiras, sin el hueso ni la piel.",
+        "En la olla con el aceite, cocina las verduras picadas 5 minutos, revolviendo.",
+        "Agrega el arroz, el pollo y caldo (el doble del arroz); cuando hierva, tapa y deja 20 minutos a fuego mínimo."
+      ],
+      "en": [
+        "Boil the chicken in a pot with water and salt for 25 minutes. Wash your hands and the board after touching raw chicken.",
+        "Meanwhile, dice the carrot, green beans, bell pepper, onion and garlic.",
+        "Take the chicken out and keep the broth (the cooking water) in a cup.",
+        "When the chicken cools a little, shred it into strips with your hands, without the bone or skin.",
+        "In the pot with the oil, cook the chopped vegetables for 5 minutes, stirring.",
+        "Add the rice, the chicken and broth (twice the rice); when it boils, cover and leave 20 minutes on the lowest heat."
       ]
     }
   },
@@ -156,6 +375,1091 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     }
   },
   {
+    "id": "avena_de_microondas_con_banano",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Avena de microondas con banano y maní",
+      "en": "Microwave oatmeal with banana and peanuts"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 5,
+    "level": "basic",
+    "appliances": [
+      "microondas"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "avena",
+        "qty": 50,
+        "role": "carb"
+      },
+      {
+        "food": "banano",
+        "qty": 1,
+        "role": "veg"
+      },
+      {
+        "food": "mani",
+        "qty": 15,
+        "role": "fat"
+      },
+      {
+        "food": "leche_entera",
+        "qty": 100,
+        "role": "protein",
+        "optional": true,
+        "alternatives": [
+          {
+            "food": "leche_deslactosada",
+            "qty": 100
+          }
+        ]
+      },
+      {
+        "food": "panela",
+        "qty": 5,
+        "role": "fixed",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "En un plato hondo que sirva para microondas, pon la avena con una taza de agua (o leche, si quieres).",
+        "Calienta 2 minutos en el microondas.",
+        "Saca, revuelve y calienta 30 segundos más si aún está aguada.",
+        "Corta el banano en rodajas y ponlo encima con el maní.",
+        "Si te gusta dulce, agrega un poquito de panela rallada."
+      ],
+      "en": [
+        "In a microwave-safe bowl, put the oats with one cup of water (or milk, if you like).",
+        "Microwave for 2 minutes.",
+        "Take it out, stir and microwave 30 seconds more if it is still watery.",
+        "Slice the banana and put it on top with the peanuts.",
+        "If you like it sweet, add a little grated panela."
+      ]
+    }
+  },
+  {
+    "id": "avena_remojada_con_fruta",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Avena remojada con fruta (sin cocinar)",
+      "en": "Overnight oats with fruit (no cooking)"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 5,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": true,
+      "keepsDays": 2
+    },
+    "lines": [
+      {
+        "food": "avena",
+        "qty": 50,
+        "role": "carb"
+      },
+      {
+        "food": "leche_entera",
+        "qty": 150,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "leche_deslactosada",
+            "qty": 150
+          }
+        ]
+      },
+      {
+        "food": "fresa",
+        "qty": 80,
+        "role": "veg",
+        "alternatives": [
+          {
+            "food": "mango",
+            "qty": 80
+          },
+          {
+            "food": "papaya",
+            "qty": 80
+          },
+          {
+            "food": "banano",
+            "qty": 1
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "es": [
+        "La noche anterior, pon la avena en un vaso o frasco con tapa.",
+        "Échale la leche y revuelve bien.",
+        "Tápalo y déjalo en la nevera toda la noche: la avena se ablanda sola, sin cocinarla.",
+        "En la mañana, lava y pica la fruta en cuadritos.",
+        "Ponla encima de la avena y cómetela fría."
+      ],
+      "en": [
+        "The night before, put the oats in a glass or jar with a lid.",
+        "Pour in the milk and stir well.",
+        "Cover it and leave it in the fridge overnight: the oats soften by themselves, without cooking.",
+        "In the morning, wash the fruit and cut it into small cubes.",
+        "Put it on top of the oats and eat it cold."
+      ]
+    }
+  },
+  {
+    "id": "batido_de_banano_y_mani",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Batido de banano y maní",
+      "en": "Banana and peanut smoothie"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 5,
+    "level": "basic",
+    "appliances": [
+      "licuadora"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "leche_entera",
+        "qty": 250,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "leche_deslactosada",
+            "qty": 250
+          }
+        ]
+      },
+      {
+        "food": "banano",
+        "qty": 1,
+        "role": "veg"
+      },
+      {
+        "food": "mani",
+        "qty": 15,
+        "role": "fat"
+      },
+      {
+        "food": "avena",
+        "qty": 20,
+        "role": "carb",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pela el banano y pártelo en trozos.",
+        "Pon en la licuadora la leche, el banano, el maní y, si quieres, la avena.",
+        "Licúa 1 minuto, hasta que no queden pedazos.",
+        "Sírvelo enseguida, sin agregarle azúcar."
+      ],
+      "en": [
+        "Peel the banana and break it into pieces.",
+        "Put the milk, banana, peanuts and, if you like, the oats in the blender.",
+        "Blend for 1 minute, until there are no pieces left.",
+        "Serve it right away, without adding sugar."
+      ]
+    }
+  },
+  {
+    "id": "batido_de_fresa_y_avena",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Batido de fresa y avena",
+      "en": "Strawberry and oat smoothie"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 5,
+    "level": "basic",
+    "appliances": [
+      "licuadora"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "leche_entera",
+        "qty": 250,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "leche_deslactosada",
+            "qty": 250
+          }
+        ]
+      },
+      {
+        "food": "fresa",
+        "qty": 120,
+        "role": "veg",
+        "inName": true,
+        "alternatives": [
+          {
+            "food": "mora",
+            "qty": 120,
+            "name": {
+              "es": "Batido de mora y avena",
+              "en": "Blackberry and oat smoothie"
+            }
+          },
+          {
+            "food": "mango",
+            "qty": 120,
+            "name": {
+              "es": "Batido de mango y avena",
+              "en": "Mango and oat smoothie"
+            }
+          }
+        ]
+      },
+      {
+        "food": "avena",
+        "qty": 20,
+        "role": "carb",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la fruta y quítale las hojitas o la cáscara, si tiene.",
+        "Pon en la licuadora la leche, la fruta y, si quieres, la avena.",
+        "Licúa 1 minuto, hasta que quede suave.",
+        "Sírvelo enseguida, sin agregarle azúcar."
+      ],
+      "en": [
+        "Wash the fruit and remove any leaves or peel.",
+        "Put the milk, the fruit and, if you like, the oats in the blender.",
+        "Blend for 1 minute, until smooth.",
+        "Serve it right away, without adding sugar."
+      ]
+    }
+  },
+  {
+    "id": "carne_molida_con_papa_criolla",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Carne molida guisada con papa criolla",
+      "en": "Stewed ground beef with small yellow potatoes"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 3
+    },
+    "lines": [
+      {
+        "food": "carne_molida_res",
+        "qty": 100,
+        "role": "protein"
+      },
+      {
+        "food": "papa_criolla",
+        "qty": 150,
+        "role": "carb"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "pimenton",
+        "qty": 0.5,
+        "role": "veg"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 3,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava las papas criollas y cocínalas enteras en agua con sal, 15 minutos.",
+        "Mientras tanto, pica el tomate, la cebolla, el pimentón y el ajo en cuadritos.",
+        "En una sartén con el aceite, cocina la cebolla, el pimentón y el ajo 3 minutos.",
+        "Agrega la carne y desbarátala con la cuchara hasta que no se vea roja (unos 5 minutos). Lávate las manos después de tocarla cruda.",
+        "Echa el tomate y la sal, y cocina 5 minutos más.",
+        "Sirve la carne con las papas. Lo que sobre dura 3 días en la nevera."
+      ],
+      "en": [
+        "Wash the small potatoes and boil them whole in salted water for 15 minutes.",
+        "Meanwhile, dice the tomato, onion, bell pepper and garlic.",
+        "In a pan with the oil, cook the onion, bell pepper and garlic for 3 minutes.",
+        "Add the meat and break it up with the spoon until it is no longer red (about 5 minutes). Wash your hands after touching it raw.",
+        "Add the tomato and salt, and cook 5 more minutes.",
+        "Serve the meat with the potatoes. Leftovers keep 3 days in the fridge."
+      ]
+    }
+  },
+  {
+    "id": "changua",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Changua (caldo de leche con huevo)",
+      "en": "Changua (milk broth with egg)"
+    },
+    "slots": [
+      "desayuno"
+    ],
+    "minutes": 15,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "leche_entera",
+        "qty": 200,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "leche_deslactosada",
+            "qty": 200
+          }
+        ]
+      },
+      {
+        "food": "huevo",
+        "qty": 2,
+        "role": "protein"
+      },
+      {
+        "food": "cebolla_junca",
+        "qty": 15,
+        "role": "veg"
+      },
+      {
+        "food": "cilantro",
+        "qty": 5,
+        "role": "fixed"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      },
+      {
+        "food": "pan_tajado",
+        "qty": 25,
+        "role": "carb",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pica la cebolla larga y el cilantro bien finitos.",
+        "Pon en una olla la leche, media taza de agua, la cebolla y la sal, a fuego medio.",
+        "Cuando empiece a hervir (a hacer burbujas), baja el fuego.",
+        "Rompe los huevos uno por uno dentro de la leche, sin revolver. Lávate las manos después.",
+        "Déjalos cocinar unos 5 minutos, hasta que la yema esté cuajada (firme).",
+        "Sirve en un plato hondo con el cilantro encima y, si quieres, el pan en trocitos."
+      ],
+      "en": [
+        "Finely chop the spring onion and the cilantro.",
+        "Put the milk, half a cup of water, the onion and the salt in a pot over medium heat.",
+        "When it starts to boil (to bubble), lower the heat.",
+        "Crack the eggs one by one into the milk, without stirring. Wash your hands afterwards.",
+        "Let them cook about 5 minutes, until the yolk is set (firm).",
+        "Serve in a bowl with the cilantro on top and, if you like, the bread in small pieces."
+      ]
+    }
+  },
+  {
+    "id": "colada_de_avena",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Colada de avena",
+      "en": "Colombian oat drink (colada)"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "avena",
+        "qty": 40,
+        "role": "carb"
+      },
+      {
+        "food": "leche_entera",
+        "qty": 150,
+        "role": "protein",
+        "optional": true,
+        "alternatives": [
+          {
+            "food": "leche_deslactosada",
+            "qty": 150
+          }
+        ]
+      },
+      {
+        "food": "banano",
+        "qty": 1,
+        "role": "veg"
+      },
+      {
+        "food": "panela",
+        "qty": 5,
+        "role": "fixed",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pon en una olla la avena con una taza y media de agua (o mitad agua y mitad leche).",
+        "Cocina a fuego medio 6 minutos, revolviendo seguido para que no se pegue al fondo.",
+        "Cuando espese (se ponga más gruesa), apaga.",
+        "Si te gusta dulce, agrega un poquito de panela rallada.",
+        "Sírvela en una taza y acompáñala con el banano."
+      ],
+      "en": [
+        "Put the oats in a pot with one and a half cups of water (or half water, half milk).",
+        "Cook over medium heat for 6 minutes, stirring often so it does not stick to the bottom.",
+        "When it thickens, turn off the heat.",
+        "If you like it sweet, add a little grated panela.",
+        "Serve it in a mug with the banana on the side."
+      ]
+    }
+  },
+  {
+    "id": "ensalada_de_aguacate_y_mani",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Ensalada de aguacate, tomate y maní",
+      "en": "Avocado, tomato and peanut salad"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "aguacate",
+        "qty": 0.5,
+        "role": "fat"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 100,
+        "role": "veg"
+      },
+      {
+        "food": "pepino",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "lechuga",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "mani",
+        "qty": 45,
+        "role": "protein"
+      },
+      {
+        "food": "aceite_oliva",
+        "qty": 5,
+        "role": "fat",
+        "alternatives": [
+          {
+            "food": "aceite_vegetal",
+            "qty": 5
+          }
+        ]
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      },
+      {
+        "food": "pan_tajado",
+        "qty": 50,
+        "role": "carb",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la lechuga, el tomate y el pepino.",
+        "Pica todo en trozos medianos y ponlo en un plato hondo.",
+        "Agrega el aguacate en cuadritos y el maní.",
+        "Échale el aceite y la sal, y revuelve con cuidado.",
+        "Acompáñala con pan, si quieres."
+      ],
+      "en": [
+        "Wash the lettuce, tomato and cucumber.",
+        "Cut everything into medium pieces and put it in a bowl.",
+        "Add the avocado in cubes and the peanuts.",
+        "Add the oil and salt, and stir gently.",
+        "Have it with bread, if you like."
+      ]
+    }
+  },
+  {
+    "id": "ensalada_de_atun_con_aguacate",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Ensalada de atún con aguacate",
+      "en": "Tuna salad with avocado"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "atun_lata",
+        "qty": 80,
+        "role": "protein"
+      },
+      {
+        "food": "aguacate",
+        "qty": 0.5,
+        "role": "fat"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "lechuga",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "pepino",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_oliva",
+        "qty": 5,
+        "role": "fat",
+        "alternatives": [
+          {
+            "food": "aceite_vegetal",
+            "qty": 5
+          }
+        ]
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la lechuga, el tomate y el pepino, y pícalos.",
+        "Escurre el atún (bota el agua de la lata).",
+        "Pon todo en un plato hondo con el aguacate en cuadritos.",
+        "Échale el aceite y la sal, y revuelve."
+      ],
+      "en": [
+        "Wash the lettuce, tomato and cucumber, and chop them.",
+        "Drain the tuna (pour off the water from the can).",
+        "Put everything in a bowl with the avocado in cubes.",
+        "Add the oil and salt, and stir."
+      ]
+    }
+  },
+  {
+    "id": "ensalada_de_frutas_con_mani",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Ensalada de frutas con maní",
+      "en": "Fruit salad with peanuts"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 5,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "banano",
+        "qty": 1,
+        "role": "veg"
+      },
+      {
+        "food": "papaya",
+        "qty": 100,
+        "role": "veg",
+        "alternatives": [
+          {
+            "food": "mango",
+            "qty": 100
+          },
+          {
+            "food": "pina",
+            "qty": 100
+          }
+        ]
+      },
+      {
+        "food": "mani",
+        "qty": 20,
+        "role": "fat"
+      },
+      {
+        "food": "avena",
+        "qty": 20,
+        "role": "carb",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la fruta y pélala.",
+        "Pica el banano y la otra fruta en cuadritos.",
+        "Ponlos en un plato hondo y échales el maní encima.",
+        "Si quieres algo más llenador, agrega la avena en hojuelas."
+      ],
+      "en": [
+        "Wash and peel the fruit.",
+        "Cut the banana and the other fruit into small cubes.",
+        "Put them in a bowl and sprinkle the peanuts on top.",
+        "For something more filling, add the rolled oats."
+      ]
+    }
+  },
+  {
+    "id": "ensalada_de_repollo_y_mani",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Ensalada de repollo, zanahoria y maní con pan",
+      "en": "Cabbage, carrot and peanut salad with bread"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "repollo",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "mani",
+        "qty": 35,
+        "role": "protein"
+      },
+      {
+        "food": "pan_tajado",
+        "qty": 50,
+        "role": "carb"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava el repollo y córtalo en tiras muy delgadas.",
+        "Pela la zanahoria y rállala (pásala por el rallador).",
+        "Pica el tomate y mezcla todo en un plato hondo.",
+        "Agrega el aceite, la sal y el maní, y revuelve.",
+        "Cómela con el pan."
+      ],
+      "en": [
+        "Wash the cabbage and cut it into very thin strips.",
+        "Peel the carrot and grate it.",
+        "Chop the tomato and mix everything in a bowl.",
+        "Add the oil, salt and peanuts, and stir.",
+        "Eat it with the bread."
+      ]
+    }
+  },
+  {
+    "id": "frijoles_en_olla_a_presion",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Fríjoles con plátano en olla a presión",
+      "en": "Pressure-cooker beans with plantain"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 55,
+    "level": "comfortable",
+    "appliances": [
+      "estufa",
+      "olla_presion"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 4
+    },
+    "lines": [
+      {
+        "food": "frijol",
+        "qty": 70,
+        "role": "protein"
+      },
+      {
+        "food": "platano",
+        "qty": 80,
+        "role": "carb"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_junca",
+        "qty": 25,
+        "role": "veg"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 3,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "arroz_blanco",
+        "qty": 60,
+        "role": "carb",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "La noche anterior, deja los fríjoles en un recipiente con bastante agua (el doble de lo que ocupan).",
+        "Bota esa agua. Pon en la olla a presión los fríjoles, el plátano verde en trocitos y agua nueva que los cubra 3 dedos.",
+        "Tapa bien la olla y ponla a fuego medio.",
+        "Cuando empiece a pitar (a sonar como un silbido), baja el fuego y cuenta 30 minutos.",
+        "Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).",
+        "Echa a la olla el tomate, la cebolla larga, el ajo y la zanahoria picados, el aceite y la sal. Hierve 10 minutos sin tapa y sirve con arroz, si quieres."
+      ],
+      "en": [
+        "The night before, soak the beans in a bowl with plenty of water (twice their volume).",
+        "Pour off that water. Put the beans, the green plantain in small pieces and fresh water three fingers above them in the pressure cooker.",
+        "Close the lid well and put it over medium heat.",
+        "When it starts to whistle, lower the heat and count 30 minutes.",
+        "Turn it off and wait until no more steam comes out before opening it (never open it under pressure).",
+        "Add the chopped tomato, spring onion, garlic and carrot, the oil and the salt to the pot. Boil 10 minutes uncovered and serve with rice, if you like."
+      ]
+    }
+  },
+  {
+    "id": "fruta_con_almendras",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Fruta con almendras",
+      "en": "Fruit with almonds"
+    },
+    "slots": [
+      "snacks"
+    ],
+    "minutes": 2,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "manzana",
+        "qty": 1,
+        "role": "veg",
+        "alternatives": [
+          {
+            "food": "pera",
+            "qty": 1
+          },
+          {
+            "food": "mandarina",
+            "qty": 2
+          },
+          {
+            "food": "naranja",
+            "qty": 1
+          }
+        ]
+      },
+      {
+        "food": "almendras",
+        "qty": 20,
+        "role": "fat",
+        "inName": true,
+        "alternatives": [
+          {
+            "food": "nueces",
+            "qty": 20,
+            "name": {
+              "es": "Fruta con nueces",
+              "en": "Fruit with walnuts"
+            }
+          },
+          {
+            "food": "mani",
+            "qty": 20,
+            "name": {
+              "es": "Fruta con maní",
+              "en": "Fruit with peanuts"
+            }
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la fruta.",
+        "Pártela en tajadas, si quieres.",
+        "Acompáñala con un puñado pequeño de frutos secos o maní."
+      ],
+      "en": [
+        "Wash the fruit.",
+        "Cut it into slices, if you like.",
+        "Eat it with a small handful of nuts or peanuts."
+      ]
+    }
+  },
+  {
+    "id": "garbanzos_guisados_con_papa",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Garbanzos guisados con papa",
+      "en": "Stewed chickpeas with potato"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 55,
+    "level": "comfortable",
+    "appliances": [
+      "estufa",
+      "olla_presion"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 4
+    },
+    "lines": [
+      {
+        "food": "garbanzo",
+        "qty": 70,
+        "role": "protein",
+        "inName": true,
+        "alternatives": [
+          {
+            "food": "arveja_seca",
+            "qty": 70,
+            "name": {
+              "es": "Arvejas guisadas con papa",
+              "en": "Stewed dried peas with potato"
+            }
+          }
+        ]
+      },
+      {
+        "food": "papa",
+        "qty": 120,
+        "role": "carb"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "pimenton",
+        "qty": 0.5,
+        "role": "veg"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "cilantro",
+        "qty": 5,
+        "role": "fixed",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "La noche anterior, deja los granos en un recipiente con bastante agua.",
+        "Bota esa agua y cocina los granos en la olla a presión con agua nueva, 25 minutos desde que empiece a pitar (a sonar como un silbido).",
+        "Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).",
+        "Pela la papa y pícala en cuadritos; échala a la olla destapada y cocina 15 minutos, hasta que esté blanda.",
+        "Aparte, cocina en una sartén con el aceite el tomate, la cebolla, el pimentón y el ajo picados, 5 minutos.",
+        "Mezcla todo con la sal y sirve con cilantro, si quieres."
+      ],
+      "en": [
+        "The night before, soak the legumes in a bowl with plenty of water.",
+        "Pour off that water and cook the legumes in the pressure cooker with fresh water, 25 minutes from when it starts to whistle.",
+        "Turn it off and wait until no more steam comes out before opening it (never open it under pressure).",
+        "Peel and dice the potato; add it to the open pot and cook 15 minutes, until soft.",
+        "Separately, in a pan with the oil, cook the chopped tomato, onion, bell pepper and garlic for 5 minutes.",
+        "Mix everything with the salt and serve with cilantro, if you like."
+      ]
+    }
+  },
+  {
     "id": "huevos_pericos_con_arepa",
     "status": "pending_owner_ok",
     "source": "ai_draft",
@@ -210,20 +1514,167 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     ],
     "steps": {
       "es": [
-        "Mezcla la harina con un poco de sal y agua tibia, poco a poco, hasta tener una masa suave.",
-        "Haz una bola con la masa y aplástala con las manos hasta que quede como un disco.",
+        "Mezcla la harina con sal y agua tibia hasta tener una masa suave; haz una bola y aplástala como un disco.",
         "Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
-        "Pica el tomate y la cebolla en cuadritos.",
+        "Pica el tomate y la cebolla larga en cuadritos.",
         "En otra sartén con el aceite, cocina el tomate y la cebolla 3 minutos, revolviendo.",
-        "Bate los huevos en un plato, échalos a la sartén y revuelve hasta que no estén líquidos."
+        "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos (bate: mezcla rápido con un tenedor), échalos a la sartén y revuelve hasta que no estén líquidos."
       ],
       "en": [
-        "Mix the flour with a little salt and warm water, bit by bit, until you get a soft dough.",
-        "Roll the dough into a ball and press it with your hands into a disc.",
+        "Mix the flour with salt and warm water until you get a soft dough; roll it into a ball and press it into a disc.",
         "Cook the arepa in a dry pan over medium heat, 5 minutes on each side.",
-        "Chop the tomato and the onion into small cubes.",
+        "Chop the tomato and the spring onion into small cubes.",
         "In another pan with the oil, cook the tomato and onion for 3 minutes, stirring.",
-        "Beat the eggs on a plate, pour them into the pan and stir until they are no longer runny."
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs (mix fast with a fork), pour them into the pan and stir until they are no longer runny."
+      ]
+    }
+  },
+  {
+    "id": "huevos_revueltos_con_espinaca",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Huevos revueltos con espinaca y tomate",
+      "en": "Scrambled eggs with spinach and tomato"
+    },
+    "slots": [
+      "desayuno",
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "huevo",
+        "qty": 3,
+        "role": "protein"
+      },
+      {
+        "food": "espinaca",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      },
+      {
+        "food": "pan_tajado",
+        "qty": 50,
+        "role": "carb",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la espinaca y córtala en tiras. Pica el tomate en cuadritos.",
+        "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos con la sal (bate: mezcla rápido con un tenedor).",
+        "Calienta el aceite en una sartén a fuego medio y echa el tomate y la espinaca; revuelve 2 minutos, hasta que la espinaca se encoja.",
+        "Echa los huevos a la sartén y revuelve hasta que ya no estén líquidos.",
+        "Sirve con el pan, si quieres."
+      ],
+      "en": [
+        "Wash the spinach and cut it into strips. Dice the tomato.",
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs with the salt (mix fast with a fork).",
+        "Heat the oil in a pan over medium heat and add the tomato and spinach; stir 2 minutes, until the spinach shrinks.",
+        "Pour the eggs into the pan and stir until they are no longer runny.",
+        "Serve with the bread, if you like."
+      ]
+    }
+  },
+  {
+    "id": "huevos_revueltos_en_microondas",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Huevos revueltos en el microondas",
+      "en": "Microwave scrambled eggs"
+    },
+    "slots": [
+      "desayuno",
+      "cena"
+    ],
+    "minutes": 8,
+    "level": "basic",
+    "appliances": [
+      "microondas"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "huevo",
+        "qty": 3,
+        "role": "protein"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_junca",
+        "qty": 15,
+        "role": "veg"
+      },
+      {
+        "food": "espinaca",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      },
+      {
+        "food": "pan_tajado",
+        "qty": 50,
+        "role": "carb",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pica el tomate, la cebolla larga y la espinaca bien pequeñitos.",
+        "Rompe los huevos en una taza grande que sirva para microondas. Lávate las manos después.",
+        "Bate los huevos con la sal (bate: mezcla rápido con un tenedor) y agrega los picados.",
+        "Calienta 1 minuto en el microondas, saca y revuelve con un tenedor.",
+        "Calienta 30 segundos más y revuelve. Repite hasta que el huevo esté firme (que no quede líquido).",
+        "Cómelos con el pan, si quieres."
+      ],
+      "en": [
+        "Chop the tomato, spring onion and spinach very small.",
+        "Crack the eggs into a large microwave-safe mug. Wash your hands afterwards.",
+        "Beat the eggs with the salt (mix fast with a fork) and add the chopped vegetables.",
+        "Microwave for 1 minute, take it out and stir with a fork.",
+        "Microwave 30 seconds more and stir. Repeat until the egg is set (nothing runny left).",
+        "Eat them with the bread, if you like."
       ]
     }
   },
@@ -318,19 +1769,766 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     "steps": {
       "es": [
         "Si usas fríjoles o garbanzos, déjalos en agua desde la noche anterior.",
-        "Lava las lentejas y cocínalas en una olla con bastante agua, a fuego medio, unos 30 minutos, hasta que estén blandas.",
+        "Lava los granos y cocínalos en una olla con bastante agua, a fuego medio, hasta que estén blandos (unos 30 minutos).",
         "Mientras tanto, pica la zanahoria, el tomate, la cebolla y el ajo en cuadritos.",
         "En una sartén con el aceite, cocina esos picados 5 minutos y échalos a la olla con la sal.",
         "Aparte, pon el arroz con el doble de agua y un poquito de sal; tapa y cocina 20 minutos a fuego bajo.",
-        "Sirve las lentejas con el arroz y, si quieres, cilantro picado encima."
+        "Sirve los granos con el arroz y, si quieres, cilantro picado encima."
       ],
       "en": [
         "If you use beans or chickpeas, soak them in water the night before.",
-        "Rinse the lentils and cook them in a pot with plenty of water, over medium heat, for about 30 minutes, until soft.",
+        "Rinse the legumes and cook them in a pot with plenty of water, over medium heat, until soft (about 30 minutes).",
         "Meanwhile, chop the carrot, tomato, onion and garlic into small cubes.",
         "In a pan with the oil, cook the chopped vegetables for 5 minutes and add them to the pot with the salt.",
         "Separately, put the rice with twice as much water and a pinch of salt; cover and cook 20 minutes over low heat.",
-        "Serve the lentils with the rice and, if you like, chopped cilantro on top."
+        "Serve the legumes with the rice and, if you like, chopped cilantro on top."
+      ]
+    }
+  },
+  {
+    "id": "lentejas_con_papa_en_microondas",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Lentejas con papa en el microondas",
+      "en": "Microwave lentils with potato"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 45,
+    "level": "basic",
+    "appliances": [
+      "microondas"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 3
+    },
+    "lines": [
+      {
+        "food": "lentejas",
+        "qty": 70,
+        "role": "protein"
+      },
+      {
+        "food": "papa",
+        "qty": 120,
+        "role": "carb"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 3,
+        "role": "fat"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "sal",
+        "qty": 2,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava las lentejas y ponlas con 3 tazas de agua en un recipiente grande y hondo para microondas (así no se riega al hervir).",
+        "Pica la papa, la zanahoria, el tomate, la cebolla y el ajo en cuadritos, y échalos con el aceite y la sal.",
+        "Tapa sin cerrar del todo (deja una rendija para que salga el vapor).",
+        "Calienta 10 minutos en el microondas a potencia media, saca y revuelve.",
+        "Repite tres veces más (40 minutos en total), revisando que no le falte agua.",
+        "Están listas cuando las lentejas se aplastan fácil con un tenedor. Duran 3 días en la nevera."
+      ],
+      "en": [
+        "Rinse the lentils and put them with 3 cups of water in a large, deep microwave-safe bowl (so it does not boil over).",
+        "Dice the potato, carrot, tomato, onion and garlic, and add them with the oil and salt.",
+        "Cover without sealing (leave a gap so the steam can escape).",
+        "Microwave at medium power for 10 minutes, take it out and stir.",
+        "Repeat three more times (40 minutes in total), checking that there is still water.",
+        "They are ready when the lentils mash easily with a fork. They keep 3 days in the fridge."
+      ]
+    }
+  },
+  {
+    "id": "maduro_asado_con_queso",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Maduro asado con queso",
+      "en": "Baked-style sweet plantain with cheese"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 30,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "platano",
+        "qty": 150,
+        "role": "carb"
+      },
+      {
+        "food": "queso_campesino",
+        "qty": 40,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "queso_mozzarella",
+            "qty": 40
+          }
+        ]
+      },
+      {
+        "food": "mantequilla",
+        "qty": 5,
+        "role": "fat",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Usa un plátano bien maduro (con la cáscara casi negra).",
+        "Pélalo y córtalo a lo largo en dos mitades.",
+        "Ponlo en una sartén con la mantequilla o unas gotas de aceite, a fuego bajo y con tapa.",
+        "Déjalo 12 minutos por cada lado, hasta que esté blandito y dorado (color café claro).",
+        "Pon el queso encima los últimos 3 minutos para que se derrita."
+      ],
+      "en": [
+        "Use a very ripe plantain (skin almost black).",
+        "Peel it and cut it lengthwise into two halves.",
+        "Put it in a pan with the butter or a few drops of oil, over low heat, with a lid.",
+        "Leave it 12 minutes on each side, until soft and golden (light brown).",
+        "Put the cheese on top for the last 3 minutes so it melts."
+      ]
+    }
+  },
+  {
+    "id": "palitos_de_verdura_con_guacamole",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Palitos de verdura con guacamole",
+      "en": "Vegetable sticks with guacamole"
+    },
+    "slots": [
+      "snacks"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "zanahoria",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "pepino",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "aguacate",
+        "qty": 0.5,
+        "role": "fat"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la zanahoria y el pepino. Pela la zanahoria.",
+        "Córtalos en palitos largos, como dedos.",
+        "Aplasta el aguacate con un tenedor y mézclalo con el tomate picado y la sal: eso es el guacamole.",
+        "Unta los palitos en el guacamole."
+      ],
+      "en": [
+        "Wash the carrot and the cucumber. Peel the carrot.",
+        "Cut them into long sticks, like fingers.",
+        "Mash the avocado with a fork and mix it with the chopped tomato and salt: that is the guacamole.",
+        "Dip the sticks in the guacamole."
+      ]
+    }
+  },
+  {
+    "id": "pan_con_aguacate_y_tomate",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Pan con aguacate y tomate",
+      "en": "Bread with avocado and tomato"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 5,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "pan_tajado",
+        "qty": 50,
+        "role": "carb"
+      },
+      {
+        "food": "aguacate",
+        "qty": 0.5,
+        "role": "fat"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Parte el aguacate por la mitad, saca la pulpa con una cuchara y aplástala con un tenedor.",
+        "Échale la sal y revuelve.",
+        "Unta el aguacate sobre las tajadas de pan.",
+        "Corta el tomate en rodajas (ruedas delgadas) y ponlas encima."
+      ],
+      "en": [
+        "Cut the avocado in half, scoop out the flesh with a spoon and mash it with a fork.",
+        "Add the salt and stir.",
+        "Spread the avocado on the bread slices.",
+        "Cut the tomato into thin round slices and put them on top."
+      ]
+    }
+  },
+  {
+    "id": "papa_al_microondas_con_guacamole",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Papa al microondas con queso y guacamole",
+      "en": "Microwave potato with cheese and guacamole"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [
+      "microondas"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "papa",
+        "qty": 200,
+        "role": "carb"
+      },
+      {
+        "food": "queso_campesino",
+        "qty": 60,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "queso_mozzarella",
+            "qty": 60
+          }
+        ]
+      },
+      {
+        "food": "aguacate",
+        "qty": 0.5,
+        "role": "fat"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 20,
+        "role": "veg"
+      },
+      {
+        "food": "cilantro",
+        "qty": 5,
+        "role": "fixed",
+        "optional": true
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava bien la papa y pínchala varias veces con un tenedor.",
+        "Ponla en un plato y caliéntala 4 minutos en el microondas; dale la vuelta y caliéntala 3 minutos más.",
+        "Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados y la sal.",
+        "Revisa la papa: si un tenedor entra fácil, está lista; si no, dale 1 minuto más.",
+        "Ábrela por la mitad, desmorona el queso adentro y caliéntala 30 segundos para que se derrita.",
+        "Ponle encima el guacamole y el cilantro."
+      ],
+      "en": [
+        "Wash the potato well and prick it several times with a fork.",
+        "Put it on a plate and microwave it 4 minutes; turn it over and microwave 3 minutes more.",
+        "Meanwhile, mash the avocado and mix it with the chopped tomato and onion and the salt.",
+        "Check the potato: if a fork goes in easily, it is ready; if not, give it 1 more minute.",
+        "Cut it open, crumble the cheese inside and microwave it 30 seconds so it melts.",
+        "Top it with the guacamole and cilantro."
+      ]
+    }
+  },
+  {
+    "id": "papa_criolla_con_huevos_en_hogao",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Papa criolla con huevos en hogao",
+      "en": "Small yellow potatoes with eggs in tomato sauce"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "papa_criolla",
+        "qty": 180,
+        "role": "carb"
+      },
+      {
+        "food": "huevo",
+        "qty": 2,
+        "role": "protein"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_junca",
+        "qty": 25,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava las papas criollas y cocínalas enteras en agua con sal, 15 minutos, hasta que un tenedor entre fácil.",
+        "Mientras tanto, pica el tomate y la cebolla larga en cuadritos.",
+        "Haz el hogao (salsa casera): cocina el tomate y la cebolla larga en el aceite, 5 minutos a fuego medio, revolviendo.",
+        "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos (bate: mezcla rápido con un tenedor), échalos al hogao y revuelve hasta que no estén líquidos.",
+        "Escurre las papas y sírvelas con los huevos."
+      ],
+      "en": [
+        "Wash the small potatoes and boil them whole in salted water for 15 minutes, until a fork goes in easily.",
+        "Meanwhile, dice the tomato and the spring onion.",
+        "Make the hogao (homemade sauce): cook the tomato and spring onion in the oil, 5 minutes over medium heat, stirring.",
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs (mix fast with a fork), pour them into the sauce and stir until they are no longer runny.",
+        "Drain the potatoes and serve them with the eggs."
+      ]
+    }
+  },
+  {
+    "id": "pasta_con_atun",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Pasta con atún y tomate",
+      "en": "Pasta with tuna and tomato"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 2
+    },
+    "lines": [
+      {
+        "food": "pasta",
+        "qty": 80,
+        "role": "carb"
+      },
+      {
+        "food": "atun_lata",
+        "qty": 80,
+        "role": "protein"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pon a hervir agua con sal en una olla y cocina la pasta el tiempo que diga el paquete (unos 10 minutos).",
+        "Mientras tanto, pica la cebolla, el tomate y el ajo en cuadritos.",
+        "En una sartén con el aceite, cocina la cebolla y el ajo 2 minutos a fuego medio.",
+        "Agrega el tomate y cocina 5 minutos más, revolviendo, hasta que se vuelva salsa.",
+        "Escurre el atún (bota el agua de la lata) y échalo a la salsa.",
+        "Escurre la pasta (sácale el agua con un colador) y mézclala con la salsa."
+      ],
+      "en": [
+        "Boil salted water in a pot and cook the pasta for the time on the package (about 10 minutes).",
+        "Meanwhile, dice the onion, tomato and garlic.",
+        "In a pan with the oil, cook the onion and garlic for 2 minutes over medium heat.",
+        "Add the tomato and cook 5 more minutes, stirring, until it turns into a sauce.",
+        "Drain the tuna (pour off the water from the can) and add it to the sauce.",
+        "Drain the pasta (remove the water with a colander) and mix it with the sauce."
+      ]
+    }
+  },
+  {
+    "id": "pasta_con_huevo_y_tomate",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Pasta con huevo, tomate y habichuela",
+      "en": "Pasta with egg, tomato and green beans"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "pasta",
+        "qty": 80,
+        "role": "carb"
+      },
+      {
+        "food": "huevo",
+        "qty": 2,
+        "role": "protein"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 100,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_junca",
+        "qty": 20,
+        "role": "veg"
+      },
+      {
+        "food": "habichuela",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pon a hervir agua con sal y cocina la pasta el tiempo que diga el paquete.",
+        "Corta la habichuela en trocitos y échala a la olla de la pasta los últimos 5 minutos.",
+        "Pica el tomate y la cebolla larga, y cocínalos en una sartén con el aceite 5 minutos.",
+        "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos (bate: mezcla rápido con un tenedor), échalos a la sartén y revuelve hasta que no estén líquidos.",
+        "Escurre la pasta con la habichuela y mézclala con el huevo y el tomate."
+      ],
+      "en": [
+        "Boil salted water and cook the pasta for the time on the package.",
+        "Cut the green beans into small pieces and add them to the pasta pot for the last 5 minutes.",
+        "Chop the tomato and spring onion, and cook them in a pan with the oil for 5 minutes.",
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs (mix fast with a fork), pour them into the pan and stir until they are no longer runny.",
+        "Drain the pasta and green beans and mix them with the egg and tomato."
+      ]
+    }
+  },
+  {
+    "id": "pasta_con_tomate_y_espinaca",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Pasta con tomate y espinaca",
+      "en": "Pasta with tomato and spinach"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 2
+    },
+    "lines": [
+      {
+        "food": "pasta",
+        "qty": 100,
+        "role": "carb"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 120,
+        "role": "veg"
+      },
+      {
+        "food": "espinaca",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_oliva",
+        "qty": 7,
+        "role": "fat",
+        "alternatives": [
+          {
+            "food": "aceite_vegetal",
+            "qty": 7
+          }
+        ]
+      },
+      {
+        "food": "ajo",
+        "qty": 3,
+        "role": "fixed"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      },
+      {
+        "food": "queso_campesino",
+        "qty": 20,
+        "role": "protein",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pon a hervir agua con sal y cocina la pasta el tiempo que diga el paquete.",
+        "Mientras tanto, pica el tomate, la cebolla y el ajo; lava la espinaca.",
+        "En una sartén con el aceite, cocina la cebolla y el ajo 2 minutos a fuego medio.",
+        "Agrega el tomate y cocina 5 minutos, revolviendo, hasta que se deshaga como salsa.",
+        "Echa la espinaca y revuelve 1 minuto, hasta que se encoja.",
+        "Escurre la pasta, mézclala con la salsa y, si quieres, pon queso desmoronado encima."
+      ],
+      "en": [
+        "Boil salted water and cook the pasta for the time on the package.",
+        "Meanwhile, chop the tomato, onion and garlic; wash the spinach.",
+        "In a pan with the oil, cook the onion and garlic for 2 minutes over medium heat.",
+        "Add the tomato and cook 5 minutes, stirring, until it breaks down into a sauce.",
+        "Add the spinach and stir for 1 minute, until it shrinks.",
+        "Drain the pasta, mix it with the sauce and, if you like, crumble cheese on top."
+      ]
+    }
+  },
+  {
+    "id": "pechuga_a_la_plancha_con_arepa",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Pechuga a la plancha con arepa y ensalada",
+      "en": "Pan-grilled chicken breast with arepa and salad"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "pechuga_pollo",
+        "qty": 130,
+        "role": "protein",
+        "inName": true,
+        "alternatives": [
+          {
+            "food": "lomo_cerdo",
+            "qty": 130,
+            "name": {
+              "es": "Lomo de cerdo a la plancha con arepa y ensalada",
+              "en": "Pan-grilled pork loin with arepa and salad"
+            }
+          }
+        ]
+      },
+      {
+        "food": "harina_maiz",
+        "qty": 60,
+        "role": "carb"
+      },
+      {
+        "food": "lechuga",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "pepino",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Prepara la masa: mezcla la harina con sal y agua tibia, haz una bola y aplástala como un disco.",
+        "Pon la arepa en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
+        "Corta la carne en filetes delgados y échales sal. Lávate las manos y la tabla después de tocar la carne cruda.",
+        "Cocínala a la plancha: en otra sartén con muy poco aceite, 4 minutos por cada lado, hasta que por dentro no esté rosada.",
+        "Lava y pica la lechuga, el tomate y el pepino para la ensalada.",
+        "Sirve la carne con la arepa y la ensalada."
+      ],
+      "en": [
+        "Make the dough: mix the flour with salt and warm water, make a ball and press it into a disc.",
+        "Cook the arepa in a dry pan over medium heat, 5 minutes on each side.",
+        "Cut the meat into thin fillets and salt them. Wash your hands and the board after touching the raw meat.",
+        "Pan-grill it: in another pan with very little oil, 4 minutes on each side, until it is no longer pink inside.",
+        "Wash and chop the lettuce, tomato and cucumber for the salad.",
+        "Serve the meat with the arepa and the salad."
       ]
     }
   },
@@ -425,17 +2623,1095 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
         "Pica el tomate, la cebolla y el ajo en cuadritos.",
         "Pela la papa y la zanahoria y córtalas en trozos medianos.",
         "En una olla con el aceite, cocina el tomate, la cebolla y el ajo 5 minutos, revolviendo.",
-        "Agrega el pollo y la sal, y dale vuelta para que se cubra con el tomate.",
-        "Echa la papa, la zanahoria y un vaso de agua, tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda.",
-        "Si cocinas para varios días, guarda lo que sobra en la nevera en un recipiente tapado."
+        "Agrega el pollo y la sal, y dale vuelta para que se cubra. Lávate las manos después de tocar el pollo crudo.",
+        "Echa la papa, la zanahoria y un vaso de agua.",
+        "Tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda. Lo que sobre dura 3 días en la nevera."
       ],
       "en": [
         "Chop the tomato, onion and garlic into small cubes.",
         "Peel the potato and the carrot and cut them into medium pieces.",
         "In a pot with the oil, cook the tomato, onion and garlic for 5 minutes, stirring.",
-        "Add the chicken and the salt, and turn it so it gets covered with the tomato.",
-        "Add the potato, the carrot and a glass of water, cover the pot and leave it 30 minutes over low heat, until the potato is soft.",
-        "If you cook for several days, keep the leftovers in the fridge in a closed container."
+        "Add the chicken and the salt, and turn it so it gets covered. Wash your hands after touching raw chicken.",
+        "Add the potato, the carrot and a glass of water.",
+        "Cover the pot and leave it 30 minutes over low heat, until the potato is soft. Leftovers keep 3 days in the fridge."
+      ]
+    }
+  },
+  {
+    "id": "pollo_salteado_con_quinua",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Pollo salteado con verduras y quinua",
+      "en": "Stir-fried chicken with vegetables and quinoa"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 3
+    },
+    "lines": [
+      {
+        "food": "pechuga_pollo",
+        "qty": 120,
+        "role": "protein"
+      },
+      {
+        "food": "quinua",
+        "qty": 50,
+        "role": "carb"
+      },
+      {
+        "food": "pimenton",
+        "qty": 0.5,
+        "role": "veg"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la quinua en un colador y cocínala con el doble de agua y sal, tapada, 15 minutos a fuego bajo.",
+        "Mientras tanto, corta el pollo en tiritas y échale sal. Lávate las manos y la tabla después de tocar el pollo crudo.",
+        "Corta el pimentón, la zanahoria y la cebolla en tiras delgadas, y pica el ajo.",
+        "Saltea el pollo: en una sartén con el aceite a fuego alto, revuélvelo 6 minutos, hasta que por dentro esté blanco.",
+        "Agrega las verduras y revuelve 4 minutos más; deben quedar un poco crocantes (que suenen al morderlas).",
+        "Sirve con la quinua."
+      ],
+      "en": [
+        "Rinse the quinoa in a sieve and cook it with twice as much water and salt, covered, 15 minutes over low heat.",
+        "Meanwhile, cut the chicken into strips and salt it. Wash your hands and the board after touching raw chicken.",
+        "Cut the bell pepper, carrot and onion into thin strips, and chop the garlic.",
+        "Stir-fry the chicken: in a pan with the oil over high heat, stir it 6 minutes, until it is white inside.",
+        "Add the vegetables and stir 4 more minutes; they should stay a little crunchy.",
+        "Serve with the quinoa."
+      ]
+    }
+  },
+  {
+    "id": "quinua_con_verduras",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Quinua con verduras",
+      "en": "Quinoa with vegetables"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 3
+    },
+    "lines": [
+      {
+        "food": "quinua",
+        "qty": 60,
+        "role": "carb"
+      },
+      {
+        "food": "espinaca",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "calabacin",
+        "qty": 60,
+        "role": "veg",
+        "alternatives": [
+          {
+            "food": "habichuela",
+            "qty": 60
+          }
+        ]
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      },
+      {
+        "food": "mani",
+        "qty": 25,
+        "role": "protein"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la quinua en un colador con agua, frotándola con la mano (así no queda amarga).",
+        "Cocínala en una olla con el doble de agua y un poco de sal, tapada, 15 minutos a fuego bajo.",
+        "Mientras tanto, pica la zanahoria, la cebolla y la otra verdura en cuadritos.",
+        "En una sartén con el aceite, cocina esas verduras 5 minutos, revolviendo.",
+        "Agrega la espinaca y revuelve 1 minuto, hasta que se encoja.",
+        "Mezcla las verduras con la quinua y pon el maní encima."
+      ],
+      "en": [
+        "Rinse the quinoa in a sieve under water, rubbing it with your hand (so it is not bitter).",
+        "Cook it in a pot with twice as much water and a little salt, covered, 15 minutes over low heat.",
+        "Meanwhile, dice the carrot, the onion and the other vegetable.",
+        "In a pan with the oil, cook those vegetables for 5 minutes, stirring.",
+        "Add the spinach and stir for 1 minute, until it shrinks.",
+        "Mix the vegetables with the quinoa and put the peanuts on top."
+      ]
+    }
+  },
+  {
+    "id": "salpicon_de_frutas",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Salpicón de frutas",
+      "en": "Colombian fruit salpicón"
+    },
+    "slots": [
+      "snacks"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "papaya",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "pina",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "mango",
+        "qty": 60,
+        "role": "veg",
+        "alternatives": [
+          {
+            "food": "fresa",
+            "qty": 60
+          }
+        ]
+      },
+      {
+        "food": "naranja",
+        "qty": 1,
+        "role": "veg"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava las frutas y pela las que tengan cáscara.",
+        "Pícalas en cuadritos pequeños y ponlas en un vaso grande.",
+        "Parte la naranja por la mitad y exprímela encima (apriétala para sacarle el jugo).",
+        "Revuelve y cómelo con cuchara."
+      ],
+      "en": [
+        "Wash the fruit and peel the ones that have skin.",
+        "Cut them into small cubes and put them in a large glass.",
+        "Cut the orange in half and squeeze it on top (press it to get the juice out).",
+        "Stir and eat it with a spoon."
+      ]
+    }
+  },
+  {
+    "id": "sandwich_de_aguacate_y_tomate",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Sándwich de aguacate, verduras y maní",
+      "en": "Avocado, vegetable and peanut sandwich"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "pan_tajado",
+        "qty": 75,
+        "role": "carb"
+      },
+      {
+        "food": "aguacate",
+        "qty": 0.5,
+        "role": "fat"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "lechuga",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "pepino",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "mani",
+        "qty": 25,
+        "role": "protein"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Aplasta el aguacate con un tenedor y échale la sal.",
+        "Lava la lechuga, el tomate y el pepino; corta el tomate y el pepino en rodajas.",
+        "Unta el aguacate en el pan y riega el maní encima.",
+        "Pon encima la lechuga, el tomate y el pepino, y tapa con otra tajada de pan."
+      ],
+      "en": [
+        "Mash the avocado with a fork and add the salt.",
+        "Wash the lettuce, tomato and cucumber; slice the tomato and cucumber.",
+        "Spread the avocado on the bread and sprinkle the peanuts on top.",
+        "Add the lettuce, tomato and cucumber, and cover with another slice of bread."
+      ]
+    }
+  },
+  {
+    "id": "sandwich_de_atun",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Sándwich de atún",
+      "en": "Tuna sandwich"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "pan_tajado",
+        "qty": 75,
+        "role": "carb"
+      },
+      {
+        "food": "atun_lata",
+        "qty": 80,
+        "role": "protein"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "lechuga",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 15,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_oliva",
+        "qty": 5,
+        "role": "fat",
+        "alternatives": [
+          {
+            "food": "aceite_vegetal",
+            "qty": 5
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "es": [
+        "Escurre el atún (bota el agua de la lata) y ponlo en un plato.",
+        "Pica la cebolla muy finita y mézclala con el atún y el aceite.",
+        "Lava la lechuga y corta el tomate en rodajas.",
+        "Arma el sándwich: pan, lechuga, atún, tomate y otra tajada de pan."
+      ],
+      "en": [
+        "Drain the tuna (pour off the water from the can) and put it on a plate.",
+        "Chop the onion very finely and mix it with the tuna and the oil.",
+        "Wash the lettuce and slice the tomato.",
+        "Build the sandwich: bread, lettuce, tuna, tomato and another slice of bread."
+      ]
+    }
+  },
+  {
+    "id": "sandwich_de_queso_y_tomate",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Sándwich de queso y tomate",
+      "en": "Cheese and tomato sandwich"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 5,
+    "level": "basic",
+    "appliances": [],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "pan_tajado",
+        "qty": 50,
+        "role": "carb"
+      },
+      {
+        "food": "queso_mozzarella",
+        "qty": 40,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "queso_campesino",
+            "qty": 40
+          }
+        ]
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "lechuga",
+        "qty": 20,
+        "role": "veg"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la lechuga y corta el tomate en rodajas.",
+        "Pon el queso en una tajada de pan.",
+        "Agrega el tomate y la lechuga, y tapa con la otra tajada."
+      ],
+      "en": [
+        "Wash the lettuce and slice the tomato.",
+        "Put the cheese on a slice of bread.",
+        "Add the tomato and lettuce, and cover with the other slice."
+      ]
+    }
+  },
+  {
+    "id": "sardinas_con_papa_al_microondas",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Sardinas con papa al microondas y ensalada",
+      "en": "Sardines with microwave potato and salad"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [
+      "microondas"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "sardina_lata",
+        "qty": 90,
+        "role": "protein"
+      },
+      {
+        "food": "papa",
+        "qty": 180,
+        "role": "carb"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "lechuga",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 20,
+        "role": "veg"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava la papa, pínchala con un tenedor y caliéntala 7 minutos en el microondas, volteándola a la mitad.",
+        "Mientras tanto, lava la lechuga y pica el tomate y la cebolla.",
+        "Abre la lata de sardinas y pásalas a un plato.",
+        "Calienta las sardinas 1 minuto en el microondas, tapadas.",
+        "Parte la papa y sírvela con las sardinas y la ensalada."
+      ],
+      "en": [
+        "Wash the potato, prick it with a fork and microwave it 7 minutes, turning it halfway.",
+        "Meanwhile, wash the lettuce and chop the tomato and onion.",
+        "Open the can of sardines and put them on a plate.",
+        "Microwave the sardines for 1 minute, covered.",
+        "Cut the potato and serve it with the sardines and the salad."
+      ]
+    }
+  },
+  {
+    "id": "sardinas_guisadas_con_arepa",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Sardinas guisadas con arepa",
+      "en": "Stewed sardines with arepa"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "sardina_lata",
+        "qty": 90,
+        "role": "protein"
+      },
+      {
+        "food": "harina_maiz",
+        "qty": 60,
+        "role": "carb"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 80,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 3,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Prepara la masa de la arepa con harina, sal y agua tibia, y haz un disco con las manos.",
+        "Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
+        "Pica el tomate y la cebolla en cuadritos.",
+        "En otra sartén con el aceite, cocínalos 5 minutos a fuego medio, revolviendo, hasta que se vuelvan salsa.",
+        "Agrega las sardinas con su salsa o aceite, aplástalas un poco y calienta 3 minutos.",
+        "Sirve las sardinas encima de la arepa."
+      ],
+      "en": [
+        "Make the arepa dough with flour, salt and warm water, and shape a disc with your hands.",
+        "Cook it in a dry pan over medium heat, 5 minutes on each side.",
+        "Dice the tomato and onion.",
+        "In another pan with the oil, cook them 5 minutes over medium heat, stirring, until they turn into a sauce.",
+        "Add the sardines with their sauce or oil, mash them a little and heat for 3 minutes.",
+        "Serve the sardines on top of the arepa."
+      ]
+    }
+  },
+  {
+    "id": "sopa_de_arveja_seca",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Sopa de arveja seca",
+      "en": "Dried pea soup"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 60,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 3
+    },
+    "lines": [
+      {
+        "food": "arveja_seca",
+        "qty": 60,
+        "role": "protein"
+      },
+      {
+        "food": "papa",
+        "qty": 100,
+        "role": "carb"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "ahuyama",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_junca",
+        "qty": 20,
+        "role": "veg"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "sal",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "cilantro",
+        "qty": 5,
+        "role": "fixed",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "La noche anterior, deja la arveja seca en un recipiente con bastante agua.",
+        "Bota esa agua y cocina la arveja en una olla con 5 tazas de agua nueva, a fuego medio, 35 minutos.",
+        "Mientras tanto, pela y pica en cuadritos la papa, la zanahoria y la ahuyama.",
+        "Échalas a la olla con la cebolla larga y el ajo picados y la sal, y cocina 20 minutos más.",
+        "Está lista cuando la arveja y la papa se aplastan fácil con una cuchara.",
+        "Sirve con cilantro. Lo que sobre dura hasta 3 días en la nevera."
+      ],
+      "en": [
+        "The night before, soak the dried peas in a bowl with plenty of water.",
+        "Pour off that water and cook the peas in a pot with 5 cups of fresh water, over medium heat, 35 minutes.",
+        "Meanwhile, peel and dice the potato, carrot and pumpkin.",
+        "Add them to the pot with the chopped spring onion and garlic and the salt, and cook 20 more minutes.",
+        "It is ready when the peas and potato mash easily with a spoon.",
+        "Serve with cilantro. Leftovers keep up to 3 days in the fridge."
+      ]
+    }
+  },
+  {
+    "id": "sopa_de_lentejas",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Sopa de lentejas con verduras",
+      "en": "Lentil and vegetable soup"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 40,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": true,
+      "keepsDays": 3
+    },
+    "lines": [
+      {
+        "food": "lentejas",
+        "qty": 60,
+        "role": "protein"
+      },
+      {
+        "food": "papa",
+        "qty": 100,
+        "role": "carb"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 30,
+        "role": "veg"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 3,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "cilantro",
+        "qty": 5,
+        "role": "fixed",
+        "optional": true
+      }
+    ],
+    "steps": {
+      "es": [
+        "Lava las lentejas y ponlas en una olla con 4 tazas de agua, a fuego medio.",
+        "Mientras hierven, pela y pica la papa y la zanahoria en cuadritos.",
+        "A los 15 minutos, échalas a la olla.",
+        "Pica el tomate, la cebolla y el ajo, y cocínalos en una sartén con el aceite 5 minutos.",
+        "Échalos a la olla con la sal y deja 15 minutos más, hasta que la papa esté blanda.",
+        "Sirve caliente con cilantro picado. Lo que sobre dura hasta 3 días en la nevera."
+      ],
+      "en": [
+        "Rinse the lentils and put them in a pot with 4 cups of water, over medium heat.",
+        "While they boil, peel and dice the potato and carrot.",
+        "After 15 minutes, add them to the pot.",
+        "Chop the tomato, onion and garlic, and cook them in a pan with the oil for 5 minutes.",
+        "Add them to the pot with the salt and cook 15 more minutes, until the potato is soft.",
+        "Serve hot with chopped cilantro. Leftovers keep up to 3 days in the fridge."
+      ]
+    }
+  },
+  {
+    "id": "sopa_rapida_de_verduras_con_huevo",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Sopa rápida de verduras con huevo",
+      "en": "Quick vegetable soup with egg"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "papa",
+        "qty": 100,
+        "role": "carb"
+      },
+      {
+        "food": "zanahoria",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "habichuela",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "repollo",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "huevo",
+        "qty": 2,
+        "role": "protein"
+      },
+      {
+        "food": "cebolla_junca",
+        "qty": 20,
+        "role": "veg"
+      },
+      {
+        "food": "cilantro",
+        "qty": 5,
+        "role": "fixed",
+        "optional": true
+      },
+      {
+        "food": "sal",
+        "qty": 2,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pela y pica la papa y la zanahoria en cuadritos pequeños; corta la habichuela y el repollo.",
+        "Ponlos en una olla con 3 tazas de agua, la cebolla larga picada y la sal, a fuego medio.",
+        "Cocina 12 minutos, hasta que la papa esté blanda.",
+        "Rompe los huevos dentro de la sopa, uno por uno, sin revolver. Lávate las manos después.",
+        "Déjalos 3 minutos, hasta que la clara esté blanca.",
+        "Sirve con cilantro picado encima."
+      ],
+      "en": [
+        "Peel and dice the potato and carrot small; cut the green beans and cabbage.",
+        "Put them in a pot with 3 cups of water, the chopped spring onion and the salt, over medium heat.",
+        "Cook for 12 minutes, until the potato is soft.",
+        "Crack the eggs into the soup, one by one, without stirring. Wash your hands afterwards.",
+        "Leave them 3 minutes, until the whites are white.",
+        "Serve with chopped cilantro on top."
+      ]
+    }
+  },
+  {
+    "id": "tilapia_con_arepa_y_ensalada",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Tilapia en sartén con arepa y ensalada",
+      "en": "Pan-cooked tilapia with arepa and salad"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 20,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "tilapia",
+        "qty": 130,
+        "role": "protein"
+      },
+      {
+        "food": "harina_maiz",
+        "qty": 60,
+        "role": "carb"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 60,
+        "role": "veg"
+      },
+      {
+        "food": "lechuga",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "pepino",
+        "qty": 40,
+        "role": "veg"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 5,
+        "role": "fat"
+      },
+      {
+        "food": "ajo",
+        "qty": 2,
+        "role": "fixed"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Prepara la arepa: mezcla harina, sal y agua tibia, haz un disco y ponlo en una sartén sin aceite, 5 minutos por lado.",
+        "Échale sal y ajo machacado (aplastado) al pescado por los dos lados. Lávate las manos después de tocar el pescado crudo.",
+        "En otra sartén con el aceite, a fuego medio, cocina el pescado 3 a 4 minutos por cada lado.",
+        "Está listo cuando se deshace fácil con un tenedor.",
+        "Lava y pica la lechuga, el tomate y el pepino para la ensalada.",
+        "Sirve el pescado con la arepa y la ensalada."
+      ],
+      "en": [
+        "Make the arepa: mix flour, salt and warm water, shape a disc and cook it in a dry pan, 5 minutes per side.",
+        "Rub salt and crushed garlic on both sides of the fish. Wash your hands after touching the raw fish.",
+        "In another pan with the oil, over medium heat, cook the fish 3 to 4 minutes on each side.",
+        "It is ready when it flakes easily with a fork.",
+        "Wash and chop the lettuce, tomato and cucumber for the salad.",
+        "Serve the fish with the arepa and the salad."
+      ]
+    }
+  },
+  {
+    "id": "tortilla_de_verduras_con_aguacate",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Tortilla de verduras con aguacate",
+      "en": "Vegetable omelette with avocado"
+    },
+    "slots": [
+      "almuerzo",
+      "cena"
+    ],
+    "minutes": 10,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "huevo",
+        "qty": 2,
+        "role": "protein"
+      },
+      {
+        "food": "pimenton",
+        "qty": 0.5,
+        "role": "veg"
+      },
+      {
+        "food": "tomate_chonto",
+        "qty": 50,
+        "role": "veg"
+      },
+      {
+        "food": "cebolla_cabezona",
+        "qty": 20,
+        "role": "veg"
+      },
+      {
+        "food": "aguacate",
+        "qty": 0.5,
+        "role": "fat"
+      },
+      {
+        "food": "aceite_vegetal",
+        "qty": 3,
+        "role": "fat"
+      },
+      {
+        "food": "sal",
+        "qty": 1,
+        "role": "fixed"
+      }
+    ],
+    "steps": {
+      "es": [
+        "Pica el pimentón, el tomate y la cebolla en cuadritos.",
+        "Rompe los huevos en un plato hondo. Lávate las manos después de tocar el huevo crudo.",
+        "Bate los huevos con la sal (bate: mezcla rápido con un tenedor) y mezcla los picados.",
+        "Calienta el aceite en una sartén a fuego medio y echa la mezcla.",
+        "Tapa y deja 3 minutos sin revolver, hasta que la parte de arriba esté casi firme.",
+        "Dale la vuelta con una espátula, deja 1 minuto más y sirve con el aguacate en tajadas."
+      ],
+      "en": [
+        "Dice the bell pepper, tomato and onion.",
+        "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+        "Beat the eggs with the salt (mix fast with a fork) and mix in the vegetables.",
+        "Heat the oil in a pan over medium heat and pour in the mix.",
+        "Cover and leave 3 minutes without stirring, until the top is almost set.",
+        "Flip it with a spatula, leave 1 more minute and serve with the avocado in slices."
+      ]
+    }
+  },
+  {
+    "id": "tostadas_francesas_con_fruta",
+    "status": "pending_owner_ok",
+    "source": "ai_draft",
+    "name": {
+      "es": "Tostadas francesas con fruta",
+      "en": "French toast with fruit"
+    },
+    "slots": [
+      "desayuno",
+      "snacks"
+    ],
+    "minutes": 15,
+    "level": "basic",
+    "appliances": [
+      "estufa"
+    ],
+    "batch": {
+      "ok": false,
+      "keepsDays": 1
+    },
+    "lines": [
+      {
+        "food": "pan_tajado",
+        "qty": 50,
+        "role": "carb"
+      },
+      {
+        "food": "huevo",
+        "qty": 1,
+        "role": "protein"
+      },
+      {
+        "food": "leche_entera",
+        "qty": 50,
+        "role": "protein",
+        "alternatives": [
+          {
+            "food": "leche_deslactosada",
+            "qty": 50
+          }
+        ]
+      },
+      {
+        "food": "mantequilla",
+        "qty": 5,
+        "role": "fat",
+        "alternatives": [
+          {
+            "food": "aceite_vegetal",
+            "qty": 5
+          }
+        ]
+      },
+      {
+        "food": "fresa",
+        "qty": 80,
+        "role": "veg",
+        "alternatives": [
+          {
+            "food": "banano",
+            "qty": 1
+          },
+          {
+            "food": "mango",
+            "qty": 80
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "es": [
+        "Rompe el huevo en un plato hondo. Lávate las manos después de tocar el huevo crudo.",
+        "Échale la leche y bate (mezcla rápido con un tenedor) hasta que se una.",
+        "Moja cada tajada de pan en la mezcla por los dos lados.",
+        "Calienta la grasa en una sartén a fuego medio.",
+        "Cocina el pan 2 minutos por cada lado, hasta que esté dorado (color café claro).",
+        "Sirve con la fruta picada encima."
+      ],
+      "en": [
+        "Crack the egg into a bowl. Wash your hands after touching the raw egg.",
+        "Add the milk and beat it (mix fast with a fork) until blended.",
+        "Dip each slice of bread in the mix on both sides.",
+        "Heat the fat in a pan over medium heat.",
+        "Cook the bread 2 minutes on each side, until golden (light brown).",
+        "Serve with the chopped fruit on top."
       ]
     }
   },
@@ -506,3 +3782,6 @@ export const RECIPES: readonly Recipe[] = deepFreeze<Recipe[]>([
     }
   }
 ]);
+
+// Foods that must soak overnight (needsSoaking in data/foods/foods.json).
+export const SOAK_FOODS: readonly string[] = deepFreeze<string[]>(["arveja_seca","frijol","garbanzo"]);

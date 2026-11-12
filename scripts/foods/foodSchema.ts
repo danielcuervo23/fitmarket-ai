@@ -62,6 +62,11 @@ const base = z.object({
   freeSugarsRule: z.enum(["none", "all", "added"]),
   /** Why a value is missing or was derived (human readable, optional). */
   nutritionNote: z.string().optional(),
+  /**
+   * Dried legume that must soak overnight before cooking (fríjol, garbanzo,
+   * arveja seca; never lentejas or canned food). Recipes with it are weekend-only.
+   */
+  needsSoaking: z.literal(true).optional(),
 });
 
 const extended = z.object({

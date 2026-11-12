@@ -100,8 +100,15 @@ assert.equal(hasUnknownNotices(withUnknown), true);
 assert.deepEqual(knownNotices({ ...newPlan, notices: ["constructor", "toString"] }), []);
 assert.deepEqual(
   [...NOTICE_CODES].sort(),
-  ["deficit_capped_energy", "fat_blocked_low_bmi", "fat_blocked_minor", "fat_blocked_senior", "goals_blocked_health", "see_professional"],
+  [
+    "deficit_capped_energy", "fat_blocked_low_bmi", "fat_blocked_minor", "fat_blocked_senior", "goals_blocked_health",
+    "see_professional", "soak_friday_night", "soak_saturday_night",
+  ],
 );
+// Soak reminders (owner decision 2026-11-11) have copy, so they never fall back to the generic line.
+const soakPlan = { ...newPlan, notices: ["soak_friday_night", "soak_saturday_night"] };
+assert.deepEqual(knownNotices(soakPlan), ["soak_friday_night", "soak_saturday_night"]);
+assert.equal(hasUnknownNotices(soakPlan), false);
 
 // --- Every rule code of Task 3 has copy ---
 for (const code of [

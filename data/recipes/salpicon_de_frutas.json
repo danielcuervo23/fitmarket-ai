@@ -1,0 +1,61 @@
+{
+  "id": "salpicon_de_frutas",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Salpicón de frutas",
+    "en": "Colombian fruit salpicón"
+  },
+  "slots": [
+    "snacks"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "papaya",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "pina",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "mango",
+      "qty": 60,
+      "role": "veg",
+      "alternatives": [
+        {
+          "food": "fresa",
+          "qty": 60
+        }
+      ]
+    },
+    {
+      "food": "naranja",
+      "qty": 1,
+      "role": "veg"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava las frutas y pela las que tengan cáscara.",
+      "Pícalas en cuadritos pequeños y ponlas en un vaso grande.",
+      "Parte la naranja por la mitad y exprímela encima (apriétala para sacarle el jugo).",
+      "Revuelve y cómelo con cuchara."
+    ],
+    "en": [
+      "Wash the fruit and peel the ones that have skin.",
+      "Cut them into small cubes and put them in a large glass.",
+      "Cut the orange in half and squeeze it on top (press it to get the juice out).",
+      "Stir and eat it with a spoon."
+    ]
+  }
+}

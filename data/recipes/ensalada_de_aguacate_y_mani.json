@@ -1,0 +1,85 @@
+{
+  "id": "ensalada_de_aguacate_y_mani",
+  "status": "pending_owner_ok",
+  "source": "ai_draft",
+  "name": {
+    "es": "Ensalada de aguacate, tomate y maní",
+    "en": "Avocado, tomato and peanut salad"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "aguacate",
+      "qty": 0.5,
+      "role": "fat"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 100,
+      "role": "veg"
+    },
+    {
+      "food": "pepino",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "lechuga",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "mani",
+      "qty": 45,
+      "role": "protein"
+    },
+    {
+      "food": "aceite_oliva",
+      "qty": 5,
+      "role": "fat",
+      "alternatives": [
+        {
+          "food": "aceite_vegetal",
+          "qty": 5
+        }
+      ]
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    },
+    {
+      "food": "pan_tajado",
+      "qty": 50,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la lechuga, el tomate y el pepino.",
+      "Pica todo en trozos medianos y ponlo en un plato hondo.",
+      "Agrega el aguacate en cuadritos y el maní.",
+      "Échale el aceite y la sal, y revuelve con cuidado.",
+      "Acompáñala con pan, si quieres."
+    ],
+    "en": [
+      "Wash the lettuce, tomato and cucumber.",
+      "Cut everything into medium pieces and put it in a bowl.",
+      "Add the avocado in cubes and the peanuts.",
+      "Add the oil and salt, and stir gently.",
+      "Have it with bread, if you like."
+    ]
+  }
+}
