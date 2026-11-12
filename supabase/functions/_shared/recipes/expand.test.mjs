@@ -36,7 +36,7 @@ test("expandMeal scales each role and keeps fixed lines", () => {
   const meal = expandMeal(r, primaryChoice(r), { protein: 1.5, carb: 1 });
 
   assert.deepEqual(meal.items.find((i) => i.id === "lentejas").qty, 105);
-  assert.equal(meal.items.find((i) => i.id === "sal").qty, 2);
+  assert.equal(meal.items.find((i) => i.id === "sal").qty, 1);
   assert.equal(qtyOf(meal, "arroz_blanco"), 70);
   assert.equal(qtyOf(meal, "zanahoria"), 40); // veg not given: scale 1
   assert.equal(meal.recipeId, "lentejas_con_arroz");
@@ -53,7 +53,7 @@ test("expandMeal does not round (the optimizer rounds later)", () => {
 test("fixed lines ignore any scale", () => {
   const meal = expandMeal(r, primaryChoice(r), { protein: 2, carb: 2, veg: 2, fat: 2 });
 
-  assert.equal(qtyOf(meal, "sal"), 2);
+  assert.equal(qtyOf(meal, "sal"), 1);
   assert.equal(qtyOf(meal, "ajo"), 3);
 });
 
@@ -126,7 +126,7 @@ test("expandMeal returns new objects and leaves the recipe untouched", () => {
 });
 
 test("a stray 'fixed' scale never scales fixed lines", () => {
-  assert.equal(qtyOf(expandMeal(r, primaryChoice(r), { fixed: 3 }), "sal"), 2);
+  assert.equal(qtyOf(expandMeal(r, primaryChoice(r), { fixed: 3 }), "sal"), 1);
 });
 
 test("an alternative's name is ignored on a line that is not inName", () => {

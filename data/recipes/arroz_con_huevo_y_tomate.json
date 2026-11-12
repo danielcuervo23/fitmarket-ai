@@ -13,7 +13,7 @@
     { "food": "huevo", "qty": 2, "role": "protein" },
     { "food": "tomate_chonto", "qty": 80, "role": "veg" },
     { "food": "cebolla_junca", "qty": 20, "role": "veg" },
-    { "food": "aceite_vegetal", "qty": 5, "role": "fat" },
+    { "food": "aceite_vegetal", "qty": 5, "role": "condiment" },
     { "food": "sal", "qty": 1, "role": "fixed" }
   ],
   "steps": {

@@ -46,18 +46,13 @@
     {
       "food": "aceite_oliva",
       "qty": 5,
-      "role": "fat",
+      "role": "condiment",
       "alternatives": [
         {
           "food": "aceite_vegetal",
           "qty": 5
         }
       ]
-    },
-    {
-      "food": "sal",
-      "qty": 1,
-      "role": "fixed"
     }
   ],
   "steps": {
@@ -65,13 +60,13 @@
       "Lava la lechuga, el tomate y el pepino, y pícalos.",
       "Escurre el atún (bota el agua de la lata).",
       "Pon todo en un plato hondo con el aguacate en cuadritos.",
-      "Échale el aceite y la sal, y revuelve."
+      "Échale el aceite y revuelve."
     ],
     "en": [
       "Wash the lettuce, tomato and cucumber, and chop them.",
       "Drain the tuna (pour off the water from the can).",
       "Put everything in a bowl with the avocado in cubes.",
-      "Add the oil and salt, and stir."
+      "Add the oil and stir."
     ]
   }
 }

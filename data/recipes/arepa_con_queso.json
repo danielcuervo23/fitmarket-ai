@@ -41,23 +41,18 @@
       "qty": 5,
       "role": "fat",
       "optional": true
-    },
-    {
-      "food": "sal",
-      "qty": 1,
-      "role": "fixed"
     }
   ],
   "steps": {
     "es": [
-      "Mezcla la harina con la sal y agua tibia, poco a poco, hasta tener una masa suave.",
+      "Mezcla la harina con agua tibia, poco a poco, hasta tener una masa suave.",
       "Desmorona el queso con los dedos y mezcla la mitad con la masa.",
       "Haz dos bolitas y aplástalas con las manos hasta que queden como discos.",
       "Ponlas en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
       "Ábrelas por un lado y mete el resto del queso y, si quieres, la mantequilla."
     ],
     "en": [
-      "Mix the flour with the salt and warm water, bit by bit, until you get a soft dough.",
+      "Mix the flour with warm water, bit by bit, until you get a soft dough.",
       "Crumble the cheese with your fingers and mix half of it into the dough.",
       "Make two small balls and press them with your hands into discs.",
       "Cook them in a dry pan over medium heat, 5 minutes on each side.",

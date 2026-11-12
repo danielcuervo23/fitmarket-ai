@@ -97,8 +97,9 @@ test("one scale variable per group and role; batch meals share it", () => {
   for (const day of batchDays) assert.equal(variables[`x|${day}.almuerzo|protein`], undefined);
   assert.ok(variables["x|jue.almuerzo|protein"]);
 
-  // Bounds are rows named after the variable, from DEFAULT_ROLE_SCALE.
-  assert.deepEqual(constraints["x|lentejas_batch|protein"], { min: 0.5, max: 2 });
+  // Bounds are rows named after the variable, from the resolved recipe's scale or DEFAULT_ROLE_SCALE.
+  // Lentejas is protein-dense, so eligibility raised its protein cap to 2.5 (owner decision 2026-11-12).
+  assert.deepEqual(constraints["x|lentejas_batch|protein"], { min: 0.5, max: 2.5 });
   assert.deepEqual(constraints["x|lun.desayuno|veg"], { min: 0.75, max: 2.5 });
   assert.equal(variables["x|lentejas_batch|protein"]["x|lentejas_batch|protein"], 1);
 
@@ -114,6 +115,24 @@ test("a recipe scale override replaces the default bounds", () => {
 
   assert.deepEqual(built.model.constraints["x|lun.cena|protein"], { min: 0.8, max: 1.2 });
   assert.deepEqual(built.model.constraints["x|lun.cena|carb"], { min: 0.5, max: 2 });
+});
+
+test("cooking oil is a condiment: its scale may drop to half, never grow (owner decision 2026-11-12)", () => {
+  const built = buildModel(input());
+  const { constraints, variables } = built.model;
+
+  // lentejas_con_arroz cooks with 5 ml of oil per portion.
+  assert.deepEqual(constraints["x|lun.almuerzo|condiment"], { min: 0.5, max: 1 });
+  near(variables["x|lun.almuerzo|condiment"]["pack|aceite_vegetal"], -5);
+  assert.equal(variables["x|lun.almuerzo|fat"], undefined);
+});
+
+test("a protein-dense recipe is bounded by its raised protein cap (2.5x, from eligibility)", () => {
+  // pollo_guisado_con_papa: chicken only. The level-2 protein_max rule still caps the day's protein.
+  const constraints = buildModel(input({ goals: ["muscle"] })).model.constraints;
+  assert.deepEqual(constraints["x|lun.cena|protein"], { min: 0.5, max: 2.5 });
+  // yogur_con_fruta keeps the usual cap.
+  assert.deepEqual(constraints["x|lun.snacks|protein"], { min: 0.5, max: 2 });
 });
 
 test("the chosen alternative is the food that enters the model", () => {
@@ -149,12 +168,12 @@ test("fixed lines move to the right-hand side", () => {
   const built = buildModel(input({ rules }));
   const { constraints, variables } = built.model;
 
-  // sal is fixed in lentejas (2 g) and pollo (2 g): 4 g a day, 28 g a week, no scale variable touches it.
-  assert.deepEqual(constraints["pack|sal"], { min: 28 });
+  // sal is fixed in lentejas (1 g) and pollo (1 g): 2 g a day, 14 g a week, no scale variable touches it.
+  assert.deepEqual(constraints["pack|sal"], { min: 14 });
   assert.equal(Object.keys(variables).filter((name) => variables[name]["pack|sal"] !== undefined).join(), "p|sal");
 
   // The day's fixed kcal (panela, ajo, sal, cilantro) is subtracted from the kcal bounds.
-  const fixedKcal = [["panela", 5], ["ajo", 6], ["sal", 4], ["cilantro", 10]]
+  const fixedKcal = [["panela", 5], ["ajo", 6], ["sal", 2], ["cilantro", 10]]
     .reduce((sum, [id, qty]) => sum + nutritionOf(STATIC_CATALOG.get(id), qty).kcal, 0);
   const safety = rules.linear.find((rule) => rule.code === "kcal_safety");
   near(constraints["r|kcal_safety|lun|-"].min, safety.min - fixedKcal, "min");
@@ -285,7 +304,7 @@ test("safety_only keeps level 1 and drops levels 2 to 5", () => {
 
 // Fixed fiber of a day of MENU (panela, ajo, sal, cilantro).
 function fixedFiber() {
-  return [["panela", 5], ["ajo", 6], ["sal", 4], ["cilantro", 10]]
+  return [["panela", 5], ["ajo", 6], ["sal", 2], ["cilantro", 10]]
     .reduce((sum, [id, qty]) => sum + STATIC_CATALOG.get(id).micro.fiberG * qty / 100, 0);
 }
 

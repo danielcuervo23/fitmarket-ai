@@ -56,18 +56,13 @@
       "qty": 5,
       "role": "fixed",
       "optional": true
-    },
-    {
-      "food": "sal",
-      "qty": 1,
-      "role": "fixed"
     }
   ],
   "steps": {
     "es": [
       "Lava bien la papa y pínchala varias veces con un tenedor.",
       "Ponla en un plato y caliéntala 4 minutos en el microondas; dale la vuelta y caliéntala 3 minutos más.",
-      "Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados y la sal.",
+      "Mientras tanto, aplasta el aguacate y mézclalo con el tomate y la cebolla picados.",
       "Revisa la papa: si un tenedor entra fácil, está lista; si no, dale 1 minuto más.",
       "Ábrela por la mitad, desmorona el queso adentro y caliéntala 30 segundos para que se derrita.",
       "Ponle encima el guacamole y el cilantro."
@@ -75,7 +70,7 @@
     "en": [
       "Wash the potato well and prick it several times with a fork.",
       "Put it on a plate and microwave it 4 minutes; turn it over and microwave 3 minutes more.",
-      "Meanwhile, mash the avocado and mix it with the chopped tomato and onion and the salt.",
+      "Meanwhile, mash the avocado and mix it with the chopped tomato and onion.",
       "Check the potato: if a fork goes in easily, it is ready; if not, give it 1 more minute.",
       "Cut it open, crumble the cheese inside and microwave it 30 seconds so it melts.",
       "Top it with the guacamole and cilantro."

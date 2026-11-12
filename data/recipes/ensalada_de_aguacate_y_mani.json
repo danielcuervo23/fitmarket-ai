@@ -46,7 +46,7 @@
     {
       "food": "aceite_oliva",
       "qty": 5,
-      "role": "fat",
+      "role": "condiment",
       "alternatives": [
         {
           "food": "aceite_vegetal",
