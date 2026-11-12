@@ -674,6 +674,18 @@ Algorithm (not determined by the signature):
 4. Infeasible → `over_budget`; with `diagnose`, solve `safety_only` without budget for `requiredBudgetCop`; that infeasible too → `infeasible`.
 5. Slack left → `relaxed`; shortfalls = `evaluateWeek` of the rounded week (levels 2–4); with `diagnose`, solve `strict` without budget for `requiredBudgetCop` (null if infeasible).
 6. Else `optimal`. Before each solve check `cpu.left() > 0` and call `solveLp(model, now, { timeLimitMs: Math.min(cpu.left(), 800) })`, then `cpu.spend(solution.cpuMs)`; `error: "time_limit"` counts as no result. Read LP values with a threshold: a slack or pack value counts only when `> 1e-6` (solver noise); when spent, return the best result so far (status from it) and log `optimizer_cpu_exhausted`.
+- Alternatives come **only from `ResolvedRecipe.lines`** (each line's food and its `alternatives`, already restricted, sold and soak-safe by eligibility); the raw recipe library is never re-resolved. A soak food is also skipped on any group that touches lun–vie, a weekend-only recipe on a weekday is a `RangeError`, and `batchGroups` never groups a weekend dish with a weekday.
+- Slacks are read through **`BuiltModel.slacks`** (name → rule, day, slot, sense), never by splitting variable names.
+
+**As built (2026-11-12, notes for Task 13):**
+- `OptimizeResult` also carries `relaxations: { rule, level (2–4), sense, unit, slack, change }[]` ("what to change": `change` moves the bound in the display unit, e.g. `protein_min` `-0.15` g/kg; level 5 never appears) and `error?: "cpu_exhausted" | "solver_error"` (with no week: `status: "infeasible"`; map to `generation_failed` with reasons `optimizer_cpu_exhausted` / `optimizer_unavailable`). `OptimizeInput` also takes optional `now` (clock) and `log`.
+- After rounding, level 1 is re-checked with `evaluateWeek`; a miss tightens that rule by its largest rounding error and solves again (shared with the budget tightening, `MAX_ROUNDING_RETRIES = 2`); a week that still misses level 1 or the budget is never returned. Level 2–4 rules the LP met but rounding broke get the same tightening (kept best otherwise).
+- When no elastic week survives rounding, the cheapest `safety_only` week (no budget row) is solved: if it fits the budget it rescues the request (elastic re-solve with only the money it leaves, else the safe week itself); otherwise it is the `requiredBudgetCop` of `over_budget`; none → `infeasible` (also without `diagnose`).
+- "Quiero el plan igual": a `relaxed` result already holds the partial week (every level 1 rule and the budget met), so with `allowPartial` on the same request no re-solve is needed. For a later request, store the whole first-attempt `OptimizeResult` (see the Task 10 notes under Task 13).
+- `requiredBudgetCop` for `relaxed` is "a budget that works": the strict week with the same foods, after rounding, meets every rule at that cost. It is not necessarily the minimum, and it is null when even that week misses a rule (money is not the fix, e.g. a structural rule or whole-egg rounding).
+- A solve that hits its time limit gives no verdict: it stops the run with `error: "cpu_exhausted"`. Status is computed at the end; whenever `error` is set and there is no week, status is `infeasible` meaning "no week", never a proven verdict.
+- CPU accounting: `tick()` charges wall-clock time between readings (model building, rounding and evaluation included) to the shared budget, not just `solution.cpuMs`; this is conservative.
+- Measured (Node, 15 runs each): worst case (all goals, household 6, 5 stores, 28 distinct recipes, `diagnose`) median 24 ms, worst 103 ms (first, cold run); a 12-solve case median 53 ms.
 
 - [ ] **Step 1: Write the failing tests** (fixtures use `STATIC_CATALOG`, `STATIC_PRICE_BOOK` and the T4 seed recipes)
 
@@ -847,6 +859,13 @@ test("time budget: no new attempt when less than MIN_COMPOSE_TIME_MS is left", .
 
 - [ ] **Step 2: Run and see them fail.** — **Step 3: Implement.** — **Step 4: Run and see them pass**, `npm run check` (the old `planner.test.mjs` tests of `fitToBudget` and naming still pass; their code is now unused and is removed in T17).
 - [ ] **Step 5: Commit** — `feat(planner): plans from recipes tuned by the optimizer to meet goal rules`
+
+**Notes from Task 10 (optimizer, merged before this task):**
+- Read `OptimizeResult.error` **before** `status`: with `error` set the run stopped early (`cpu_exhausted` → `generation_failed` reason `optimizer_cpu_exhausted`; `solver_error` → `optimizer_unavailable`) and `infeasible` only means "no week".
+- `relaxed` is returned whatever `allowPartial` says: when `allowPartial` is false the pipeline must turn it into `goals_unreachable` (never ship it as a plan).
+- `optimizeWeek` throws `RangeError` for invalid input, including a weekend-only recipe or a soak food on lun–vie: call `repairWeekendOnly` first, and catch it and map to `generation_failed` (reason `optimizer_invalid_input`, logged as a code only).
+- "Quiero el plan igual": store the whole first-attempt `OptimizeResult` (week, cost, shortfalls) with the request it answered and reuse it as is; prices may change between requests, so reusing beats re-solving. No second OpenAI call; the daily try stays one.
+- `requiredBudgetCop` (relaxed) is a budget that works, not the minimum; null means a budget increase is not the fix, so offer no `budget` option then.
 
 **Note from Task 14 (merged before this task):** T14 shipped against the pre-T13 types. When implementing T13: (a) replace the local `GenerationFailure` type in `supabase/functions/_shared/generationResponse.ts` with `GenerateFailure["error"]`, and make `conflicts` required when `code` is `goals_unreachable`; (b) add `allowPartial?: boolean` to `GenerateInput` (the handler already forwards it) — it relaxes only level 2–5 rules, never the budget or restrictions; (c) add an integration test that sends `generatePlan` output through `failureResponse` (old and new client) so the contract is checked end to end.
 
