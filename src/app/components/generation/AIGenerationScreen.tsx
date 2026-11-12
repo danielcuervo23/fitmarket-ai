@@ -5,6 +5,7 @@ import {
   generateWeeklyPlan,
   type GenerateWeeklyPlanError,
 } from "@/lib/ai/generateWeeklyPlan";
+import type { GenerationRequestOptions } from "@/lib/ai/generationRequestBody";
 import { saveWeeklyBudget } from "@/lib/budget";
 import type { ErrorKey } from "@/lib/errors";
 import { usePlan } from "@/contexts/PlanContext";
@@ -13,6 +14,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import type { MessageKey } from "@/i18n/messages";
 import { Screen } from "@/app/ui";
 import { BudgetShortfallPanel } from "./BudgetShortfallPanel";
+import { GoalsUnreachablePanel } from "./GoalsUnreachablePanel";
 import {
   GenerationProblemPanel,
   type FixAction,
@@ -44,54 +46,60 @@ export function AIGenerationScreen({
   const [step, setStep] = useState(0);
   const [error, setError] = useState<GenerateWeeklyPlanError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  /** The last request was "Quiero el plan igual"; never offer it twice in a row. */
+  const [forced, setForced] = useState(false);
 
   const mountedRef = useRef(true);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
-  const runGeneration = useCallback(async () => {
-    setError(null);
-    setIsLoading(true);
-    setStep(0);
+  const runGeneration = useCallback(
+    async (options: GenerationRequestOptions = {}) => {
+      setError(null);
+      setIsLoading(true);
+      setStep(0);
+      setForced(options.allowPartial === true);
 
-    const {
-      data,
-      planId,
-      error: generationError,
-    } = await generateWeeklyPlan();
-
-    if (!mountedRef.current) {
-      return;
-    }
-
-    if (generationError || !data) {
-      setError(
-        generationError ?? { kind: "message", messageKey: "gen.error.failed" },
-      );
-      setIsLoading(false);
-      return;
-    }
-
-    // With a planId the server already saved the plan. Without one (older
-    // server, or its save failed) the browser saves it. The plan is shown even
-    // if that fails; the menu screen then warns the user and offers to retry
-    // so they never lose it silently.
-    if (planId) {
-      setHasUnsavedPlan(false);
-    } else {
-      const { error: saveError } = await saveWeeklyPlan(data);
+      const {
+        data,
+        planId,
+        error: generationError,
+      } = await generateWeeklyPlan(options);
 
       if (!mountedRef.current) {
         return;
       }
 
-      setHasUnsavedPlan(saveError !== null);
-    }
+      if (generationError || !data) {
+        setError(
+          generationError ?? { kind: "message", messageKey: "gen.error.failed" },
+        );
+        setIsLoading(false);
+        return;
+      }
 
-    setPlan(data);
-    setIsLoading(false);
-    onDoneRef.current();
-  }, [setPlan, setHasUnsavedPlan]);
+      // With a planId the server already saved the plan. Without one (older
+      // server, or its save failed) the browser saves it. The plan is shown even
+      // if that fails; the menu screen then warns the user and offers to retry
+      // so they never lose it silently.
+      if (planId) {
+        setHasUnsavedPlan(false);
+      } else {
+        const { error: saveError } = await saveWeeklyPlan(data);
+
+        if (!mountedRef.current) {
+          return;
+        }
+
+        setHasUnsavedPlan(saveError !== null);
+      }
+
+      setPlan(data);
+      setIsLoading(false);
+      onDoneRef.current();
+    },
+    [setPlan, setHasUnsavedPlan],
+  );
 
   /** Saves a fix (budget, goals, ...) and, if that worked, generates again. */
   const handleFix = useCallback(
@@ -128,6 +136,20 @@ export function AIGenerationScreen({
 
     return () => clearInterval(interval);
   }, [isLoading]);
+
+  if (error?.kind === "goals_unreachable") {
+    return (
+      <GoalsUnreachablePanel
+        error={error}
+        canForce={error.canForce && !forced}
+        onForce={() => void runGeneration({ allowPartial: true })}
+        onSaveBudgetAndRegenerate={(budgetCop) =>
+          handleFix(() => saveWeeklyBudget(budgetCop))
+        }
+        onAdjustSettings={onAdjustSettings}
+      />
+    );
+  }
 
   if (error?.kind === "budget_too_low") {
     return (

@@ -1,4 +1,4 @@
-import { defineMessages } from "../define";
+import { defineMessages } from "../define.ts";
 
 export const app = defineMessages({
   es: {
@@ -114,7 +114,7 @@ export const app = defineMessages({
     "compliance.notReached": "{label}: no se alcanzó del todo",
     "compliance.unknown": "Hay otras metas que no se alcanzaron del todo esta semana.",
     "compliance.kcal_safety.label": "Calorías seguras",
-    "compliance.kcal_safety.percent": "Tus calorías están al {percent} % del mínimo seguro para ti",
+    "compliance.kcal_safety.percent": "Tus calorías están al {percent} % de lo seguro para ti",
     "compliance.protein_safety_max.label": "Límite seguro de proteína",
     "compliance.protein_safety_max.percent": "Tu proteína está al {percent} % del límite seguro",
     "compliance.protein_muscle_floor.label": "Proteína para ganar músculo",
@@ -352,7 +352,7 @@ export const app = defineMessages({
     "compliance.notReached": "{label}: not fully reached",
     "compliance.unknown": "Some other goals were not fully reached this week.",
     "compliance.kcal_safety.label": "Safe calories",
-    "compliance.kcal_safety.percent": "Your calories are at {percent} % of the safe minimum for you",
+    "compliance.kcal_safety.percent": "Your calories are at {percent} % of what is safe for you",
     "compliance.protein_safety_max.label": "Safe protein limit",
     "compliance.protein_safety_max.percent": "Your protein is at {percent} % of the safe limit",
     "compliance.protein_muscle_floor.label": "Protein to build muscle",
