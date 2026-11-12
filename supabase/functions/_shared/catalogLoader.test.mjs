@@ -13,9 +13,7 @@ import {
 } from "./catalogLoader.ts";
 import { calcTargets } from "./nutrition.ts";
 import { assemblePlan } from "./planner/build.ts";
-import { cleanItems, parseComposition } from "./planner/compose.ts";
 import { generatePlan } from "./planner/generate.ts";
-import { fallbackName, renameMeals } from "./planner/naming.ts";
 import { createCityPriceBook } from "./planner/priceBook.ts";
 import { STATIC_PRICE_BOOK } from "./planner/stores.ts";
 import { DAYS, SLOTS } from "./planner/types.ts";
@@ -440,7 +438,6 @@ const dbOnly = {
   id: "bocadillo",
   name: { es: "Bocadillo", en: "Guava paste" },
 };
-const custom = createCatalog([...CATALOG, dbOnly]);
 
 test("a database-only food is not filtered out by store data", async () => {
   const small = createCatalog([...CATALOG.filter((item) => item.id !== "salmon").slice(0, 18), dbOnly]);
@@ -468,61 +465,6 @@ test("a database-only food is not filtered out by store data", async () => {
   // 19 foods; D1 does not carry tilapia or sobrebarriga, so 17 remain, bocadillo among them.
   assert.equal(result.error.diagnostics.availableFoods, 17, "includes the database-only food");
   assert.equal(result.error.diagnostics.totalFoods, 19);
-});
-
-// Last on purpose: the static catalog scores it 0 and ties lose by order.
-const bigMeal = [
-  ...["sal", "ajo", "cilantro", "azucar", "miel", "panela", "aceite_vegetal", "arroz_blanco"].map((id) => ({ id, qty: 1 })),
-  { id: "bocadillo", qty: 900 },
-];
-
-test("cleanItems honours a custom catalog", () => {
-  const withCustom = cleanItems(bigMeal, custom).map((line) => line.id);
-  const withStatic = cleanItems(bigMeal, STATIC_CATALOG).map((line) => line.id);
-
-  assert.equal(withCustom.length, 8);
-  assert.ok(withCustom.includes("bocadillo"), "weighted by the custom catalog's nutrition");
-  assert.ok(!withStatic.includes("bocadillo"), "static catalog does not know it");
-});
-
-test("parseComposition uses the given catalog", () => {
-  const raw = { week: {} };
-
-  for (const day of DAYS) {
-    raw.week[day] = {};
-    for (const slot of SLOTS) {
-      raw.week[day][slot] = { name_es: "x", name_en: "x", items: bigMeal };
-    }
-  }
-
-  const allowed = new Set(bigMeal.map((line) => line.id));
-  const withCustom = parseComposition(raw, allowed, custom);
-  const withStatic = parseComposition(raw, allowed, STATIC_CATALOG);
-
-  assert.equal(withCustom.issue, null);
-  assert.ok(withCustom.week.lun.cena.items.some((line) => line.id === "bocadillo"));
-  assert.ok(!withStatic.week.lun.cena.items.some((line) => line.id === "bocadillo"));
-});
-
-test("renameMeals fallback naming uses the given catalog", async () => {
-  const week = {};
-
-  for (const day of DAYS) {
-    week[day] = {};
-    for (const slot of SLOTS) {
-      week[day][slot] = { name: { es: "x", en: "x" }, items: [{ id: "bocadillo", qty: 100 }] };
-    }
-  }
-
-  const renamed = await renameMeals(
-    week,
-    ["lun.cena"],
-    async () => ({ content: null, error: "x", errorCode: "ai_unavailable" }),
-    { catalog: custom },
-  );
-
-  assert.equal(renamed.lun.cena.name.es, "Bocadillo");
-  assert.equal(fallbackName(week.lun.cena, custom).en, "Guava paste");
 });
 
 // ---- Fix round 1

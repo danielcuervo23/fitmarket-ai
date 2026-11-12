@@ -1,6 +1,5 @@
 import {
   STATIC_CATALOG,
-  gramsOf,
   nutritionOf,
   type Catalog,
   type Ingredient,
@@ -15,21 +14,18 @@ import type { PriceBook, PriceSource } from "./priceBook.ts";
 import type { Shortfall } from "./rules/ruleSet.ts";
 import type { NoticeCode } from "./rules/targets.ts";
 import { STATIC_PRICE_BOOK } from "./stores.ts";
-import { SWAP_RULES } from "./swaps.ts";
 import {
   DAYS,
   SLOTS,
-  type ComposedMeal,
   type ComposedWeek,
   type Day,
   type Slot,
 } from "./types.ts";
 
 /**
- * Deterministic part of the planner: takes the AI's composition and computes
- * everything numeric (calories, protein, shopping list, cost) from the
- * catalog, then fits the plan to the budget by swapping expensive foods for
- * cheaper equivalents.
+ * Deterministic part of the planner: takes the week chosen from recipes and
+ * computes everything numeric (calories, protein, shopping list, cost) from
+ * the catalog.
  */
 
 // ------------------------------------------------------------------ quantities
@@ -47,13 +43,6 @@ export function roundQty(ingredient: Ingredient, qty: number): number {
   }
 
   return Math.max(1, Math.round(qty));
-}
-
-function mealKcal(meal: ComposedMeal, catalog: Catalog): number {
-  return meal.items.reduce((sum, item) => {
-    const ingredient = catalog.get(item.id);
-    return ingredient ? sum + nutritionOf(ingredient, item.qty).kcal : sum;
-  }, 0);
 }
 
 function addNutrition(total: Nutrition, add: Nutrition): Nutrition {
@@ -85,83 +74,6 @@ export function dayNutrition(
   }
 
   return total;
-}
-
-function cloneWeek(week: ComposedWeek): ComposedWeek {
-  const copy = {} as ComposedWeek;
-
-  for (const day of DAYS) {
-    const meals = {} as Record<Slot, ComposedMeal>;
-
-    for (const slot of SLOTS) {
-      const meal = week[day][slot];
-      meals[slot] = {
-        name: { ...meal.name },
-        items: meal.items.map((item) => ({ ...item })),
-      };
-    }
-
-    copy[day] = meals;
-  }
-
-  return copy;
-}
-
-/**
- * Scales every day to the calorie target. Seasonings and oils (category
- * "condimentos") stay as the AI wrote them; the rest of the day's food is
- * scaled up or down proportionally and rounded to sensible amounts.
- */
-export function normalizeWeek(
-  week: ComposedWeek,
-  targetKcal: number,
-  catalog: Catalog = STATIC_CATALOG,
-): ComposedWeek {
-  const result = cloneWeek(week);
-
-  for (const day of DAYS) {
-    let fixedKcal = 0;
-    let scalableKcal = 0;
-
-    for (const slot of SLOTS) {
-      for (const item of result[day][slot].items) {
-        const ingredient = catalog.get(item.id);
-
-        if (!ingredient) {
-          continue;
-        }
-
-        const kcal = nutritionOf(ingredient, item.qty).kcal;
-
-        if (ingredient.category === "condimentos") {
-          fixedKcal += kcal;
-        } else {
-          scalableKcal += kcal;
-        }
-      }
-    }
-
-    if (scalableKcal <= 0) {
-      continue;
-    }
-
-    const factor = Math.min(
-      1.6,
-      Math.max(0.6, (targetKcal - fixedKcal) / scalableKcal),
-    );
-
-    for (const slot of SLOTS) {
-      for (const item of result[day][slot].items) {
-        const ingredient = catalog.get(item.id);
-
-        if (ingredient && ingredient.category !== "condimentos") {
-          item.qty = roundQty(ingredient, item.qty * factor);
-        }
-      }
-    }
-  }
-
-  return result;
 }
 
 // ------------------------------------------------------------------ aggregation
@@ -258,140 +170,6 @@ export function weekStats(
     avgProtein: Math.round(protein / 7),
     distinctIngredients: ids.size,
   };
-}
-
-// ----------------------------------------------------------------- budget fit
-
-function swapQty(
-  from: Ingredient,
-  to: Ingredient,
-  qty: number,
-  keep: "protein" | "kcal",
-): number {
-  const fromGrams = gramsOf(from, qty);
-  const perGramFrom =
-    keep === "protein" ? from.per100.protein : from.per100.kcal;
-  const perGramTo = keep === "protein" ? to.per100.protein : to.per100.kcal;
-
-  if (perGramTo <= 0) {
-    return qty;
-  }
-
-  const toGrams = (fromGrams * perGramFrom) / perGramTo;
-  const toQty = to.unit === "unit" ? toGrams / (to.gramsPerUnit ?? 100) : toGrams;
-
-  return roundQty(to, toQty);
-}
-
-function applySwap(
-  week: ComposedWeek,
-  fromId: string,
-  toId: string,
-  keep: "protein" | "kcal",
-  catalog: Catalog,
-): ComposedWeek {
-  const from = catalog.get(fromId);
-  const to = catalog.get(toId);
-  const next = cloneWeek(week);
-
-  if (!from || !to) {
-    return next;
-  }
-
-  for (const day of DAYS) {
-    for (const slot of SLOTS) {
-      const meal = next[day][slot];
-
-      for (const item of meal.items) {
-        if (item.id === fromId) {
-          item.qty = swapQty(from, to, item.qty, keep);
-          item.id = toId;
-        }
-      }
-
-      // Merge duplicates created by the swap (e.g. two lines of the same food).
-      const merged = new Map<string, number>();
-
-      for (const item of meal.items) {
-        merged.set(item.id, (merged.get(item.id) ?? 0) + item.qty);
-      }
-
-      meal.items = [...merged].map(([id, qty]) => ({ id, qty }));
-    }
-  }
-
-  return next;
-}
-
-export interface FitResult {
-  week: ComposedWeek;
-  cost: number;
-  /** How many substitutions were needed to get there. */
-  swaps: number;
-}
-
-/**
- * Brings the week under budget by repeatedly applying the swap that saves the
- * most money, re-balancing calories after each one. Stops when the plan fits
- * or no swap helps any more.
- */
-export function fitToBudget(
-  week: ComposedWeek,
-  options: {
-    budgetCop: number;
-    householdSize: number;
-    targetKcal: number;
-    allowedIds: ReadonlySet<string>;
-    stores: string[];
-    catalog?: Catalog;
-    prices?: PriceBook;
-  },
-): FitResult {
-  const { budgetCop, householdSize, targetKcal, allowedIds, stores } = options;
-  const catalog = options.catalog ?? STATIC_CATALOG;
-  const prices = options.prices ?? STATIC_PRICE_BOOK;
-  let current = normalizeWeek(week, targetKcal, catalog);
-  let cost = weekCost(current, householdSize, stores, catalog, prices);
-  let swaps = 0;
-
-  // Each swap removes an ingredient from the plan, so this always terminates.
-  while (cost > budgetCop && swaps < 40) {
-    const used = new Set(totalsByIngredient(current, 1).keys());
-    let best: { week: ComposedWeek; cost: number } | null = null;
-
-    for (const rule of SWAP_RULES) {
-      if (!used.has(rule.from) || !allowedIds.has(rule.to)) {
-        continue;
-      }
-
-      const candidate = normalizeWeek(
-        applySwap(current, rule.from, rule.to, rule.keep, catalog),
-        targetKcal,
-        catalog,
-      );
-      const candidateCost = weekCost(
-        candidate,
-        householdSize,
-        stores,
-        catalog,
-        prices,
-      );
-
-      if (candidateCost < cost && (!best || candidateCost < best.cost)) {
-        best = { week: candidate, cost: candidateCost };
-      }
-    }
-
-    if (!best) {
-      break;
-    }
-
-    current = best.week;
-    cost = best.cost;
-    swaps += 1;
-  }
-
-  return { week: current, cost, swaps };
 }
 
 // --------------------------------------------------------------------- output
@@ -727,50 +505,4 @@ export function assemblePlan(
     ...(notices ? { notices } : {}),
     ...(options.compliance ? { compliance: consistentCompliance(options.compliance) } : {}),
   };
-}
-
-// ------------------------------------------------------------------ quality gate
-
-export type QualityIssue =
-  | { code: "low_protein"; actual: number; target: number }
-  | { code: "low_variety"; actual: number };
-
-/** Checks the plan is nutritionally and culinarily worth showing. */
-export function checkQuality(
-  week: ComposedWeek,
-  targets: NutritionTargets,
-  catalog: Catalog = STATIC_CATALOG,
-): QualityIssue | null {
-  const stats = weekStats(week, catalog);
-
-  if (stats.avgProtein < targets.proteinG * 0.85) {
-    return {
-      code: "low_protein",
-      actual: stats.avgProtein,
-      target: targets.proteinG,
-    };
-  }
-
-  if (stats.distinctIngredients < 14) {
-    return { code: "low_variety", actual: stats.distinctIngredients };
-  }
-
-  return null;
-}
-
-/** Plain-language feedback for the AI when a quality check fails. */
-export function feedbackFor(issue: QualityIssue): string {
-  if (issue.code === "low_protein") {
-    return `The plan averages ${issue.actual} g of protein per day but the target is ${issue.target} g. Add more protein sources from the allowed list (eggs, chicken, beef, fish, dairy, and legumes if they are allowed), for example a larger portion at lunch and dinner.`;
-  }
-
-  return `The plan uses only ${issue.actual} different ingredients. Use at least 18 different ones across the week.`;
-}
-
-/** Helper for tests and callers that need the kcal of one meal. */
-export function kcalOfMeal(
-  meal: ComposedMeal,
-  catalog: Catalog = STATIC_CATALOG,
-): number {
-  return Math.round(mealKcal(meal, catalog));
 }
