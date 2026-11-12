@@ -5,7 +5,8 @@ import type { BodyProfile } from "../nutrition.ts";
 import type { ModelCall } from "../openai.ts";
 import { eligibleRecipes, recipeCoverage, type ResolvedRecipe } from "../recipes/eligibility.ts";
 import { RECIPES } from "../recipes/library.generated.ts";
-import { DEFAULT_COOKING, type CookingPrefs, type Recipe } from "../recipes/types.ts";
+import { DEFAULT_COOKING, DEFAULT_ROLE_SCALE, type CookingPrefs, type Recipe } from "../recipes/types.ts";
+import { lineQty } from "../recipes/expand.ts";
 import { assemblePlan, complianceFromShortfalls, type BuiltPlan, type PlanCompliance } from "./build.ts";
 import {
   DEFAULT_MAX_MODEL_CALLS,
@@ -539,6 +540,26 @@ const MAX_NAME_LENGTH = 120;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+/**
+ * Most of `food` one serving of `recipe` can hold: the line's base quantity
+ * times its role's largest scale (recipe.scale, else DEFAULT_ROLE_SCALE;
+ * fixed lines 1, condiment lines 1), plus one rounding step (roundQty). Null
+ * when the food is not on any line.
+ */
+function maxLineQty(recipe: ResolvedRecipe, food: string, unit: string): number | null {
+  const roundingStep = unit === "unit" ? 1 : 5;
+  let best: number | null = null;
+  recipe.lines.forEach((line, index) => {
+    if (line.food !== food && !(line.alternatives ?? []).some((alt) => alt.food === food)) return;
+    const role = line.role;
+    const maxScale =
+      role === "fixed" ? 1 : (recipe.scale?.[role as keyof NonNullable<typeof recipe.scale>]?.[1] ?? DEFAULT_ROLE_SCALE[role][1]);
+    const bound = lineQty(recipe, index, food) * maxScale + roundingStep;
+    best = best === null ? bound : Math.max(best, bound);
+  });
+  return best;
+}
+
 function readMeal(raw: unknown, context: Context, day: Day, slot: Slot): ComposedMeal | null {
   if (!isRecord(raw) || !isRecord(raw.name) || !Array.isArray(raw.items)) return null;
   const { recipeId, name, items } = raw;
@@ -551,14 +572,16 @@ function readMeal(raw: unknown, context: Context, day: Day, slot: Slot): Compose
   // One item per recipe line at most (a recipe meal may hold more than ITEMS_PER_MEAL.max).
   if (items.length < 1 || items.length > recipe.lines.length) return null;
 
-  const recipeFoods = new Set(recipe.lines.flatMap((line) => [line.food, ...(line.alternatives ?? []).map((a) => a.food)]));
   const parsed: MealItem[] = [];
   for (const item of items) {
     if (!isRecord(item) || typeof item.id !== "string" || typeof item.qty !== "number") return null;
     if (parsed.some((seen) => seen.id === item.id)) return null;
     const food = context.catalog.get(item.id);
-    if (!food || !recipeFoods.has(item.id) || !isAllowed(food, context.restrictions)) return null;
-    if (!Number.isFinite(item.qty) || item.qty <= 0 || item.qty > MAX_STORED_QTY) return null;
+    if (!food || !isAllowed(food, context.restrictions)) return null;
+    // Only the recipe's own foods (a line's food or one of its alternatives),
+    // never more than that line can scale to (rounding included).
+    const maxQty = maxLineQty(recipe, item.id, food.unit);
+    if (maxQty === null || !Number.isFinite(item.qty) || item.qty <= 0 || item.qty > Math.min(maxQty, MAX_STORED_QTY)) return null;
     parsed.push({ id: item.id, qty: item.qty });
   }
   return { name: { es: name.es, en: name.en }, items: parsed, recipeId };

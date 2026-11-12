@@ -376,3 +376,25 @@ test("fat_max shortfall: the retry names the fattiest day and its fattiest dish 
   assert.match(feedbacks[1], /"(ensalada_de_aguacate_y_mani|tortilla_de_verduras_con_aguacate)"/);
   assert.match(feedbacks[1], /at most one high-fat dish per day/);
 });
+
+// Recipes now scale cooking oil as a "condiment" line (0.5-1x) and protein up to 2.5x.
+test("planFromPartial accepts a stored week whose recipes have condiment lines", async () => {
+  const first = await generatePlan(baseInput, enumModel(), undefined, { optimizer: realOptimizer(asRelaxed()) });
+  const withOil = DAYS.flatMap((d) => SLOTS.map((s) => first.reusable.week[d][s])).filter((meal) =>
+    NAMES.get(meal.recipeId).lines.some((line) => line.role === "condiment"),
+  );
+  assert.ok(withOil.length > 0, "the fixture week uses condiment recipes");
+  assert.ok(planFromPartial(baseInput, first.reusable));
+});
+
+test("planFromPartial rejects an item far above what its recipe line can scale to", async () => {
+  const first = await generatePlan(baseInput, enumModel(), undefined, { optimizer: realOptimizer(asRelaxed()) });
+  const week = structuredClone(first.reusable.week);
+  const meal = DAYS.flatMap((d) => SLOTS.map((s) => week[d][s])).find((m) =>
+    NAMES.get(m.recipeId).lines.some((line) => line.role === "condiment"),
+  );
+  const recipe = NAMES.get(meal.recipeId);
+  const oil = meal.items.find((item) => recipe.lines.some((l) => l.role === "condiment" && (l.food === item.id || (l.alternatives ?? []).some((a) => a.food === item.id))));
+  oil.qty *= 10; // a condiment never grows above 1x
+  assert.equal(planFromPartial(baseInput, { week }), null);
+});
