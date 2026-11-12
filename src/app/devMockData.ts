@@ -42,6 +42,73 @@ export const MOCK_PLAN: WeeklyPlan = {
   ],
 };
 
+const RECIPE_IDS = {
+  desayuno: "avena_banano_leche",
+  almuerzo: "pollo_arroz_ensalada",
+  cena: "huevos_arepa_queso",
+  snacks: "manzana_nueces",
+};
+
+/** A Plan 2 plan: recipe details, notices and a partial-plan warning. */
+export const MOCK_RECIPE_PLAN: WeeklyPlan = {
+  ...MOCK_PLAN,
+  meal_recipes: Object.fromEntries(
+    DAY_IDS.map((day: DayId) => [day, RECIPE_IDS]),
+  ) as WeeklyPlan["meal_recipes"],
+  recipes: {
+    avena_banano_leche: {
+      name: DISH_NAMES.desayuno,
+      minutes: 10,
+      level: "basic",
+      appliances: ["estufa", "microondas"],
+      batch: false,
+      steps: {
+        es: ["Calienta la leche.", "Agrega la avena y revuelve 3 minutos.", "Sirve con el banano en rodajas."],
+        en: ["Heat the milk.", "Add the oats and stir for 3 minutes.", "Serve with the sliced banana."],
+      },
+    },
+    pollo_arroz_ensalada: {
+      name: DISH_NAMES.almuerzo,
+      minutes: 35,
+      level: "comfortable",
+      appliances: ["estufa", "olla_arrocera", "freidora_aire"],
+      batch: true,
+      steps: {
+        es: ["Pon el arroz en la olla arrocera.", "Sazona el pollo con sal.", "Cocina el pollo 15 minutos.", "Mezcla la ensalada."],
+        en: ["Put the rice in the rice cooker.", "Season the chicken with salt.", "Cook the chicken for 15 minutes.", "Mix the salad."],
+      },
+    },
+    huevos_arepa_queso: {
+      name: DISH_NAMES.cena,
+      minutes: 15,
+      level: "enjoys",
+      appliances: ["estufa", "sandwichera"],
+      batch: false,
+      steps: {
+        es: ["Calienta la arepa.", "Revuelve los huevos en la sartén.", "Sirve con el queso."],
+        en: ["Warm the arepa.", "Scramble the eggs in the pan.", "Serve with the cheese."],
+      },
+    },
+    manzana_nueces: {
+      name: DISH_NAMES.snacks,
+      minutes: 2,
+      level: "basic",
+      appliances: [],
+      batch: false,
+      steps: { es: ["Lava la manzana.", "Sírvela con las nueces."], en: ["Wash the apple.", "Serve it with the walnuts."] },
+    },
+  },
+  notices: ["deficit_capped_energy", "see_professional", "code_from_a_newer_server"],
+  compliance: {
+    status: "partial",
+    unmet: [
+      { rule: "protein_min", target: 2, achieved: 1.7, unit: "g_per_kg" },
+      { rule: "legumes_week", target: 3, achieved: 2, unit: "count" },
+      { rule: "sodium_max", target: 2000, achieved: 1500, unit: "mg", unmeasurable: true },
+    ],
+  },
+};
+
 export const MOCK_DASHBOARD: DashboardData = {
   displayName: "Juan Daniel Cuervo",
   weeklyBudgetCop: 150_000,
