@@ -73,29 +73,35 @@ export function soakFoodsOf(recipe: ResolvedRecipe): string[] {
  * decision 2026-11-12): a 100 kg muscle user needs 140 g of protein a day (the
  * level-1 floor) and 2x portions cannot reach it. 2.5x keeps portions
  * realistic (at most 375 g raw chicken, 175 g dry lentils, 150 g cheese); 3x
- * would mean 210 g dry lentils in one meal. Foods counted in whole units (eggs)
- * keep 2x, so a meal never has more than 6 eggs (review 2026-11-12). The
- * level-2 protein_max rule still caps the day's protein for everyone.
+ * would mean 210 g dry lentils in one meal. The level-2 protein_max rule still
+ * caps the day's protein for everyone.
  */
 export const PROTEIN_DENSE_MAX_SCALE = 2.5;
+/**
+ * Whole-unit protein (eggs): never more than 6 in one meal (review
+ * 2026-11-12). The cap becomes min(2.5, 6 / units): 2 eggs reach 2.5x (5),
+ * 3 eggs stop at 2x (6). Scales are per role, so this holds the dish's whole
+ * protein role; no library dish mixes eggs with another protein-dense line.
+ */
+export const MAX_EGGS_PER_MEAL = 6;
 const DENSE_DAIRY_MIN_PROTEIN_G = 15;
 
 /**
- * Meat, fish and legumes (GABA group "proteicos"), or a dairy with at least
- * 15 g of protein per 100 g (cheese), sold by weight. Not milk, yogurt or
- * peanuts, and not eggs (whole units).
+ * Meat, fish, eggs and legumes (GABA group "proteicos"), or a dairy with at
+ * least 15 g of protein per 100 g (cheese). Not milk, yogurt or peanuts.
  */
 function isProteinDense(food: string, catalog: Catalog): boolean {
   const ingredient = catalog.get(food);
   const group = ingredient?.micro?.gabaGroup;
-  if (!ingredient || !group || ingredient.unit !== "g") return false;
+  if (!ingredient || !group) return false;
   return group === "proteicos" || (group === "lacteos" && ingredient.per100.protein >= DENSE_DAIRY_MIN_PROTEIN_G);
 }
 
 /**
  * The recipe's scale ranges, with the protein cap raised to
  * PROTEIN_DENSE_MAX_SCALE when every option of every protein line is
- * protein-dense (a single egg line keeps the whole dish at 2x). A range the recipe sets itself is kept.
+ * protein-dense, and lowered toward the usual cap so a meal never has more
+ * than MAX_EGGS_PER_MEAL whole units (eggs). A range the recipe sets itself is kept.
  */
 function resolvedScale(recipe: Recipe, lines: readonly ResolvedLine[], catalog: Catalog): Recipe["scale"] {
   const own = recipe.scale
@@ -103,14 +109,15 @@ function resolvedScale(recipe: Recipe, lines: readonly ResolvedLine[], catalog: 
     : undefined;
   if (own?.protein) return own;
 
-  const protein = lines.filter((line) => line.role === "protein");
-  const dense =
-    protein.length > 0 &&
-    protein.every((line) =>
-      [line.food, ...(line.alternatives ?? []).map((alt) => alt.food)].every((food) => isProteinDense(food, catalog)),
-    );
-  if (!dense) return own;
-  return { ...own, protein: [DEFAULT_ROLE_SCALE.protein[0], PROTEIN_DENSE_MAX_SCALE] };
+  const [min, usualMax] = DEFAULT_ROLE_SCALE.protein;
+  const options = lines
+    .filter((line) => line.role === "protein")
+    .flatMap((line) => [{ food: line.food, qty: line.qty }, ...(line.alternatives ?? [])]);
+  if (options.length === 0 || !options.every((option) => isProteinDense(option.food, catalog))) return own;
+
+  const units = options.filter((option) => catalog.get(option.food)?.unit === "unit").map((option) => option.qty);
+  const max = Math.max(usualMax, Math.min(PROTEIN_DENSE_MAX_SCALE, ...units.map((qty) => MAX_EGGS_PER_MEAL / qty)));
+  return max > usualMax ? { ...own, protein: [min, max] } : own;
 }
 
 /** In the catalog, with micro-nutrients, allowed, and sold by some chosen store. */

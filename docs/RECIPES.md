@@ -51,11 +51,12 @@ Enforced by `scripts/recipes/recipeSchema.ts` (zod plus cross-file checks):
   `optional` lines are dropped (not blocking) when the food is not allowed.
 - `scale` (optional): per-role `[min, max]` with `0 < min <= 1 <= max <= 3`
   (not for `condiment`). Without one, eligibility raises the protein cap to
-  2.5x when every option of every protein line is protein-dense and sold by
-  weight (meat, fish, legumes, cheese; not milk, yogurt, peanuts or eggs), so a
-  100 kg muscle user can reach the 1.4 g/kg floor (owner decision 2026-11-12).
-  Largest portions: 375 g raw chicken, 175 g dry legumes, 150 g cheese; eggs
-  stay at 2x (at most 6 in a meal).
+  2.5x when every option of every protein line is protein-dense (meat, fish,
+  eggs, legumes, cheese; not milk, yogurt or peanuts), so a 100 kg muscle user
+  can reach the 1.4 g/kg floor (owner decision 2026-11-12). Never more than 6
+  eggs in a meal: the cap is min(2.5, 6 / eggs), so 2-egg dishes reach 2.5x and
+  3-egg dishes stay at 2x. Largest portions: 375 g raw chicken, 6 eggs, 175 g
+  dry legumes, 150 g cheese.
 - `steps.es` and `steps.en`: same count, 1–8 items, each 1–160 chars.
 
 House rules (checked by `scripts/recipes/coverage.test.mjs` where possible):

@@ -6,6 +6,7 @@ import { buildRestrictionRules, isAllowed } from "../planner/restrictions.ts";
 import { SLOTS } from "../planner/types.ts";
 import {
   MIN_RECIPES_PER_SLOT,
+  MAX_EGGS_PER_MEAL,
   PROTEIN_DENSE_MAX_SCALE,
   WEEKEND_MAX_MINUTES,
   countBySlot,
@@ -357,20 +358,22 @@ const KITCHEN_ALL = {
   appliances: ["estufa", "microondas", "olla_arrocera", "freidora_aire", "licuadora", "horno", "sandwichera", "olla_presion"],
 };
 
-test("the protein cap rises to 2.5x only when every protein option is protein-dense and sold by weight", () => {
+test("the protein cap rises to 2.5x only when every protein option is protein-dense", () => {
   assert.equal(PROTEIN_DENSE_MAX_SCALE, 2.5);
   const scaleOf = (id) => resolveRecipe(byId(id), ctx({ cooking: KITCHEN_ALL })).scale?.protein;
 
-  // Chicken (pernil or pechuga), lentils/beans/chickpeas, canned fish, cheese.
-  for (const id of ["pollo_guisado_con_papa", "lentejas_con_arroz", "pasta_con_atun", "arepa_con_queso"]) {
+  // Chicken (pernil or pechuga), eggs, lentils/beans/chickpeas, canned fish, cheese.
+  for (const id of ["pollo_guisado_con_papa", "huevos_pericos_con_arepa", "lentejas_con_arroz", "pasta_con_atun", "arepa_con_queso"]) {
     assert.deepEqual(scaleOf(id), [0.5, 2.5], id);
   }
   // Milk, yogurt or peanuts on a protein line keep the usual cap (default range, no override).
-  // Eggs (whole units) keep it too: 3 eggs x 2 = 6, never 8 in one meal (review 2026-11-12).
-  for (const id of ["changua", "yogur_con_fruta", "avena_con_banano", "ensalada_de_aguacate_y_mani",
-    "huevos_pericos_con_arepa", "huevos_revueltos_con_espinaca", "tostadas_francesas_con_fruta"]) {
+  for (const id of ["changua", "yogur_con_fruta", "avena_con_banano", "ensalada_de_aguacate_y_mani", "tostadas_francesas_con_fruta"]) {
     assert.equal(scaleOf(id), undefined, id);
   }
+  // Never more than 6 eggs in a meal (review 2026-11-12): 2 eggs reach 2.5x (5), 3 eggs stop at 2x (6).
+  assert.equal(MAX_EGGS_PER_MEAL, 6);
+  assert.equal(scaleOf("huevos_revueltos_con_espinaca"), undefined); // the usual 2x
+  assert.equal(scaleOf("huevos_revueltos_en_microondas"), undefined);
 });
 
 test("a recipe's own protein scale is never replaced, and the library stays untouched", () => {
