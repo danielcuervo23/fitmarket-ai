@@ -108,6 +108,9 @@ pending_owner_ok  ──(owner approves in docs/recetas-para-revisar.md)──> 
 - Both statuses are usable in production only after the owner's go-ahead in
   rollout step 3 (see `docs/ROLLOUT-plan-2.md`).
 - Changing any recipe changes `RECIPE_LIBRARY_VERSION` (hash of the sorted library).
+- Current state: the owner approved all 49 recipes on 2026-11-12, so every
+  recipe in `data/recipes/` is `approved` (still `source: "ai_draft"`). A new
+  AI-drafted recipe starts again as `pending_owner_ok`.
 
 ## Coverage test and known gaps
 

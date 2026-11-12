@@ -1,10 +1,12 @@
 # Recetas para revisar
 
-Estas son las 49 recetas que la app va a usar para armar el menú de la semana. Todas las escribió la IA y **ninguna se usa con usuarios reales hasta que usted dé el visto bueno**. Cada porción es para un adulto; la app ajusta las cantidades según la meta de cada persona.
+**Todas aprobadas por el dueño el 2026-11-12.**
+
+Estas son las 49 recetas que la app va a usar para armar el menú de la semana. Todas las escribió la IA y el dueño ya les dio el visto bueno. Cada porción es para un adulto; la app ajusta las cantidades según la meta de cada persona.
 
 ## Estado
 
-**El dueño aprobó todas las recetas el 2026-11-11.** En la app siguen marcadas como "pendientes" hasta que el dueño confirme el cambio de estado.
+**El dueño aprobó todas las recetas, también las de la última ronda, el 2026-11-12.** En la app ya están marcadas como aprobadas.
 
 ## Qué cambió en la última ronda (2026-11-11)
 
@@ -79,7 +81,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. Corta el banano en rodajas y ponlo encima con el maní.
 5. Si te gusta dulce, agrega un poquito de panela rallada.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 2. Avena remojada con fruta (sin cocinar)
 
@@ -103,7 +105,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. En la mañana, lava y pica la fruta en cuadritos.
 5. Ponla encima de la avena y cómetela fría.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 3. Batido de banano y maní
 
@@ -127,7 +129,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Licúa 1 minuto, hasta que no queden pedazos.
 4. Sírvelo enseguida, sin agregarle azúcar.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 4. Batido de fresa y avena
 
@@ -150,7 +152,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Licúa 1 minuto, hasta que quede suave.
 4. Sírvelo enseguida, sin agregarle azúcar.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 5. Ensalada de frutas con maní
 
@@ -174,7 +176,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Ponlos en un plato hondo y échales el maní encima.
 4. Si quieres algo más llenador, agrega la avena en hojuelas.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 6. Pan con aguacate y tomate
 
@@ -198,7 +200,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Unta el aguacate sobre las tajadas de pan.
 4. Corta el tomate en rodajas (ruedas delgadas) y ponlas encima.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 7. Sándwich de queso y tomate
 
@@ -221,7 +223,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 2. Pon el queso en una tajada de pan.
 3. Agrega el tomate y la lechuga, y tapa con la otra tajada.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 8. Yogur con fruta _(de las 6 primeras)_
 
@@ -244,7 +246,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Sirve el yogur en un plato hondo.
 4. Pon la fruta encima y, si quieres, la avena en hojuelas.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 9. Huevos revueltos en el microondas
 
@@ -272,7 +274,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Calienta 30 segundos más y revuelve. Repite hasta que el huevo esté firme (que no quede líquido).
 6. Cómelos con el pan, si quieres.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 10. Avena con banano _(de las 6 primeras)_
 
@@ -298,7 +300,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Sirve en un plato hondo.
 6. Pela el banano, córtalo en rodajas y ponlo encima.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 11. Colada de avena
 
@@ -323,7 +325,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. Si te gusta dulce, agrega un poquito de panela rallada.
 5. Sírvela en una taza y acompáñala con el banano.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 12. Huevos revueltos con espinaca y tomate
 
@@ -351,7 +353,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Echa los huevos a la sartén y revuelve hasta que ya no estén líquidos.
 6. Sirve con el pan, si quieres.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 13. Changua (caldo de leche con huevo)
 
@@ -379,7 +381,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Déjalos cocinar unos 5 minutos, hasta que la yema esté cuajada (firme).
 6. Sirve en un plato hondo con el cilantro encima y, si quieres, el pan en trocitos.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 14. Tostadas francesas con fruta
 
@@ -406,7 +408,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Cocina el pan 2 minutos por cada lado, hasta que esté dorado (color café claro).
 6. Sirve con la fruta picada encima.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 15. Arepa con aguacate y tomate
 
@@ -431,7 +433,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. Mientras tanto, aplasta el aguacate con un tenedor y pica el tomate.
 5. Abre la arepa y rellénala con el aguacate y el tomate.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 16. Arepa con queso
 
@@ -456,7 +458,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. Ponlas en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.
 5. Ábrelas por un lado y mete el resto del queso y, si quieres, la mantequilla.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 17. Huevos pericos con arepa _(de las 6 primeras)_
 
@@ -484,7 +486,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.
 6. Bate los huevos (bate: mezcla rápido con un tenedor), échalos a la sartén y revuelve hasta que no estén líquidos.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 18. Maduro asado con queso
 
@@ -508,7 +510,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. Déjalo 12 minutos por cada lado, hasta que esté blandito y dorado (color café claro).
 5. Pon el queso encima los últimos 3 minutos para que se derrita.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ## Almuerzos y cenas (28)
 
@@ -539,7 +541,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. Échale el aceite y la sal, y revuelve con cuidado.
 5. Acompáñala con pan, si quieres.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 20. Ensalada de atún con aguacate
 
@@ -566,7 +568,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Pon todo en un plato hondo con el aguacate en cuadritos.
 4. Échale el aceite y la sal, y revuelve.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 21. Ensalada de repollo, zanahoria y maní con pan
 
@@ -594,7 +596,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. Agrega el aceite, la sal y el maní, y revuelve.
 5. Cómela con el pan.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 22. Papa al microondas con queso y guacamole
 
@@ -623,7 +625,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Ábrela por la mitad, desmorona el queso adentro y caliéntala 30 segundos para que se derrita.
 6. Ponle encima el guacamole y el cilantro.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 23. Sándwich de aguacate, verduras y maní
 
@@ -650,7 +652,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Unta el aguacate en el pan y riega el maní encima.
 4. Pon encima la lechuga, el tomate y el pepino, y tapa con otra tajada de pan.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 24. Sándwich de atún
 
@@ -676,7 +678,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Lava la lechuga y corta el tomate en rodajas.
 4. Arma el sándwich: pan, lechuga, atún, tomate y otra tajada de pan.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 25. Sardinas con papa al microondas y ensalada
 
@@ -703,7 +705,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 4. Calienta las sardinas 1 minuto en el microondas, tapadas.
 5. Parte la papa y sírvela con las sardinas y la ensalada.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 26. Tortilla de verduras con aguacate
 
@@ -732,7 +734,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Tapa y deja 3 minutos sin revolver, hasta que la parte de arriba esté casi firme.
 6. Dale la vuelta con una espátula, deja 1 minuto más y sirve con el aguacate en tajadas.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 27. Carne molida guisada con papa criolla
 
@@ -762,7 +764,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Echa el tomate y la sal, y cocina 5 minutos más.
 6. Sirve la carne con las papas. Lo que sobre dura 3 días en la nevera.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 28. Papa criolla con huevos en hogao
 
@@ -790,7 +792,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Bate los huevos (bate: mezcla rápido con un tenedor), échalos al hogao y revuelve hasta que no estén líquidos.
 6. Escurre las papas y sírvelas con los huevos.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 29. Pasta con atún y tomate
 
@@ -819,7 +821,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Escurre el atún (bota el agua de la lata) y échalo a la salsa.
 6. Escurre la pasta (sácale el agua con un colador) y mézclala con la salsa.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 30. Pasta con huevo, tomate y habichuela
 
@@ -848,7 +850,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Bate los huevos (bate: mezcla rápido con un tenedor), échalos a la sartén y revuelve hasta que no estén líquidos.
 6. Escurre la pasta con la habichuela y mézclala con el huevo y el tomate.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 31. Pasta con tomate y espinaca
 
@@ -878,7 +880,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Echa la espinaca y revuelve 1 minuto, hasta que se encoja.
 6. Escurre la pasta, mézclala con la salsa y, si quieres, pon queso desmoronado encima.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 32. Pechuga a la plancha con arepa y ensalada
 
@@ -907,7 +909,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Lava y pica la lechuga, el tomate y el pepino para la ensalada.
 6. Sirve la carne con la arepa y la ensalada.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 33. Pollo salteado con verduras y quinua
 
@@ -937,7 +939,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Agrega las verduras y revuelve 4 minutos más; deben quedar un poco crocantes (que suenen al morderlas).
 6. Sirve con la quinua.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 34. Quinua con verduras
 
@@ -967,7 +969,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Agrega la espinaca y revuelve 1 minuto, hasta que se encoja.
 6. Mezcla las verduras con la quinua y pon el maní encima.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 35. Sardinas guisadas con arepa
 
@@ -995,7 +997,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Agrega las sardinas con su salsa o aceite, aplástalas un poco y calienta 3 minutos.
 6. Sirve las sardinas encima de la arepa.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 36. Sopa rápida de verduras con huevo
 
@@ -1025,7 +1027,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Déjalos 3 minutos, hasta que la clara esté blanca.
 6. Sirve con cilantro picado encima.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 37. Tilapia en sartén con arepa y ensalada
 
@@ -1055,7 +1057,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Lava y pica la lechuga, el tomate y el pepino para la ensalada.
 6. Sirve el pescado con la arepa y la ensalada.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 38. Arroz con huevo y tomate _(de las 6 primeras)_
 
@@ -1083,7 +1085,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Rompe los huevos en la sartén y revuelve hasta que no estén líquidos. Lávate las manos después.
 6. Sirve el arroz y pon los huevos con tomate encima.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 39. Pollo guisado con papa _(de las 6 primeras)_
 
@@ -1114,7 +1116,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Echa la papa, la zanahoria y un vaso de agua.
 6. Tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda. Lo que sobre dura 3 días en la nevera.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 40. Sopa de lentejas con verduras
 
@@ -1145,7 +1147,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Échalos a la olla con la sal y deja 15 minutos más, hasta que la papa esté blanda.
 6. Sirve caliente con cilantro picado. Lo que sobre dura hasta 3 días en la nevera.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 41. Lentejas con arroz _(de las 6 primeras)_
 
@@ -1176,7 +1178,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Aparte, pon el arroz con el doble de agua y un poquito de sal; tapa y cocina 20 minutos a fuego bajo.
 6. Sirve los granos con el arroz y, si quieres, cilantro picado encima.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 42. Lentejas con papa en el microondas
 
@@ -1206,7 +1208,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Repite tres veces más (40 minutos en total), revisando que no le falte agua.
 6. Están listas cuando las lentejas se aplastan fácil con un tenedor. Duran 3 días en la nevera.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 43. Arroz con pollo
 
@@ -1237,7 +1239,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. En la olla con el aceite, cocina las verduras picadas 5 minutos, revolviendo.
 6. Agrega el arroz, el pollo y caldo (el doble del arroz); cuando hierva, tapa y deja 20 minutos a fuego mínimo.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 44. Fríjoles con plátano en olla a presión
 
@@ -1268,7 +1270,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).
 6. Echa a la olla el tomate, la cebolla larga, el ajo y la zanahoria picados, el aceite y la sal. Hierve 10 minutos sin tapa y sirve con arroz, si quieres.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 45. Garbanzos guisados con papa
 
@@ -1299,7 +1301,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Aparte, cocina en una sartén con el aceite el tomate, la cebolla, el pimentón y el ajo picados, 5 minutos.
 6. Mezcla todo con la sal y sirve con cilantro, si quieres.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 46. Sopa de arveja seca
 
@@ -1329,7 +1331,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 5. Está lista cuando la arveja y la papa se aplastan fácil con una cuchara.
 6. Sirve con cilantro. Lo que sobre dura hasta 3 días en la nevera.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ## Algo / onces (snacks) (3)
 
@@ -1352,7 +1354,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 2. Pártela en tajadas, si quieres.
 3. Acompáñala con un puñado pequeño de frutos secos o maní.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 48. Palitos de verdura con guacamole
 
@@ -1377,7 +1379,7 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Aplasta el aguacate con un tenedor y mézclalo con el tomate picado y la sal: eso es el guacamole.
 4. Unta los palitos en el guacamole.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
 
 ### 49. Salpicón de frutas
 
@@ -1401,4 +1403,4 @@ Marque **Aprobada** o escriba qué cambiar. Con una muestra de unas 10 recetas r
 3. Parte la naranja por la mitad y exprímela encima (apriétala para sacarle el jugo).
 4. Revuelve y cómelo con cuchara.
 
-- [ ] Aprobada   - [ ] Cambiar: ______________________
+- [x] Aprobada   - [ ] Cambiar: ______________________
