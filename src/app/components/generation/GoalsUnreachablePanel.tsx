@@ -1,12 +1,12 @@
 import { useId, useMemo, useState } from "react";
 import { RefreshCw, Target, Wallet } from "lucide-react";
 import type { GoalsUnreachableGenerationError } from "@/lib/ai/generateWeeklyPlan";
-import { describeConflict } from "@/lib/ai/goalConflicts";
 import {
-  budgetIssue,
-  parseBudgetInput,
-  suggestBudget,
-} from "@/lib/budgetSuggestion";
+  budgetOptionAmounts,
+  describeConflict,
+  unreachableIntroKey,
+} from "@/lib/ai/goalConflicts";
+import { budgetIssue, parseBudgetInput } from "@/lib/budgetSuggestion";
 import type { ErrorKey } from "@/lib/errors";
 import { useI18n } from "@/i18n/I18nProvider";
 import { es, type MessageKey } from "@/i18n/messages";
@@ -53,10 +53,12 @@ export function GoalsUnreachablePanel({
 }: Props) {
   const { t, locale, formatCurrency, formatNumber } = useI18n();
   const forceHelpId = useId();
+  const optionsHeadingId = useId();
+  const listHeadingId = useId();
   const budget = error.budgetOption;
-  const recommended = budget
-    ? suggestBudget(budget.currentBudget, budget.requiredBudget)
-    : 0;
+  // One computation for the label ("+$25.000") and the editor's prefill.
+  const amounts = budget ? budgetOptionAmounts(budget) : null;
+  const recommended = amounts?.newBudget ?? 0;
 
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [input, setInput] = useState(() => formatNumber(recommended));
@@ -82,12 +84,14 @@ export function GoalsUnreachablePanel({
       }
     });
 
-    if (result.length === 0 && !budget) {
+    if (result.length === 0) {
       result.push({ id: "generic", text: t(GENERIC) });
     }
 
     return result;
-  }, [error.conflicts, budget, locale, t]);
+  }, [error.conflicts, locale, t]);
+
+  const introKey = unreachableIntroKey({ hasBudget: budget !== null, canForce });
 
   const amount = parseBudgetInput(input);
   const canSaveBudget =
@@ -115,7 +119,7 @@ export function GoalsUnreachablePanel({
     <ProblemScreen
       focusTitle
       title={t("gen.unreachable.title")}
-      body={t("gen.unreachable.intro")}
+      body={isMessageKey(introKey) ? t(introKey) : ""}
       actions={
         <>
           {budgetOpen && (
@@ -148,18 +152,18 @@ export function GoalsUnreachablePanel({
         </>
       }
     >
-      <ul
-        aria-label={t("gen.unreachable.listLabel")}
-        className="flex flex-col gap-2.5"
-      >
-        {budget && (
-          <li className="flex flex-col gap-3 rounded-card border border-ink-100 bg-white p-4">
+      {budget && amounts && (
+        <section aria-labelledby={optionsHeadingId} className="flex flex-col gap-2.5">
+          <h2 id={optionsHeadingId} className="text-[13px] font-semibold text-ink-500">
+            {t("gen.unreachable.optionsHeading")}
+          </h2>
+          <div className="flex flex-col gap-3 rounded-card border border-ink-100 bg-white p-4">
             <div className="flex flex-col items-start gap-3">
               <p className="flex items-start gap-2.5 text-[15px] font-semibold text-ink-900">
                 <Wallet size={18} aria-hidden className="mt-0.5 shrink-0 text-brand-600" />
                 <span>
                   {t("gen.unreachable.budget", {
-                    amount: formatCurrency(budget.recommendedIncrease),
+                    amount: formatCurrency(amounts.increase),
                   })}
                 </span>
               </p>
@@ -196,19 +200,26 @@ export function GoalsUnreachablePanel({
                 disabled={isSaving}
               />
             )}
-          </li>
-        )}
+          </div>
+        </section>
+      )}
 
-        {lines.map((line) => (
-          <li
-            key={line.id}
-            className="flex items-start gap-2.5 rounded-card border border-ink-100 bg-white p-4 text-[15px] leading-snug text-ink-900"
-          >
-            <Target size={18} aria-hidden className="mt-0.5 shrink-0 text-warning-600" />
-            <span>{line.text}</span>
-          </li>
-        ))}
-      </ul>
+      <section aria-labelledby={listHeadingId} className="flex flex-col gap-2.5">
+        <h2 id={listHeadingId} className="text-[13px] font-semibold text-ink-500">
+          {t("gen.unreachable.listHeading")}
+        </h2>
+        <ul className="flex flex-col gap-2.5">
+          {lines.map((line) => (
+            <li
+              key={line.id}
+              className="flex items-start gap-2.5 rounded-card border border-ink-100 bg-white p-4 text-[15px] leading-snug text-ink-900"
+            >
+              <Target size={18} aria-hidden className="mt-0.5 shrink-0 text-warning-600" />
+              <span>{line.text}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {canForce && (
         <p id={forceHelpId} className="text-[13px] leading-snug text-ink-500">

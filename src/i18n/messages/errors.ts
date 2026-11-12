@@ -84,11 +84,18 @@ export const errors = defineMessages({
     // "No se puede cumplir" (Plan 2, Task 15). Numbers come from the server;
     // the words never promise to relax restrictions, safety or the budget.
     "gen.unreachable.title": "Así como está, tu plan no cumple todas tus metas",
-    "gen.unreachable.intro": "Para lograrlo, puedes cambiar una de estas cosas:",
-    "gen.unreachable.listLabel": "Lo que no se alcanza",
+    "gen.unreachable.intro":
+      "Puedes subir tu presupuesto o pedir el mejor plan posible así como está.",
+    "gen.unreachable.introBudget": "Para lograrlo, puedes subir tu presupuesto.",
+    "gen.unreachable.introForce": "Puedes pedir el mejor plan posible así como está.",
+    "gen.unreachable.introAdjust": "Puedes cambiar tu configuración e intentarlo de nuevo.",
+    "gen.unreachable.optionsHeading": "Lo que puedes hacer:",
+    "gen.unreachable.listHeading": "Esto es lo que no se alcanza:",
     "gen.unreachable.budget": "Subir tu presupuesto en {amount}",
     "gen.unreachable.changeBudget": "Cambiar mi presupuesto",
     "gen.unreachable.force": "Quiero el plan igual",
+    // TODO(Task 13): once the server reuses the first attempt, say here that
+    // this does not use another daily try.
     "gen.unreachable.forceHelp":
       "Te damos el mejor plan posible sin pasarte de tu presupuesto ni romper tus restricciones, y te decimos qué no se cumple.",
     "gen.conflict.generic": "Una de tus metas no se alcanza del todo",
@@ -98,12 +105,12 @@ export const errors = defineMessages({
     "gen.conflict.protein_safety_max":
       "Límite seguro de proteína: tienes {achieved} g por kilo y el límite es {target}",
     "gen.conflict.protein_muscle_floor":
-      "Proteína para ganar músculo: llegas a {achieved} de {target} g por kilo al día",
+      "Proteína para ganar músculo: llegas a {achieved} de {target} g por kilo al día. Prueba subir tu presupuesto o escoger más comidas con pollo, huevo, atún o lentejas.",
     "gen.conflict.kcal_range": "Calorías: llegas a {achieved} de {target} al día",
     "gen.conflict.kcal_range.over":
       "Calorías: tienes {achieved} al día y lo máximo que buscamos es {target}",
     "gen.conflict.protein_min":
-      "Bajar tu meta de proteína {gap} g por kilo (hoy llegas a {achieved} de {target})",
+      "Proteína: llegas a {achieved} de {target} g por kilo al día. Prueba subir tu presupuesto o escoger más comidas con pollo, huevo, atún o lentejas.",
     "gen.conflict.protein_max":
       "Máximo de proteína: tienes {achieved} g por kilo y el máximo es {target}",
     "gen.conflict.carbs_min_muscle":
@@ -216,8 +223,13 @@ export const errors = defineMessages({
       "We couldn't generate a valid plan. Review your preferences and try again.",
 
     "gen.unreachable.title": "As it stands, your plan can't meet all your goals",
-    "gen.unreachable.intro": "To get there, you can change one of these:",
-    "gen.unreachable.listLabel": "What isn't reached",
+    "gen.unreachable.intro":
+      "You can raise your budget or ask for the best plan possible as it stands.",
+    "gen.unreachable.introBudget": "To get there, you can raise your budget.",
+    "gen.unreachable.introForce": "You can ask for the best plan possible as it stands.",
+    "gen.unreachable.introAdjust": "You can change your settings and try again.",
+    "gen.unreachable.optionsHeading": "What you can do:",
+    "gen.unreachable.listHeading": "This is what isn't reached:",
     "gen.unreachable.budget": "Raise your budget by {amount}",
     "gen.unreachable.changeBudget": "Change my budget",
     "gen.unreachable.force": "Give me the plan anyway",
@@ -230,12 +242,12 @@ export const errors = defineMessages({
     "gen.conflict.protein_safety_max":
       "Safe protein limit: you have {achieved} g per kilo and the limit is {target}",
     "gen.conflict.protein_muscle_floor":
-      "Protein to build muscle: you reach {achieved} of {target} g per kilo a day",
+      "Protein to build muscle: you reach {achieved} of {target} g per kilo a day. Try raising your budget or picking more meals with chicken, eggs, tuna or lentils.",
     "gen.conflict.kcal_range": "Calories: you reach {achieved} of {target} a day",
     "gen.conflict.kcal_range.over":
       "Calories: you have {achieved} a day and the most we aim for is {target}",
     "gen.conflict.protein_min":
-      "Lower your protein goal by {gap} g per kilo (you reach {achieved} of {target})",
+      "Protein: you reach {achieved} of {target} g per kilo a day. Try raising your budget or picking more meals with chicken, eggs, tuna or lentils.",
     "gen.conflict.protein_max":
       "Protein maximum: you have {achieved} g per kilo and the maximum is {target}",
     "gen.conflict.carbs_min_muscle":

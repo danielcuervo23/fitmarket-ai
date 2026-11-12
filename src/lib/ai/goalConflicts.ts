@@ -6,6 +6,8 @@
 // strings (a newer server may send codes this web has no copy for, which get a
 // generic line), and only numbers ever reach the copy, never server text.
 
+import { suggestBudget } from "../budgetSuggestion.ts";
+
 export interface GoalConflict {
   rule: string;
   level: number;
@@ -179,9 +181,25 @@ export function describeConflict(conflict: GoalConflict): ConflictLine | null {
   const over = TWO_SIDED.has(conflict.rule) && conflict.achieved > conflict.target;
   const key = `gen.conflict.${conflict.rule}${over ? ".over" : ""}`;
 
-  if (conflict.rule === "protein_min") {
-    return { key, params: { gap: round(conflict.target - conflict.achieved, 1), achieved, target } };
-  }
-
   return { key, params: { achieved, target } };
 }
+
+/**
+ * The new budget offered by the budget option and the increase shown in its
+ * label, from one computation so they never disagree: the recommended budget
+ * rounded up to the steps people use (see suggestBudget).
+ */
+export function budgetOptionAmounts(option: BudgetOption): { newBudget: number; increase: number } {
+  const recommended = Math.max(option.requiredBudget, option.currentBudget + option.recommendedIncrease);
+  const newBudget = suggestBudget(option.currentBudget, recommended);
+  return { newBudget, increase: newBudget - option.currentBudget };
+}
+
+/** The panel intro, naming only the ways out the panel actually offers. */
+export function unreachableIntroKey(options: { hasBudget: boolean; canForce: boolean }): string {
+  if (options.hasBudget) {
+    return options.canForce ? "gen.unreachable.intro" : "gen.unreachable.introBudget";
+  }
+  return options.canForce ? "gen.unreachable.introForce" : "gen.unreachable.introAdjust";
+}
+

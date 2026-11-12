@@ -50,7 +50,9 @@ export function ProblemScreen({
         </span>
         <h1
           ref={titleRef}
-          role="alert"
+          // Focus already makes screen readers read the title; an alert role
+          // on top would announce it twice.
+          role={focusTitle ? undefined : "alert"}
           tabIndex={focusTitle ? -1 : undefined}
           className="text-2xl font-extrabold tracking-tight outline-none"
         >

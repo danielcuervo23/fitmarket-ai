@@ -8,7 +8,9 @@ import { errors } from "../i18n/messages/errors.ts";
 import {
   CONFLICT_UNITS,
   MAX_CONFLICTS,
+  budgetOptionAmounts,
   describeConflict,
+  unreachableIntroKey,
   readGoalsUnreachable,
 } from "./ai/goalConflicts.ts";
 import { RULE_CODES } from "./planRecipes.ts";
@@ -83,12 +85,57 @@ test("canForce is true only when the server says exactly true", () => {
   assert.equal(readGoalsUnreachable(answer({ canForce: undefined })).canForce, false);
 });
 
-test("protein gap is target - achieved rounded to 1 decimal (the panel formats it per language)", () => {
-  assert.equal(describeConflict(protein).params.gap, 0.3);
+test("protein is a plain statement in g per kilo with 1 decimal (no goal-lowering gap)", () => {
   assert.deepEqual(describeConflict(protein), {
     key: "gen.conflict.protein_min",
-    params: { gap: 0.3, achieved: 1.3, target: 1.6 },
+    params: { achieved: 1.3, target: 1.6 },
   });
+});
+
+test("budget option: the label increase and the editor prefill come from one computation", () => {
+  // 150 000 + 22 000 = 172 000, rounded up to the 5 000 step people use.
+  assert.deepEqual(budgetOptionAmounts(budget), { newBudget: 175000, increase: 25000 });
+  // Already on a step: exactly the recommended value.
+  assert.deepEqual(
+    budgetOptionAmounts({ currentBudget: 150000, requiredBudget: 170000, recommendedIncrease: 20000 }),
+    { newBudget: 170000, increase: 20000 },
+  );
+  // A tiny increase still moves at least one step.
+  assert.deepEqual(
+    budgetOptionAmounts({ currentBudget: 150000, requiredBudget: 150500, recommendedIncrease: 500 }),
+    { newBudget: 155000, increase: 5000 },
+  );
+  for (const option of [budget, { currentBudget: 98765, requiredBudget: 120001, recommendedIncrease: 21236 }]) {
+    const { newBudget, increase } = budgetOptionAmounts(option);
+    assert.equal(newBudget - option.currentBudget, increase);
+    assert.ok(newBudget >= option.currentBudget + option.recommendedIncrease);
+  }
+});
+
+test("intro names only the options the panel actually offers", () => {
+  assert.equal(unreachableIntroKey({ hasBudget: true, canForce: true }), "gen.unreachable.intro");
+  assert.equal(unreachableIntroKey({ hasBudget: true, canForce: false }), "gen.unreachable.introBudget");
+  assert.equal(unreachableIntroKey({ hasBudget: false, canForce: true }), "gen.unreachable.introForce");
+  assert.equal(unreachableIntroKey({ hasBudget: false, canForce: false }), "gen.unreachable.introAdjust");
+  for (const hasBudget of [true, false]) {
+    for (const canForce of [true, false]) {
+      const key = unreachableIntroKey({ hasBudget, canForce });
+      assert.ok(errors.es[key] && errors.en[key], key);
+    }
+  }
+});
+
+test("protein lines give a real action, never 'bajar tu meta'", () => {
+  for (const key of ["gen.conflict.protein_min", "gen.conflict.protein_muscle_floor"]) {
+    assert.match(errors.es[key], /Prueba subir tu presupuesto/, key);
+    assert.match(errors.en[key], /Try raising your budget/, key);
+  }
+  for (const [key, text] of Object.entries(errors.es)) {
+    if (key.startsWith("gen.conflict.")) assert.doesNotMatch(text, /\bbajar tu meta\b/i, key);
+  }
+  for (const [key, text] of Object.entries(errors.en)) {
+    if (key.startsWith("gen.conflict.")) assert.doesNotMatch(text, /\blower your .* goal\b/i, key);
+  }
 });
 
 test("grams, milligrams, calories and counts are whole numbers", () => {
@@ -181,10 +228,15 @@ test("every key describeConflict can give exists in Spanish and English", () => 
   }
 });
 
-test("panel copy matches the plan, Spanish first", () => {
+test("panel copy, Spanish first (owner-approved changes of 2026-11-12)", () => {
   assert.equal(errors.es["gen.unreachable.title"], "Así como está, tu plan no cumple todas tus metas");
   assert.equal(errors.en["gen.unreachable.title"], "As it stands, your plan can't meet all your goals");
-  assert.equal(errors.es["gen.unreachable.intro"], "Para lograrlo, puedes cambiar una de estas cosas:");
+  assert.equal(
+    errors.es["gen.unreachable.intro"],
+    "Puedes subir tu presupuesto o pedir el mejor plan posible así como está.",
+  );
+  assert.equal(errors.es["gen.unreachable.listHeading"], "Esto es lo que no se alcanza:");
+  assert.equal(errors.en["gen.unreachable.listHeading"], "This is what isn't reached:");
   assert.equal(errors.es["gen.unreachable.budget"], "Subir tu presupuesto en {amount}");
   assert.equal(errors.es["gen.unreachable.force"], "Quiero el plan igual");
   assert.equal(errors.en["gen.unreachable.force"], "Give me the plan anyway");
@@ -196,6 +248,6 @@ test("panel copy matches the plan, Spanish first", () => {
   assert.equal(errors.es["gen.conflict.fiber_min"], "Fibra: llegas a {achieved} de {target} g al día");
   assert.equal(
     errors.es["gen.conflict.protein_min"],
-    "Bajar tu meta de proteína {gap} g por kilo (hoy llegas a {achieved} de {target})",
+    "Proteína: llegas a {achieved} de {target} g por kilo al día. Prueba subir tu presupuesto o escoger más comidas con pollo, huevo, atún o lentejas.",
   );
 });
