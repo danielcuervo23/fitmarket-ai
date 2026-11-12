@@ -574,7 +574,8 @@ test("generate-weekly-plan passes the planner data to generatePlan", () => {
   const source = readFileSync(new URL("../generate-weekly-plan/index.ts", import.meta.url), "utf8");
   const call = source.slice(source.indexOf("await generatePlan("));
 
-  assert.match(call, /plannerDeps\(plannerData\)\s*,?\s*\)/, "4th argument of generatePlan");
+  assert.match(call, /await deps\(\)\s*,?\s*\)/, "4th argument of generatePlan");
+  assert.match(source, /return plannerDeps\(plannerData\);/, "deps() loads the planner data once");
 });
 
 // ---- city reference prices (DANE SIPSA base for estimates) ----

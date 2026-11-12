@@ -17,6 +17,12 @@ import {
 } from "../_shared/planner/callBudget.ts";
 import { readGenerationRequestBody } from "../_shared/generationRequest.ts";
 import { failureResponse } from "../_shared/generationResponse.ts";
+import {
+  generationFingerprint,
+  reusePartialPlan,
+  storePartialWeek,
+  type PartialPlanClient,
+} from "../_shared/partialPlanStore.ts";
 import { generatePlan } from "../_shared/planner/generate.ts";
 import { respondWithGeneratedPlan } from "../_shared/planStorage.ts";
 import { positiveIntOr, shouldRefund } from "../_shared/quota.ts";
@@ -114,6 +120,55 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Catalog and city prices, read with the caller's own client (never the
+    // service role). Any problem falls back to the built-in data. Loaded at
+    // most once per request, only when needed.
+    const loadDeps = async () => {
+      const plannerData = await loadPlannerData(supabase as unknown as CatalogClient, input.city, {
+        ttlMs: resolveCacheTtlMs(Deno.env.get("CATALOG_CACHE_TTL_MS")),
+      });
+      logEvent("catalog_origin", { origin: plannerData.origin });
+      return plannerDeps(plannerData);
+    };
+    let depsPromise: ReturnType<typeof loadDeps> | null = null;
+    const deps = () => (depsPromise ??= loadDeps());
+
+    // Service role client, or null when the key is not configured. Used for
+    // writes the user must not control: the refund, saving the plan and
+    // keeping the week for "Quiero el plan igual".
+    const createServiceClient = () => {
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      return serviceKey
+        ? createClient(supabaseUrl, serviceKey, {
+            // A per-request server client: no session to keep or refresh.
+            auth: { persistSession: false, autoRefreshToken: false },
+          })
+        : null;
+    };
+
+    // "Quiero el plan igual" right after a goals_unreachable answer with the
+    // same inputs: the week already computed (and paid for with that request's
+    // daily try) is taken (single use) and delivered. No OpenAI call and no
+    // quota row: it is not a new generation. Different inputs, nothing stored
+    // or an expired week fall through to a normal generation below.
+    const reused = await reusePartialPlan({
+      request: input,
+      allowPartial: requestBody.allowPartial,
+      userId: user.id,
+      client: supabase as unknown as PartialPlanClient,
+      nowMs: Date.now(),
+      deps,
+    });
+
+    if (reused) {
+      const { status, body } = await respondWithGeneratedPlan(reused, {
+        parse: parseWeeklyPlanJson,
+        client: createServiceClient(),
+        userId: user.id,
+      });
+      return json(body, status);
+    }
+
     // Per-user daily quota: protects the OpenAI bill from abuse. The request is
     // recorded first, then counted, so concurrent calls cannot skip the limit.
     const { data: recorded, error: recordError } = await supabase
@@ -167,15 +222,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Catalog and city prices, read with the caller's own client (never the
-    // service role). Any problem falls back to the built-in data.
-    const plannerData = await loadPlannerData(supabase as unknown as CatalogClient, input.city, {
-      ttlMs: resolveCacheTtlMs(Deno.env.get("CATALOG_CACHE_TTL_MS")),
-    });
-    logEvent("catalog_origin", { origin: plannerData.origin });
-
-    // "Quiero el plan igual" travels with the input; a generator that does
-    // not know the flag yet simply ignores it.
+    // "Quiero el plan igual" travels with the input (it relaxes only level 2-5 rules).
     const generationInput = { ...input, allowPartial: requestBody.allowPartial };
 
     const outcome = await generatePlan(generationInput, callOpenAI, {
@@ -191,19 +238,7 @@ Deno.serve(async (req: Request) => {
           DEFAULT_TIME_BUDGET_MS,
           MAX_TIME_BUDGET_MS,
         ),
-    }, plannerDeps(plannerData));
-
-    // Service role client, or null when the key is not configured. Used for
-    // writes the user must not control: the refund below and saving the plan.
-    const createServiceClient = () => {
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-      return serviceKey
-        ? createClient(supabaseUrl, serviceKey, {
-            // A per-request server client: no session to keep or refresh.
-            auth: { persistSession: false, autoRefreshToken: false },
-          })
-        : null;
-    };
+    }, await deps());
 
     // A try that failed because of us gives the user their try back. Users
     // cannot delete their own rows (so they cannot reset the counter), which
@@ -239,6 +274,18 @@ Deno.serve(async (req: Request) => {
       });
 
       return json(body, status);
+    }
+
+    // Keep the week so "Quiero el plan igual" with the same inputs reuses it.
+    if (outcome.error.code === "goals_unreachable" && outcome.reusable) {
+      // The price date of the fingerprint is the one this request started on.
+      await storePartialWeek(
+        createServiceClient() as unknown as PartialPlanClient | null,
+        user.id,
+        await generationFingerprint(input, startedAt),
+        outcome.reusable,
+        Date.now(),
+      );
     }
 
     if (shouldRefund(outcome.error.code, outcome.usage)) {
