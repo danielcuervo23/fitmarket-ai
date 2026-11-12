@@ -656,21 +656,30 @@ function relaxationsOf(candidate: Candidate, weightKg: number): Relaxation[] {
 // ---------------------------------------------------------------------------
 // Choosing between attempts and pricing the diagnosis
 
-/** No plan, a shortfall, or any LP slack left: worth trying the cheapest alternatives. */
-const needsMore = (candidate: Candidate | null): boolean =>
-  candidate === null || candidate.shortfalls.length > 0 || candidate.penalty > EPS;
-
-/** Shortfalls weighted by the same per-level penalties as the model. */
+/** Shortfalls weighted by the same per-level penalties as the model (sums of integers: exact). */
 const shortfallWeight = (candidate: Candidate): number =>
   candidate.shortfalls.reduce((sum, s) => sum + (PENALTY[s.level as 2 | 3 | 4] ?? 0), 0);
 
-/** A plan first, then fewer weighted shortfalls, then less LP slack, then lower cost. */
+/** LP slack penalty in EPS-wide buckets: equal buckets are an equivalence, so `better` stays transitive. */
+const penaltyBucket = (candidate: Candidate): number => Math.round(candidate.penalty / EPS);
+
+/**
+ * A plan first, then fewer weighted shortfalls of the rounded week. Among weeks
+ * that meet every rule the cheaper wins (LP slack only breaks ties: it may be
+ * level 5 or a miss that rounding fixed). Among weeks with the same shortfalls
+ * the smaller LP slack (how far the rules are missed) wins, then the cheaper.
+ * A strict lexicographic order on exact keys, so it is transitive; full ties keep `a`.
+ */
 function better(a: Candidate | null, b: Candidate | null): Candidate | null {
   if (a === null || b === null) return a ?? b;
-  const byShortfalls = shortfallWeight(a) - shortfallWeight(b);
-  if (byShortfalls !== 0) return byShortfalls < 0 ? a : b;
-  if (Math.abs(a.penalty - b.penalty) > EPS) return a.penalty < b.penalty ? a : b;
-  return a.costCop <= b.costCop ? a : b;
+  const weightA = shortfallWeight(a);
+  const weightB = shortfallWeight(b);
+  if (weightA !== weightB) return weightA < weightB ? a : b;
+  const byCost = a.costCop - b.costCop;
+  const byPenalty = penaltyBucket(a) - penaltyBucket(b);
+  const [first, second] = weightA === 0 ? [byCost, byPenalty] : [byPenalty, byCost];
+  if (first !== 0) return first < 0 ? a : b;
+  return second <= 0 ? a : b;
 }
 
 const roundUpToThousand = (cop: number): number => Math.ceil(cop / 1000) * 1000;
@@ -700,7 +709,9 @@ export function optimizeWeek(input: OptimizeInput): OptimizeResult {
 
   const primary = primaryChoices(plan);
   let best = attempt(run, plan, primary, "elastic", input.budgetCop);
-  const cheapest = needsMore(best) ? cheapestChoices(run, plan) : primary;
+  // Always compared, also when the primary week meets every rule: the cheapest
+  // alternatives may meet them too for less (else a looser budget could cost more).
+  const cheapest = cheapestChoices(run, plan);
   if (!sameChoices(cheapest, primary)) best = better(best, attempt(run, plan, cheapest, "elastic", input.budgetCop));
   // No elastic week survived rounding. The cheapest safe week (no budget row)
   // both rescues budgets it fits and prices the diagnosis when it does not.

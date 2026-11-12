@@ -455,6 +455,37 @@ test("cost is the minimum: removing budget pressure never lowers it", () => {
   assert.equal(withBudget.costCop, unlimited.costCop);
 });
 
+// Regression: once the primary-choice week fit the budget with no LP slack, it beat a cheaper
+// week (cheapest alternatives) that also met every rule after rounding, so a looser budget
+// returned a pricier week (60 kg: 183 412 at 202 230, then 202 231 at 202 231 and above).
+for (const [weightKg, tight, loose] of [[60, 202_230, 202_231], [80, 200_000, 250_000]]) {
+  test(`${weightKg} kg: a looser budget never returns a pricier week that meets every rule`, () => {
+    const atTight = optimizeWeek(libraryInput({ goals: [], weightKg, budgetCop: tight }));
+    assert.equal(atTight.status, "optimal", JSON.stringify(atTight.shortfalls));
+    for (const budgetCop of [loose, 400_000]) {
+      const r = optimizeWeek(libraryInput({ goals: [], weightKg, budgetCop }));
+      assert.equal(r.status, "optimal", JSON.stringify(r.shortfalls));
+      assert.ok(r.costCop <= atTight.costCop, `budget ${budgetCop}: ${r.costCop} > ${atTight.costCop}`);
+    }
+  });
+}
+
+test("monotone: across a budget ladder the cost of a fully compliant week never rises", () => {
+  for (const weightKg of [60, 80]) {
+    let previous = Infinity;
+    for (let budgetCop = 180_000; budgetCop <= 300_000; budgetCop += 10_000) {
+      const input = libraryInput({ goals: [], weightKg, budgetCop });
+      const r = optimizeWeek(input);
+      if (r.status !== "optimal") continue;
+      assert.deepEqual(evaluateWeek(r.week, input.rules, STATIC_CATALOG), []);
+      assert.ok(r.costCop <= budgetCop);
+      assert.ok(r.costCop <= previous, `${weightKg} kg, budget ${budgetCop}: ${r.costCop} > ${previous}`);
+      previous = r.costCop;
+    }
+    assert.ok(previous < Infinity, `${weightKg} kg: no optimal week on the ladder`);
+  }
+});
+
 test("library week below the safety minimum: over_budget with requiredBudgetCop", () => {
   const r = optimizeWeek(libraryInput({ goals: ["healthy"], budgetCop: 15_000, diagnose: true }));
   assert.equal(r.status, "over_budget");
