@@ -26,6 +26,7 @@ import {
   type OptimizeResult,
 } from "./optimizer/optimize.ts";
 import type { PriceBook } from "./priceBook.ts";
+import { budgetTooLowFields, restrictionsTooStrictFields } from "./outcomeEvents.ts";
 import { createAiRecipePicker, type RecipePicker } from "./recipePicker.ts";
 import { allowedCatalog, buildRestrictionRules, isAllowed, type RestrictionRules } from "./restrictions.ts";
 import { evaluateWeek } from "./rules/evaluate.ts";
@@ -204,9 +205,16 @@ function budgetTooLow(current: number, required: number): GenerateFailureError {
   };
 }
 
+const budgetFloorOf = (input: GenerateInput): number => MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
+
+/** Pure check (no logging), so reuse can refuse without counting a budget_too_low answer. */
+const isBelowFloor = (input: GenerateInput): boolean => input.weeklyBudgetCop < budgetFloorOf(input);
+
+/** The generation path's floor answer; logs plan_budget_too_low (once per request). */
 function budgetFloorFailure(input: GenerateInput): GenerateFailure | null {
-  const floor = MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
-  if (input.weeklyBudgetCop >= floor) return null;
+  if (!isBelowFloor(input)) return null;
+  const floor = budgetFloorOf(input);
+  logEvent("plan_budget_too_low", budgetTooLowFields("floor", input.householdSize, input.weeklyBudgetCop, floor));
   return {
     error: {
       ...budgetTooLow(input.weeklyBudgetCop, floor),
@@ -251,6 +259,7 @@ export async function generatePlan(
 
   const coverage = recipeCoverage(context.eligibleList);
   if (!coverage.ok) {
+    logEvent("plan_restrictions_too_strict", restrictionsTooStrictFields(coverage.availableRecipes));
     return {
       error: {
         code: "restrictions_too_strict",
@@ -471,6 +480,10 @@ async function runAttempts(
     // over_budget or infeasible: a relaxed week found earlier still wins.
     if (best) break;
     if (result.status === "over_budget") {
+      logEvent(
+        "plan_budget_too_low",
+        budgetTooLowFields("optimizer", input.householdSize, input.weeklyBudgetCop, result.requiredBudgetCop),
+      );
       return result.requiredBudgetCop !== null
         ? { error: { ...budgetTooLow(input.weeklyBudgetCop, result.requiredBudgetCop), diagnostics: diagnostics() } }
         : fail("budget_too_low", "La lista de mercado supera tu presupuesto semanal.");
@@ -509,7 +522,9 @@ function decide(context: Context, result: OptimizeResult): GenerateFailure | { p
   // The optimizer already guarantees it; this is the last guard before shipping.
   if (plan.summary.estimated_total_cop > input.weeklyBudgetCop) {
     logEvent("plan_over_budget", { step: "assemble" });
-    return { error: budgetTooLow(input.weeklyBudgetCop, Math.ceil(plan.summary.estimated_total_cop / 1000) * 1000) };
+    const required = Math.ceil(plan.summary.estimated_total_cop / 1000) * 1000;
+    logEvent("plan_budget_too_low", budgetTooLowFields("assemble", input.householdSize, input.weeklyBudgetCop, required));
+    return { error: budgetTooLow(input.weeklyBudgetCop, required) };
   }
   logEvent("plan_generated", { status: blockers.length > 0 ? "partial" : "full" });
   return { plan };
@@ -596,7 +611,7 @@ function readMeal(raw: unknown, context: Context, day: Day, slot: Slot): Compose
  * anything fails (the caller then generates normally).
  */
 export function planFromPartial(input: GenerateInput, stored: unknown, deps: PlannerDeps = {}): BuiltPlan | null {
-  if (!isRecord(stored) || !isRecord(stored.week) || budgetFloorFailure(input)) return null;
+  if (!isRecord(stored) || !isRecord(stored.week) || isBelowFloor(input)) return null;
 
   let context: Context;
   try {
