@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "store": "Jumbo",
+  "city": "bucaramanga",
+  "capturedOn": "2026-11-13",
+  "cityAttested": true,
+  "entries": [
+    {
+      "foodId": "arroz_blanco",
+      "externalId": "13395",
+      "name": "Arroz Diana blanco x3kg",
+      "packSize": 3000,
+      "url": "https://www.jumbocolombia.com/arroz-diana-x-3-kg/p",
+      "regularPriceCop": 14050,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "huevo",
+      "externalId": "95199",
+      "name": "Huevos AA rojos Cuisine&Co x30und",
+      "packSize": 30,
+      "url": "https://www.jumbocolombia.com/huevos-cuisine-co-aa-rojo-x30und-3339473/p",
+      "regularPriceCop": 17990,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "lentejas",
+      "externalId": "85308",
+      "name": "Lenteja Diana x500g",
+      "packSize": 500,
+      "url": "https://www.jumbocolombia.com/lenteja-diana-x-500g/p",
+      "regularPriceCop": 2750,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "frijol",
+      "externalId": "89955",
+      "name": "Frijol Cuisine&Co cargamanto rojo x500g",
+      "packSize": 500,
+      "url": "https://www.jumbocolombia.com/frijol-cuisine-co-cargamanto-rojo-x500g/p",
+      "regularPriceCop": 6890,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "sardina_lata",
+      "externalId": "21427",
+      "name": "Sardina La Soberana Tomate Drenado 297.5g",
+      "packSize": 297.5,
+      "url": "https://www.jumbocolombia.com/sardina-la-soberana-tomate-drenado-297-5g-21427/p",
+      "regularPriceCop": 11790,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "queso_campesino",
+      "externalId": "24049",
+      "name": "Queso campesino Colanta x250g",
+      "packSize": 250,
+      "url": "https://www.jumbocolombia.com/queso-campesino-x-250-g-colanta/p",
+      "regularPriceCop": 9490,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "avena",
+      "externalId": "278109",
+      "name": "Avena Quaker hojuela original gratis más contenido x1100g",
+      "packSize": 1100,
+      "url": "https://www.jumbocolombia.com/avena-quaker-hjla-original-gtr-mas-contenidox1100g/p",
+      "regularPriceCop": 9450,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "harina_maiz",
+      "externalId": "171367",
+      "name": "Harina Diana maíz blanco x1000g",
+      "packSize": 1000,
+      "url": "https://www.jumbocolombia.com/harina-diana-maiz-blanco-x-1000g/p",
+      "regularPriceCop": 2990,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "pan_tajado",
+      "externalId": "360321",
+      "name": "Pan Tajado Bimbo Blanco 600g",
+      "packSize": 600,
+      "url": "https://www.jumbocolombia.com/pan-tajado-bimbo-blanco-600g-3670722/p",
+      "regularPriceCop": 7890,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "cebolla_junca",
+      "externalId": "24619",
+      "name": "Cebolla Larga Malla x 500gr",
+      "packSize": 500,
+      "url": "https://www.jumbocolombia.com/cebolla-larga-malla-x-500-g/p",
+      "regularPriceCop": 4380,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "atun_lata",
+      "externalId": "157391",
+      "name": "Atún Cuisine&Co Lomitos Agua Drenado 104g",
+      "packSize": 104,
+      "url": "https://www.jumbocolombia.com/atun-cuisineco-lomitos-agua-drenado-104g-157391/p",
+      "regularPriceCop": 5590,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    }
+  ]
+}

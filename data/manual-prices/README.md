@@ -83,3 +83,13 @@ con el marcador. Los códigos de producto de huevo, queso mozzarella y leche ent
 leyeron después de sus páginas de producto públicas con el robot del proyecto (solo el
 código y el tamaño; el precio que ve el robot es el nacional y no se usó). `pan_tajado` y
 `cebolla_junca` estaban agotados ese día; el dueño decidió guardar su precio normal.
+
+Notas de `precios-jumbo-2026-11-13.json`: los precios los leyó el asistente en el navegador
+del dueño con la tienda "Retirar en: Jumbo Megamall" (Bucaramanga) escogida por el dueño
+(páginas de búsqueda de jumbocolombia.com). Los códigos de producto nuevos se leyeron de sus
+páginas de producto públicas con el robot del proyecto (solo código y tamaño; el precio del
+robot no se usó). Quedaron fuera los productos que Jumbo vende por peso (la página no
+confirma el tamaño): tomate, cebolla cabezona, zanahoria, lechuga, papa, pechuga y muslo de
+pollo; también aguacate y banano (por peso, el alimento va por unidad), leche (solo paquetes
+de 6) y aceite (no había canola). `cebolla_junca` queda por encima de x3 de la referencia
+(x3,24): necesita el OK del dueño para `--allow-price-outlier` antes de `--write`.
