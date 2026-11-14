@@ -4,6 +4,7 @@ import {
   type GenerationInputError,
 } from "./generationInputErrors.ts";
 import { logEvent } from "./log.ts";
+import { plannableStores } from "./supermarkets.ts";
 import { isActivityLevel, type Sex } from "./nutrition.ts";
 import type { GenerateInput } from "./planner/generate.ts";
 import {
@@ -74,8 +75,6 @@ const CITY_SLUG = /^[a-z_]{2,40}$/;
 function normalizeCity(raw: unknown): string | null {
   return typeof raw === "string" && CITY_SLUG.test(raw) ? raw : null;
 }
-
-const SUPERMARKET_IDS = new Set(["D1", "Ara", "Exito", "Jumbo", "Carulla"]);
 
 /** Ids the app offers as tiles; anything else is free text. */
 const PREDEFINED_RESTRICTION_IDS = new Set([
@@ -186,9 +185,11 @@ export async function buildGenerationInputFromDb(
     .map((row: { goal_type: string }) => row.goal_type)
     .filter((goal: string) => GOAL_TYPES.has(goal));
 
-  const stores = (supermarketsResult.data ?? [])
-    .map((row: { supermarket_id: string }) => row.supermarket_id)
-    .filter((id: string) => SUPERMARKET_IDS.has(id));
+  // Coming-soon chains (Ara) are dropped here, so they never reach prices or
+  // store choice; a user left with none gets "stores_missing".
+  const stores = plannableStores(
+    (supermarketsResult.data ?? []).map((row: { supermarket_id: string }) => row.supermarket_id),
+  );
 
   const profile = profileResult.data;
   const weeklyBudgetCop = profile?.weekly_budget_cop as number | null | undefined;

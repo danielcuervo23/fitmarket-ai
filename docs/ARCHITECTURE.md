@@ -381,6 +381,9 @@ and the server cannot disagree.
   `verified: false`); Exito answered 429 in the live check.
 - The Carulla potato mapping needs checking (slug says 180 g, mapped as 1 kg).
 - Ara has no read prices until user reports exist (plan 5).
+  Until then Ara is `coming_soon` in `supabase/functions/_shared/supermarkets.ts`
+  (the single store list for web and functions): shown as "Próximamente", not
+  selectable, never saved, and dropped from saved choices before planning.
 - Reading stores is authorized by the owner under precautions, but a legal
   review before public launch is pending.
 - The catalog cache is per function instance and up to 10 minutes old.

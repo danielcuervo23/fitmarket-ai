@@ -3,14 +3,14 @@ import { test } from "node:test";
 import { buildGenerationInputFromDb, normalizeCooking } from "./buildGenerationInput.ts";
 import { DEFAULT_COOKING } from "./recipes/types.ts";
 
-function fakeSupabase(profile) {
+function fakeSupabase(profile, supermarkets = ["D1"]) {
   const selects = [];
   const tables = {
     profiles: { maybeSingle: () => Promise.resolve({ data: profile, error: null }) },
   };
   const lists = {
     user_goals: [{ goal_type: "healthy" }],
-    user_supermarkets: [{ supermarket_id: "D1" }],
+    user_supermarkets: supermarkets.map((supermarket_id) => ({ supermarket_id })),
   };
 
   return {
@@ -194,4 +194,18 @@ test("a successful cooking query logs nothing", async (t) => {
   t.mock.method(console, "log", (line) => logs.push(line));
   await buildGenerationInputFromDb(fakeSupabase({ ...baseProfile, cooking_level: "enjoys" }), "u1");
   assert.deepEqual(logs, []);
+});
+
+test("a saved coming-soon chain (Ara) is never passed to the planner", async () => {
+  const { data, error } = await buildGenerationInputFromDb(fakeSupabase(baseProfile, ["Ara", "D1"]), "u1");
+
+  assert.equal(error, null);
+  assert.deepEqual(data.stores, ["D1"]);
+});
+
+test("a user with only Ara saved is asked to pick another store", async () => {
+  const { data, error } = await buildGenerationInputFromDb(fakeSupabase(baseProfile, ["Ara"]), "u1");
+
+  assert.equal(data, null);
+  assert.equal(error.code, "stores_missing");
 });
