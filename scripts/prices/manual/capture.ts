@@ -24,7 +24,13 @@ export interface CaptureState {
   entries: ManualEntry[];
 }
 
-export type SaveResult = { ok: true; state: CaptureState } | { ok: false; message: string };
+export type SaveResult =
+  /** `replaced`: entries of another product or food that this save removed (empty for a plain update). */
+  | { ok: true; state: CaptureState; entry: ManualEntry; replaced: ManualEntry[] }
+  /** The entry is not acceptable; `message` says why. */
+  | { ok: false; needsConfirmation?: false; message: string }
+  /** Saving would replace `replaced`: ask the person, then save again with `replaceConfirmed`. */
+  | { ok: false; needsConfirmation: true; message: string; replaced: ManualEntry[] };
 
 export interface SaveInput {
   product: PageProduct;
@@ -39,6 +45,8 @@ export interface SaveInput {
   today: string;
   foods: readonly SlimFood[];
   site: StoreSite;
+  /** The person answered "Sí, reemplazar" to the replacement question. */
+  replaceConfirmed?: boolean;
 }
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -89,10 +97,39 @@ export function saveEntry(state: CaptureState, input: SaveInput): SaveResult {
   }
   const problem = entryProblem(entry, input.foods, input.site);
   if (problem !== null) return { ok: false, message: problem };
-  // One food has one product and one product belongs to one food: the newest choice wins.
+  // One food has one product and one product belongs to one food. Replacing another
+  // product or food is never silent: the person must confirm it first.
+  const replaced = wouldReplace(state, entry);
+  if (replaced.length > 0 && input.replaceConfirmed !== true) {
+    return { ok: false, needsConfirmation: true, message: replaceQuestion(replaced, input.foods), replaced };
+  }
   const rest = state.entries.filter((e) => e.foodId !== entry.foodId && e.externalId !== entry.externalId);
   const entries = [...rest, entry].sort((a, b) => a.foodId.localeCompare(b.foodId));
-  return { ok: true, state: { ...state, entries } };
+  return { ok: true, state: { ...state, entries }, entry, replaced };
+}
+
+/** Saved entries that saving `entry` would remove, except the same product for the same food (a plain update). */
+function wouldReplace(state: CaptureState, entry: ManualEntry): ManualEntry[] {
+  return state.entries.filter(
+    (e) =>
+      (e.foodId === entry.foodId || e.externalId === entry.externalId) &&
+      !(e.foodId === entry.foodId && e.externalId === entry.externalId),
+  );
+}
+
+const foodName = (foodId: string, foods: readonly SlimFood[]) => foods.find((f) => f.id === foodId)?.nameEs ?? foodId;
+
+function replaceQuestion(replaced: readonly ManualEntry[], foods: readonly SlimFood[]): string {
+  const list = replaced.map((e) => `«${e.name}» como ${foodName(e.foodId, foods)}`).join(" y ");
+  const it = replaced.length > 1 ? "reemplazarlos" : "reemplazarlo";
+  return `Ojo: ya tenías guardado ${list}. ¿Quieres ${it}?`;
+}
+
+/** The status line after a successful save: "Guardado: Arroz blanco (3 de 70)" or "Reemplazado: ...". */
+export function savedMessage(result: Extract<SaveResult, { ok: true }>, foods: readonly SlimFood[]): string {
+  const p = progress(result.state, foods);
+  const verb = result.replaced.length > 0 ? "Reemplazado" : "Guardado";
+  return `${verb}: ${foodName(result.entry.foodId, foods)} (${p.done} de ${p.total})`;
 }
 
 export function progress(
@@ -189,11 +226,52 @@ function wordMatch(foodWord: string, productWords: readonly string[]): number {
   return best;
 }
 
-/** The food whose name words best appear in the product name, or null. */
+/**
+ * Hints for foods whose catalog name alone is ambiguous. `keywords`: phrases (all
+ * their words must appear) that point to that food over any other; the longest
+ * matching phrase wins. `not`: words that mean the product is something else
+ * (another animal or cut, quail eggs...), so the food is never suggested.
+ * `needs`: a word without which the food is never suggested (a pork leg is not loin).
+ */
+const SUGGEST_HINTS: Readonly<
+  Record<string, { keywords?: readonly string[]; not?: readonly string[]; needs?: string }>
+> = {
+  pechuga_pollo: { keywords: ["pechuga pollo", "pechuga"], not: ["pavo", "cerdo", "res", "entero", "alas"] },
+  pernil_pollo: { keywords: ["pierna pollo", "pernil", "muslo", "contramuslo"], not: ["pavo", "cerdo", "res", "entero", "alas"] },
+  carne_molida_res: { keywords: ["carne molida"], not: ["cerdo", "pollo", "pavo"] },
+  res_sobrebarriga: { needs: "sobrebarriga" },
+  lomo_cerdo: { needs: "lomo", not: ["res", "pollo"] },
+  huevo: { not: ["codorniz"] },
+  leche_deslactosada: { keywords: ["deslactosada"] },
+  arroz_integral: { keywords: ["arroz integral"] },
+  aceite_vegetal: { keywords: ["girasol", "canola", "soya"] },
+};
+
+/** All words of `phrase` appear in the product words (plural-like endings allowed). */
+function hasAll(phrase: string, productWords: readonly string[]): boolean {
+  return words(phrase).every((w) => wordMatch(w, productWords) > 0);
+}
+
+/** The food the product name points to, or null. Specific hints first, then the catalog name words. */
 export function suggestFood(productName: string, foods: readonly SlimFood[]): string | null {
   const productWords = words(productName);
+  const allowed = foods.filter((f) => {
+    const hint = SUGGEST_HINTS[f.id];
+    if (hint?.needs !== undefined && wordMatch(hint.needs, productWords) === 0) return false;
+    return !(hint?.not ?? []).some((w) => productWords.includes(w));
+  });
+
+  let hinted: { id: string; length: number } | null = null;
+  for (const food of allowed) {
+    for (const phrase of SUGGEST_HINTS[food.id]?.keywords ?? []) {
+      const length = words(phrase).length;
+      if ((!hinted || length > hinted.length) && hasAll(phrase, productWords)) hinted = { id: food.id, length };
+    }
+  }
+  if (hinted) return hinted.id;
+
   let best: { id: string; score: number; matched: number } | null = null;
-  for (const food of foods) {
+  for (const food of allowed) {
     const foodWords = words(food.nameEs);
     if (foodWords.length === 0) continue;
     let sum = 0;
@@ -223,3 +301,4 @@ export function filterFoods(query: string, foods: readonly SlimFood[]): SlimFood
   const q = fold(query.trim());
   return q === "" ? [...foods] : foods.filter((f) => fold(f.nameEs).includes(q));
 }
+
