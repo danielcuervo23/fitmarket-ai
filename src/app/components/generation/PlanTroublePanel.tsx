@@ -12,8 +12,8 @@ import {
   type DietaryRestrictionId,
 } from "@/lib/dietaryRestrictions";
 import type { ErrorKey } from "@/lib/errors";
+import { editableStores } from "@/lib/storeChoice";
 import {
-  isSupermarketId,
   saveUserSupermarkets,
   type SupermarketId,
 } from "@/lib/supermarkets";
@@ -103,7 +103,7 @@ export function PlanTroublePanel({
       setRestrictions(parsed.selectedIds);
       setOtherFoods(parsed.otherText);
       setStores(
-        data.supermarkets.map((store) => store.id).filter(isSupermarketId),
+        editableStores(data.supermarkets.map((store) => store.id)),
       );
       setBudgetInput(formatNumber(data.weeklyBudgetCop ?? 150_000));
     });
@@ -191,7 +191,10 @@ export function PlanTroublePanel({
       id: "stores",
       label: "gen.trouble.stores",
       value: saved
-        ? saved.supermarkets.map((store) => store.name).join(", ")
+        ? saved.supermarkets
+            .filter((store) => editableStores([store.id]).length > 0)
+            .map((store) => store.name)
+            .join(", ")
         : "",
     },
     {

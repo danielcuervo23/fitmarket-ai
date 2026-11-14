@@ -66,6 +66,11 @@ export const setup = defineMessages({
     "store.Exito.tagline": "Todo lo que necesitas",
     "store.Jumbo.tagline": "Lo mejor en un solo lugar",
     "store.Carulla.tagline": "Calidad y frescura",
+    "stores.comingSoon": "Próximamente",
+    "stores.comingSoonHint":
+      "Todavía no tenemos sus precios reales, así que aún no puedes elegirlo.",
+    "stores.pickAvailable":
+      "Elige al menos un supermercado disponible para armar tu plan.",
 
     "dietary.title": "¿Hay alimentos que no consumes?",
     "dietary.subtitle": "Opcional. Puedes elegir varias opciones.",
@@ -240,6 +245,11 @@ export const setup = defineMessages({
     "store.Exito.tagline": "Everything you need",
     "store.Jumbo.tagline": "The best in one place",
     "store.Carulla.tagline": "Quality and freshness",
+    "stores.comingSoon": "Coming soon",
+    "stores.comingSoonHint":
+      "We don't have its real prices yet, so you can't choose it for now.",
+    "stores.pickAvailable":
+      "Choose at least one available supermarket to build your plan.",
 
     "dietary.title": "Are there foods you don't eat?",
     "dietary.subtitle": "Optional. You can choose several options.",

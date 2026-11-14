@@ -20,7 +20,7 @@ interface Props {
 
 export function SupermarketsScreen({ onNext, onBack }: Props) {
   const { t } = useI18n();
-  const [selected, setSelected] = useState<SupermarketId[]>(["D1", "Ara"]);
+  const [selected, setSelected] = useState<SupermarketId[]>(["D1"]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
 

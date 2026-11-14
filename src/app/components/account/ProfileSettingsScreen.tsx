@@ -27,8 +27,8 @@ import {
 } from "@/lib/dietaryRestrictions";
 import type { ErrorKey } from "@/lib/errors";
 import { saveUserGoals, type GoalType } from "@/lib/goals";
+import { editableStores } from "@/lib/storeChoice";
 import {
-  isSupermarketId,
   saveUserSupermarkets,
   type SupermarketId,
 } from "@/lib/supermarkets";
@@ -155,9 +155,7 @@ export function ProfileSettingsScreen({
 
       const budget = data.weeklyBudgetCop ?? 0;
       const loadedGoals = data.goals.map((goal) => goal.id);
-      const loadedStores = data.supermarkets
-        .map((store) => store.id)
-        .filter(isSupermarketId);
+      const loadedStores = editableStores(data.supermarkets.map((store) => store.id));
       const { selectedIds, otherText } = parseStoredDietaryRestrictions(
         data.dietaryRestrictions,
       );
