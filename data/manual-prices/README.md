@@ -70,3 +70,16 @@ viejo no se guardan), `--allow-price-outlier`.
 
 El workflow manual `.github/workflows/prices-manual.yml` importa todos los
 archivos de esta carpeta (los de más de 45 días se saltan).
+
+## Excepciones aprobadas por el dueño
+
+| Archivo | Fecha del OK | Excepción | Alimentos | Motivo |
+| --- | --- | --- | --- | --- |
+| `precios-d1-2026-11-13.json` | 2026-11-13 | `--allow-price-outlier` (solo este archivo, importación manual con `--write`) | `lechuga`, `cebolla_junca` | Precio real de D1 en Bucaramanga por encima de x3 del precio de referencia (lechuga x4,15; cebolla larga x3,04). El dueño aceptó los precios reales; los precios de referencia no se cambian. |
+
+Notas de `precios-d1-2026-11-13.json`: los precios los leyó el asistente en el navegador
+del dueño con la dirección de envío en Bucaramanga (páginas de búsqueda de d1.com.co), no
+con el marcador. Los códigos de producto de huevo, queso mozzarella y leche entera se
+leyeron después de sus páginas de producto públicas con el robot del proyecto (solo el
+código y el tamaño; el precio que ve el robot es el nacional y no se usó). `pan_tajado` y
+`cebolla_junca` estaban agotados ese día; el dueño decidió guardar su precio normal.

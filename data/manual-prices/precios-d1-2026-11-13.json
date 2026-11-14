@@ -164,6 +164,36 @@
       "regularPriceCop": 4450,
       "observedOn": "2026-11-13",
       "packConfirmed": true
+    },
+    {
+      "foodId": "huevo",
+      "externalId": "1151",
+      "name": "Huevo Tipo Aa Sol Naciente 12 Und",
+      "packSize": 12,
+      "url": "https://www.d1.com.co/huevo-tipo-aa-sol-naciente-12-und-12000291/p",
+      "regularPriceCop": 7490,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "queso_mozzarella",
+      "externalId": "995",
+      "name": "Queso Mozzarella Tajado X 250 G Latti",
+      "packSize": 250,
+      "url": "https://www.d1.com.co/queso-mozzarella-tajado-latti-12006207/p",
+      "regularPriceCop": 8990,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "leche_entera",
+      "externalId": "262",
+      "name": "Leche Entera Tetrapak UHT Latti 900 Ml",
+      "packSize": 900,
+      "url": "https://www.d1.com.co/leche-entera-tetrapak-uht-latti-900ml-12000543/p",
+      "regularPriceCop": 3550,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
     }
   ]
 }
