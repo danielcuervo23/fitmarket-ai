@@ -1,0 +1,83 @@
+{
+  "id": "sopa_rapida_de_verduras_con_huevo",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Sopa rápida de verduras con huevo",
+    "en": "Quick vegetable soup with egg"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "papa",
+      "qty": 100,
+      "role": "carb"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "habichuela",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "repollo",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "huevo",
+      "qty": 2,
+      "role": "protein"
+    },
+    {
+      "food": "cebolla_junca",
+      "qty": 20,
+      "role": "veg"
+    },
+    {
+      "food": "cilantro",
+      "qty": 5,
+      "role": "fixed",
+      "optional": true
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pela y pica la papa y la zanahoria en cuadritos pequeños; corta la habichuela y el repollo.",
+      "Ponlos en una olla con 3 tazas de agua, la cebolla larga picada y la sal, a fuego medio.",
+      "Cocina 12 minutos, hasta que la papa esté blanda.",
+      "Rompe los huevos dentro de la sopa, uno por uno, sin revolver. Lávate las manos después.",
+      "Déjalos 3 minutos, hasta que la clara esté blanca.",
+      "Sirve con cilantro picado encima."
+    ],
+    "en": [
+      "Peel and dice the potato and carrot small; cut the green beans and cabbage.",
+      "Put them in a pot with 3 cups of water, the chopped spring onion and the salt, over medium heat.",
+      "Cook for 12 minutes, until the potato is soft.",
+      "Crack the eggs into the soup, one by one, without stirring. Wash your hands afterwards.",
+      "Leave them 3 minutes, until the whites are white.",
+      "Serve with chopped cilantro on top."
+    ]
+  }
+}

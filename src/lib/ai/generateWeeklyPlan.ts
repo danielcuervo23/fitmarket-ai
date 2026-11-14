@@ -1,6 +1,14 @@
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import type { GenerationErrorCode } from "@shared/errors.ts";
 import { parseWeeklyPlanJson } from "@/lib/ai/weeklyPlanSchema";
+import {
+  buildGenerationRequestBody,
+  type GenerationRequestOptions,
+} from "@/lib/ai/generationRequestBody";
+import {
+  readGoalsUnreachable,
+  type GoalsUnreachableGenerationError,
+} from "@/lib/ai/goalConflicts";
 import type { WeeklyPlan } from "@/lib/ai/types";
 import type { ErrorKey } from "@/lib/errors";
 import { readPlanId } from "@/lib/planId";
@@ -30,8 +38,11 @@ export interface GenerationDiagnostics {
   reasons: string[];
 }
 
+export type { GoalsUnreachableGenerationError };
+
 export type GenerateWeeklyPlanError =
   | BudgetTooLowGenerationError
+  | GoalsUnreachableGenerationError
   | MessageGenerationError;
 
 interface GenerateWeeklyPlanResponse {
@@ -39,7 +50,8 @@ interface GenerateWeeklyPlanResponse {
   /** Id of the row the server already saved; missing on older servers. */
   planId?: unknown;
   error?: string;
-  code?: GenerationErrorCode;
+  /** `goals_unreachable` only reaches clients that sent a recent appVersion. */
+  code?: GenerationErrorCode | "goals_unreachable";
   diagnostics?: unknown;
   currentBudget?: number;
   requiredBudget?: number;
@@ -131,6 +143,16 @@ function toGenerationError(
     return null;
   }
 
+  // Checked first: its `budgetOption` is an alternative, not a budget error.
+  if (body.code === "goals_unreachable") {
+    return (
+      readGoalsUnreachable(body) ?? {
+        kind: "message",
+        messageKey: "gen.unreachable.title",
+      }
+    );
+  }
+
   if (body.error === "budget_too_low" || body.code === "budget_too_low") {
     const currentBudget = readNumber(body.currentBudget);
     const requiredBudget = readNumber(body.requiredBudget);
@@ -179,7 +201,14 @@ function invokeFailureKey(error: unknown): ErrorKey {
   return "gen.error.aiUnavailable";
 }
 
-export async function generateWeeklyPlan(): Promise<{
+/**
+ * Asks the server for a new weekly plan. `allowPartial` is "Quiero el plan
+ * igual": the server may then answer with a plan that misses some level 2-5
+ * goals (never restrictions, safety rules or the budget).
+ */
+export async function generateWeeklyPlan(
+  options: GenerationRequestOptions = {},
+): Promise<{
   data: WeeklyPlan | null;
   /**
    * Set when the server already saved the plan in `weekly_plans`. Null means
@@ -191,7 +220,7 @@ export async function generateWeeklyPlan(): Promise<{
   const { data: payload, error: invokeError } =
     await supabase.functions.invoke<GenerateWeeklyPlanResponse>(
       "generate-weekly-plan",
-      { body: {} },
+      { body: buildGenerationRequestBody(__APP_VERSION__, options) },
     );
 
   const body = await readResponseBody(payload, invokeError);

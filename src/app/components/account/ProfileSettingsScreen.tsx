@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { saveWeeklyBudget } from "@/lib/budget";
 import {
   budgetIssue,
-  MIN_WEEKLY_BUDGET_COP,
+  budgetMinimumMessage,
   thousandsSuggestion,
 } from "@/lib/budgetSuggestion";
 import { fetchDashboardData } from "@/lib/dashboard";
@@ -27,8 +27,8 @@ import {
 } from "@/lib/dietaryRestrictions";
 import type { ErrorKey } from "@/lib/errors";
 import { saveUserGoals, type GoalType } from "@/lib/goals";
+import { editableStores } from "@/lib/storeChoice";
 import {
-  isSupermarketId,
   saveUserSupermarkets,
   type SupermarketId,
 } from "@/lib/supermarkets";
@@ -155,9 +155,7 @@ export function ProfileSettingsScreen({
 
       const budget = data.weeklyBudgetCop ?? 0;
       const loadedGoals = data.goals.map((goal) => goal.id);
-      const loadedStores = data.supermarkets
-        .map((store) => store.id)
-        .filter(isSupermarketId);
+      const loadedStores = editableStores(data.supermarkets.map((store) => store.id));
       const { selectedIds, otherText } = parseStoredDietaryRestrictions(
         data.dietaryRestrictions,
       );
@@ -212,11 +210,13 @@ export function ProfileSettingsScreen({
     otherFoods,
   ]);
 
-  const budgetProblem = budgetIssue(budgetCop);
-  const budgetSuggestion = thousandsSuggestion(budgetCop);
+  // The minimum is per person, with the household size being edited here.
+  const minimum = budgetMinimumMessage(profile.household_size);
+  const budgetProblem = budgetIssue(budgetCop, profile.household_size);
+  const budgetSuggestion = thousandsSuggestion(budgetCop, profile.household_size);
   const budgetError =
     budgetProblem === "too_low"
-      ? t("budget.minimum", { amount: formatCurrency(MIN_WEEKLY_BUDGET_COP) })
+      ? t(minimum.key, { amount: formatCurrency(minimum.amount), perPerson: formatCurrency(minimum.perPerson) })
       : budgetProblem === "too_high"
         ? t("budget.tooHigh")
         : null;

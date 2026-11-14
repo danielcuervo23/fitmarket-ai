@@ -1,20 +1,12 @@
 import { dbErrorKey, type ErrorKey } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/session";
+import { prepareStoresToSave } from "@/lib/storeChoice";
 
-export type SupermarketId = "D1" | "Ara" | "Exito" | "Jumbo" | "Carulla";
-
-const SUPERMARKET_IDS: readonly SupermarketId[] = [
-  "D1",
-  "Ara",
-  "Exito",
-  "Jumbo",
-  "Carulla",
-] as const;
-
-export function isSupermarketId(value: string): value is SupermarketId {
-  return SUPERMARKET_IDS.includes(value as SupermarketId);
-}
+export {
+  isSupermarketId,
+  type SupermarketId,
+} from "@shared/supermarkets.ts";
 
 /**
  * Replaces the user's supermarkets with `storeIds`. New rows are inserted
@@ -23,12 +15,11 @@ export function isSupermarketId(value: string): value is SupermarketId {
 export async function saveUserSupermarkets(
   storeIds: string[],
 ): Promise<{ error: ErrorKey | null }> {
-  if (storeIds.length === 0) {
-    return { error: "errors.storesRequired" };
-  }
+  // Unknown ids fail; coming-soon chains (Ara) are never saved.
+  const { stores: uniqueStores, error } = prepareStoresToSave(storeIds);
 
-  if (storeIds.some((id) => !isSupermarketId(id))) {
-    return { error: "errors.invalidValues" };
+  if (error) {
+    return { error };
   }
 
   const {
@@ -39,8 +30,6 @@ export async function saveUserSupermarkets(
   if (authError || !user) {
     return { error: "errors.notSignedIn" };
   }
-
-  const uniqueStores = [...new Set(storeIds.filter(isSupermarketId))];
 
   const { error: insertError } = await supabase
     .from("user_supermarkets")

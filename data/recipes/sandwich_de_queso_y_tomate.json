@@ -1,0 +1,60 @@
+{
+  "id": "sandwich_de_queso_y_tomate",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Sándwich de queso y tomate",
+    "en": "Cheese and tomato sandwich"
+  },
+  "slots": [
+    "desayuno",
+    "snacks"
+  ],
+  "minutes": 5,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "pan_tajado",
+      "qty": 50,
+      "role": "carb"
+    },
+    {
+      "food": "queso_mozzarella",
+      "qty": 40,
+      "role": "protein",
+      "alternatives": [
+        {
+          "food": "queso_campesino",
+          "qty": 40
+        }
+      ]
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "lechuga",
+      "qty": 20,
+      "role": "veg"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la lechuga y corta el tomate en rodajas.",
+      "Pon el queso en una tajada de pan.",
+      "Agrega el tomate y la lechuga, y tapa con la otra tajada."
+    ],
+    "en": [
+      "Wash the lettuce and slice the tomato.",
+      "Put the cheese on a slice of bread.",
+      "Add the tomato and lettuce, and cover with the other slice."
+    ]
+  }
+}

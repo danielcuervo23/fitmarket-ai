@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useHouseholdSize } from "@/hooks/useHouseholdSize";
 import { RefreshCw, Sparkles } from "lucide-react";
 import type { MessageGenerationError } from "@/lib/ai/generateWeeklyPlan";
 import { saveWeeklyBudget } from "@/lib/budget";
@@ -11,8 +12,8 @@ import {
   type DietaryRestrictionId,
 } from "@/lib/dietaryRestrictions";
 import type { ErrorKey } from "@/lib/errors";
+import { editableStores } from "@/lib/storeChoice";
 import {
-  isSupermarketId,
   saveUserSupermarkets,
   type SupermarketId,
 } from "@/lib/supermarkets";
@@ -75,6 +76,8 @@ export function PlanTroublePanel({
   onAdjustSettings,
 }: Props) {
   const { t, formatCurrency, formatNumber } = useI18n();
+  // The budget minimum is 130 000 per person in the household.
+  const householdSize = useHouseholdSize();
   const code = error.code ?? "";
   const diagnostics = error.diagnostics;
 
@@ -100,7 +103,7 @@ export function PlanTroublePanel({
       setRestrictions(parsed.selectedIds);
       setOtherFoods(parsed.otherText);
       setStores(
-        data.supermarkets.map((store) => store.id).filter(isSupermarketId),
+        editableStores(data.supermarkets.map((store) => store.id)),
       );
       setBudgetInput(formatNumber(data.weeklyBudgetCop ?? 150_000));
     });
@@ -140,7 +143,7 @@ export function PlanTroublePanel({
     open === "stores"
       ? stores.length > 0
       : open === "budget"
-        ? amount > 0 && budgetIssue(amount) === null
+        ? amount > 0 && budgetIssue(amount, householdSize) === null
         : true;
 
   const handleSave = async () => {
@@ -188,7 +191,10 @@ export function PlanTroublePanel({
       id: "stores",
       label: "gen.trouble.stores",
       value: saved
-        ? saved.supermarkets.map((store) => store.name).join(", ")
+        ? saved.supermarkets
+            .filter((store) => editableStores([store.id]).length > 0)
+            .map((store) => store.name)
+            .join(", ")
         : "",
     },
     {
@@ -315,13 +321,14 @@ export function PlanTroublePanel({
 
             {open === row.id && row.id === "budget" && (
               <BudgetEditor
+                householdSize={householdSize}
                 label={t("gen.shortfall.newBudget")}
                 value={budgetInput}
                 onChange={(value) => {
                   setBudgetInput(value);
                   setErrorKey(null);
                 }}
-                options={[100_000, 150_000, 200_000].map((value) => ({
+                options={[150_000, 200_000, 250_000].map((value) => ({
                   label: formatCurrency(value),
                   value,
                 }))}

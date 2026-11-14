@@ -1,0 +1,67 @@
+{
+  "id": "sardinas_guisadas_con_arepa",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Sardinas guisadas con arepa",
+    "en": "Stewed sardines with arepa"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "sardina_lata",
+      "qty": 90,
+      "role": "protein"
+    },
+    {
+      "food": "harina_maiz",
+      "qty": 60,
+      "role": "carb"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 3,
+      "role": "condiment"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Prepara la masa de la arepa con harina y agua tibia, y haz un disco con las manos.",
+      "Ponla en una sartén sin aceite, a fuego medio, 5 minutos por cada lado.",
+      "Pica el tomate y la cebolla en cuadritos.",
+      "En otra sartén con el aceite, cocínalos 5 minutos a fuego medio, revolviendo, hasta que se vuelvan salsa.",
+      "Agrega las sardinas con su salsa o aceite, aplástalas un poco y calienta 3 minutos.",
+      "Sirve las sardinas encima de la arepa."
+    ],
+    "en": [
+      "Make the arepa dough with flour and warm water, and shape a disc with your hands.",
+      "Cook it in a dry pan over medium heat, 5 minutes on each side.",
+      "Dice the tomato and onion.",
+      "In another pan with the oil, cook them 5 minutes over medium heat, stirring, until they turn into a sauce.",
+      "Add the sardines with their sauce or oil, mash them a little and heat for 3 minutes.",
+      "Serve the sardines on top of the arepa."
+    ]
+  }
+}

@@ -13,9 +13,7 @@ import {
 } from "./catalogLoader.ts";
 import { calcTargets } from "./nutrition.ts";
 import { assemblePlan } from "./planner/build.ts";
-import { cleanItems, parseComposition } from "./planner/compose.ts";
 import { generatePlan } from "./planner/generate.ts";
-import { fallbackName, renameMeals } from "./planner/naming.ts";
 import { createCityPriceBook } from "./planner/priceBook.ts";
 import { STATIC_PRICE_BOOK } from "./planner/stores.ts";
 import { DAYS, SLOTS } from "./planner/types.ts";
@@ -42,6 +40,13 @@ function rowFor(item) {
     default_pack: item.pack,
     ref_price_cop: item.price,
     ref_price_source: item.priceSource,
+    fiber_g: item.micro?.fiberG ?? null,
+    free_sugars_g: item.micro?.freeSugarsG ?? null,
+    sat_fat_g: item.micro?.satFatG ?? null,
+    sodium_mg: item.micro?.sodiumMg ?? null,
+    iron_mg: item.micro?.ironMg ?? null,
+    gaba_group: item.micro?.gabaGroup ?? null,
+    is_fruit_veg: item.micro?.isFruitVeg ?? false,
   };
 }
 
@@ -116,6 +121,79 @@ test("rejects invalid rows", () => {
   for (const row of bad) {
     assert.equal(foodRowToIngredient(row), null, JSON.stringify(row));
   }
+});
+
+test("a row with valid micro columns maps to ingredient.micro", () => {
+  const brocoli = getIngredient("brocoli");
+  const row = { ...rowFor(brocoli), fiber_g: "2.6", sodium_mg: "33.0", gaba_group: "frutas_verduras", is_fruit_veg: true };
+
+  assert.deepEqual(foodRowToIngredient(row).micro, {
+    fiberG: 2.6,
+    freeSugarsG: 0,
+    satFatG: 0.11,
+    sodiumMg: 33,
+    ironMg: 0.73,
+    gabaGroup: "frutas_verduras",
+    isFruitVeg: true,
+  });
+});
+
+test("a null gaba_group is accepted as no group", () => {
+  const row = { ...rowFor(getIngredient("sal")), gaba_group: null };
+
+  assert.equal(foodRowToIngredient(row).micro.gabaGroup, null);
+});
+
+test("a row with an out-of-range micro column keeps the food without micro", () => {
+  const base = rowFor(getIngredient("brocoli"));
+  const bad = [
+    { ...base, sodium_mg: 50000 },
+    { ...base, fiber_g: -1 },
+    { ...base, free_sugars_g: 101 },
+    { ...base, sat_fat_g: "abc" },
+    { ...base, iron_mg: null },
+    { ...base, gaba_group: "dulces" },
+    { ...base, is_fruit_veg: "true" },
+    { ...base, is_fruit_veg: null },
+  ];
+
+  for (const row of bad) {
+    const ingredient = foodRowToIngredient(row);
+    assert.ok(ingredient, JSON.stringify(row));
+    assert.equal(ingredient.id, "brocoli");
+    assert.equal(ingredient.micro, undefined, JSON.stringify(row));
+  }
+});
+
+test("foods are read with the micro columns", async () => {
+  const client = fakeClient({ foods: page(allRows()) });
+  await loadPlannerData(client, null);
+  const [call] = callsTo(client, "foods");
+
+  for (const column of ["fiber_g", "free_sugars_g", "sat_fat_g", "sodium_mg", "iron_mg", "gaba_group", "is_fruit_veg"]) {
+    assert.ok(call.columns.split(",").map((c) => c.trim()).includes(column), column);
+  }
+});
+
+test("foods without micro are counted and logged once per load", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(JSON.parse(line)));
+  const rows = allRows().map((row, index) => (index < 3 ? { ...row, sodium_mg: 50000 } : row));
+  const data = await loadPlannerData(fakeClient({ foods: page(rows) }), null);
+
+  assert.equal(data.origin, "db");
+  assert.equal(data.catalog.all.length, CATALOG.length);
+  assert.deepEqual(logs.filter((entry) => entry.event === "catalog_micro_missing"), [
+    { event: "catalog_micro_missing", count: 3 },
+  ]);
+});
+
+test("no catalog_micro_missing log when every food has micro", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(JSON.parse(line)));
+  await loadPlannerData(fakeClient({ foods: page(allRows()) }), null);
+
+  assert.equal(logs.filter((entry) => entry.event === "catalog_micro_missing").length, 0);
 });
 
 test("invalid rows are skipped, valid ones kept", async () => {
@@ -360,7 +438,6 @@ const dbOnly = {
   id: "bocadillo",
   name: { es: "Bocadillo", en: "Guava paste" },
 };
-const custom = createCatalog([...CATALOG, dbOnly]);
 
 test("a database-only food is not filtered out by store data", async () => {
   const small = createCatalog([...CATALOG.filter((item) => item.id !== "salmon").slice(0, 18), dbOnly]);
@@ -388,61 +465,6 @@ test("a database-only food is not filtered out by store data", async () => {
   // 19 foods; D1 does not carry tilapia or sobrebarriga, so 17 remain, bocadillo among them.
   assert.equal(result.error.diagnostics.availableFoods, 17, "includes the database-only food");
   assert.equal(result.error.diagnostics.totalFoods, 19);
-});
-
-// Last on purpose: the static catalog scores it 0 and ties lose by order.
-const bigMeal = [
-  ...["sal", "ajo", "cilantro", "azucar", "miel", "panela", "aceite_vegetal", "arroz_blanco"].map((id) => ({ id, qty: 1 })),
-  { id: "bocadillo", qty: 900 },
-];
-
-test("cleanItems honours a custom catalog", () => {
-  const withCustom = cleanItems(bigMeal, custom).map((line) => line.id);
-  const withStatic = cleanItems(bigMeal, STATIC_CATALOG).map((line) => line.id);
-
-  assert.equal(withCustom.length, 8);
-  assert.ok(withCustom.includes("bocadillo"), "weighted by the custom catalog's nutrition");
-  assert.ok(!withStatic.includes("bocadillo"), "static catalog does not know it");
-});
-
-test("parseComposition uses the given catalog", () => {
-  const raw = { week: {} };
-
-  for (const day of DAYS) {
-    raw.week[day] = {};
-    for (const slot of SLOTS) {
-      raw.week[day][slot] = { name_es: "x", name_en: "x", items: bigMeal };
-    }
-  }
-
-  const allowed = new Set(bigMeal.map((line) => line.id));
-  const withCustom = parseComposition(raw, allowed, custom);
-  const withStatic = parseComposition(raw, allowed, STATIC_CATALOG);
-
-  assert.equal(withCustom.issue, null);
-  assert.ok(withCustom.week.lun.cena.items.some((line) => line.id === "bocadillo"));
-  assert.ok(!withStatic.week.lun.cena.items.some((line) => line.id === "bocadillo"));
-});
-
-test("renameMeals fallback naming uses the given catalog", async () => {
-  const week = {};
-
-  for (const day of DAYS) {
-    week[day] = {};
-    for (const slot of SLOTS) {
-      week[day][slot] = { name: { es: "x", en: "x" }, items: [{ id: "bocadillo", qty: 100 }] };
-    }
-  }
-
-  const renamed = await renameMeals(
-    week,
-    ["lun.cena"],
-    async () => ({ content: null, error: "x", errorCode: "ai_unavailable" }),
-    { catalog: custom },
-  );
-
-  assert.equal(renamed.lun.cena.name.es, "Bocadillo");
-  assert.equal(fallbackName(week.lun.cena, custom).en, "Guava paste");
 });
 
 // ---- Fix round 1
@@ -494,7 +516,8 @@ test("generate-weekly-plan passes the planner data to generatePlan", () => {
   const source = readFileSync(new URL("../generate-weekly-plan/index.ts", import.meta.url), "utf8");
   const call = source.slice(source.indexOf("await generatePlan("));
 
-  assert.match(call, /plannerDeps\(plannerData\)\s*,?\s*\)/, "4th argument of generatePlan");
+  assert.match(call, /await deps\(\)\s*,?\s*\)/, "4th argument of generatePlan");
+  assert.match(source, /return plannerDeps\(plannerData\);/, "deps() loads the planner data once");
 });
 
 // ---- city reference prices (DANE SIPSA base for estimates) ----

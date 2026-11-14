@@ -1,4 +1,4 @@
-import { defineMessages } from "../define";
+import { defineMessages } from "../define.ts";
 
 export const setup = defineMessages({
   es: {
@@ -66,6 +66,11 @@ export const setup = defineMessages({
     "store.Exito.tagline": "Todo lo que necesitas",
     "store.Jumbo.tagline": "Lo mejor en un solo lugar",
     "store.Carulla.tagline": "Calidad y frescura",
+    "stores.comingSoon": "Próximamente",
+    "stores.comingSoonHint":
+      "Todavía no tenemos sus precios reales, así que aún no puedes elegirlo.",
+    "stores.pickAvailable":
+      "Elige al menos un supermercado disponible para armar tu plan.",
 
     "dietary.title": "¿Hay alimentos que no consumes?",
     "dietary.subtitle": "Opcional. Puedes elegir varias opciones.",
@@ -170,7 +175,8 @@ export const setup = defineMessages({
     "gen.reason.ai_empty": "Devolvió una respuesta vacía",
     "gen.reason.rate_limited": "Había demasiadas solicitudes",
     "gen.reason.other": "Respuesta no válida",
-    "budget.minimum": "El presupuesto mínimo es {amount} por semana.",
+    "budget.minimum": "El presupuesto mínimo es {amount} por persona a la semana. Con menos no alcanza para comer bien toda la semana.",
+    "budget.minimumHousehold": "Necesitas un mínimo de {amount} para tu hogar ({perPerson} por persona a la semana). Con menos no alcanza para comer bien toda la semana.",
     "budget.tooHigh": "Ese monto es demasiado alto.",
     "budget.didYouMean": "¿Quisiste decir {amount}?",
   },
@@ -239,6 +245,11 @@ export const setup = defineMessages({
     "store.Exito.tagline": "Everything you need",
     "store.Jumbo.tagline": "The best in one place",
     "store.Carulla.tagline": "Quality and freshness",
+    "stores.comingSoon": "Coming soon",
+    "stores.comingSoonHint":
+      "We don't have its real prices yet, so you can't choose it for now.",
+    "stores.pickAvailable":
+      "Choose at least one available supermarket to build your plan.",
 
     "dietary.title": "Are there foods you don't eat?",
     "dietary.subtitle": "Optional. You can choose several options.",
@@ -343,7 +354,8 @@ export const setup = defineMessages({
     "gen.reason.ai_empty": "Returned an empty answer",
     "gen.reason.rate_limited": "Too many requests at once",
     "gen.reason.other": "Invalid answer",
-    "budget.minimum": "The minimum budget is {amount} per week.",
+    "budget.minimum": "The minimum budget is {amount} per person per week. With less, there isn't enough to eat well all week.",
+    "budget.minimumHousehold": "You need a minimum of {amount} for your household ({perPerson} per person per week). With less, there isn't enough to eat well all week.",
     "budget.tooHigh": "That amount is too high.",
     "budget.didYouMean": "Did you mean {amount}?",
   },

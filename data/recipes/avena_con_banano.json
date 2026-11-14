@@ -1,0 +1,35 @@
+{
+  "id": "avena_con_banano",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": { "es": "Avena con banano", "en": "Oatmeal with banana" },
+  "slots": ["desayuno", "snacks"],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": ["estufa"],
+  "batch": { "ok": false, "keepsDays": 1 },
+  "lines": [
+    { "food": "avena", "qty": 50, "role": "carb" },
+    { "food": "leche_entera", "qty": 200, "role": "protein", "alternatives": [{ "food": "leche_deslactosada", "qty": 200 }] },
+    { "food": "banano", "qty": 1, "role": "veg" },
+    { "food": "panela", "qty": 5, "role": "fixed", "optional": true }
+  ],
+  "steps": {
+    "es": [
+      "Pon la leche y la avena en una olla pequeña.",
+      "Prende la estufa a fuego medio.",
+      "Revuelve con una cuchara por 5 minutos, hasta que espese.",
+      "Si quieres, agrega la panela rallada y revuelve.",
+      "Sirve en un plato hondo.",
+      "Pela el banano, córtalo en rodajas y ponlo encima."
+    ],
+    "en": [
+      "Put the milk and the oats in a small pot.",
+      "Turn the stove on to medium heat.",
+      "Stir with a spoon for 5 minutes, until it thickens.",
+      "If you like, add the grated panela and stir.",
+      "Serve in a bowl.",
+      "Peel the banana, slice it and put it on top."
+    ]
+  }
+}

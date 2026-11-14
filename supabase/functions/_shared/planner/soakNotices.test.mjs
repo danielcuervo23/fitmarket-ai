@@ -1,0 +1,127 @@
+// Owner decision 2026-11-11: when the plan has a dried legume that must soak
+// overnight (only ever on Saturday or Sunday), it reminds the user the evening before.
+import assert from "node:assert/strict";
+import test from "node:test";
+import { calcTargets } from "../nutrition.ts";
+import { parseWeeklyPlanJson } from "../weeklyPlanSchema.ts";
+import { assemblePlan, soakNotices } from "./build.ts";
+import { DAYS, SLOTS } from "./types.ts";
+
+const targets = calcTargets({ age: 28, weightKg: 65, heightCm: 165, activity: "moderate", sex: "female" }, ["healthy"]);
+const STORES = ["Exito"];
+
+const recipe = (id) => ({
+  id,
+  status: "pending_owner_ok",
+  source: "ai_draft",
+  name: { es: id, en: id },
+  slots: ["desayuno", "almuerzo", "cena", "snacks"],
+  minutes: 15,
+  level: "basic",
+  appliances: ["estufa"],
+  batch: { ok: false, keepsDays: 1 },
+  lines: [{ food: "huevo", qty: 2, role: "protein" }],
+  steps: { es: ["Paso."], en: ["Step."] },
+  weekendOnly: false,
+});
+
+const LIBRARY = new Map(["huevos", "frijoles", "garbanzos", "lentejas"].map((id) => [id, recipe(id)]));
+
+const MEALS = {
+  huevos: [{ id: "huevo", qty: 2 }, { id: "arroz_blanco", qty: 70 }],
+  frijoles: [{ id: "frijol", qty: 70 }, { id: "arroz_blanco", qty: 60 }],
+  garbanzos: [{ id: "garbanzo", qty: 70 }, { id: "papa", qty: 120 }],
+  lentejas: [{ id: "lentejas", qty: 70 }, { id: "arroz_blanco", qty: 70 }],
+};
+
+/** Huevos every meal, with per-day almuerzo overrides by recipe id. */
+function week(almuerzos = {}) {
+  return Object.fromEntries(
+    DAYS.map((day) => [
+      day,
+      Object.fromEntries(
+        SLOTS.map((slot) => {
+          const id = slot === "almuerzo" ? (almuerzos[day] ?? "huevos") : "huevos";
+          return [slot, { name: { es: id, en: id }, items: MEALS[id].map((item) => ({ ...item })), recipeId: id }];
+        }),
+      ),
+    ]),
+  );
+}
+
+const plan = (w, options = {}) => assemblePlan(w, { householdSize: 1, stores: STORES, targets, recipes: LIBRARY, ...options });
+
+test("(d) fríjoles on Saturday: a reminder for Friday night", () => {
+  assert.deepEqual(soakNotices(week({ sab: "frijoles" })), ["soak_friday_night"]);
+});
+
+test("(d) garbanzos on Sunday: a reminder for Saturday night", () => {
+  assert.deepEqual(soakNotices(week({ dom: "garbanzos" })), ["soak_saturday_night"]);
+});
+
+test("(d) both weekend days: both reminders, Friday first, once each", () => {
+  const w = week({ sab: "frijoles", dom: "garbanzos" });
+  w.sab.cena = { ...w.sab.almuerzo, items: w.sab.almuerzo.items.map((i) => ({ ...i })) };
+  assert.deepEqual(soakNotices(w), ["soak_friday_night", "soak_saturday_night"]);
+});
+
+test("(d) no soak food, no reminder; lentejas never need one", () => {
+  assert.deepEqual(soakNotices(week()), []);
+  assert.deepEqual(soakNotices(week({ sab: "lentejas", dom: "lentejas", mar: "lentejas" })), []);
+});
+
+test("(d) the plan carries the reminder next to the other notices and the schema accepts it", () => {
+  const built = plan(week({ dom: "frijoles" }), { notices: ["see_professional"] });
+  assert.deepEqual(built.notices, ["see_professional", "soak_saturday_night"]);
+  assert.equal(parseWeeklyPlanJson(built).error, null);
+});
+
+test("(d) a plan without soak foods keeps its old shape (no notices field)", () => {
+  assert.ok(!("notices" in plan(week({ sab: "lentejas" }))));
+});
+
+test("(d) a free-composition plan (no recipe library) never gets a reminder", () => {
+  const w = week({ sab: "frijoles" });
+  for (const day of DAYS) for (const slot of SLOTS) delete w[day][slot].recipeId;
+  assert.ok(!("notices" in assemblePlan(w, { householdSize: 1, stores: STORES, targets })));
+});
+
+// A batch recipe served Saturday and again Sunday is one pot: cooked Saturday,
+// Sunday is the leftover. Only the evening before the first cooking day counts.
+const BATCH_LIBRARY = new Map([
+  ...LIBRARY,
+  ["frijoles", { ...recipe("frijoles"), batch: { ok: true, keepsDays: 3 } }],
+]);
+
+test("(d) Sunday leftovers of Saturday's batch: only the Friday reminder", () => {
+  const w = week({ sab: "frijoles", dom: "frijoles" });
+  assert.deepEqual(soakNotices(w, BATCH_LIBRARY), ["soak_friday_night"]);
+});
+
+test("(d) the plan with a Sunday batch leftover carries only the Friday reminder", () => {
+  const built = plan(week({ sab: "frijoles", dom: "frijoles" }), { recipes: BATCH_LIBRARY });
+  assert.deepEqual(built.notices, ["soak_friday_night"]);
+});
+
+test("(d) the same soak recipe on both days without batch cooks twice: both reminders", () => {
+  const w = week({ sab: "frijoles", dom: "frijoles" });
+  assert.deepEqual(soakNotices(w, LIBRARY), ["soak_friday_night", "soak_saturday_night"]);
+});
+
+test("(d) a batch soak recipe cooked only on Sunday: the Saturday reminder", () => {
+  assert.deepEqual(soakNotices(week({ dom: "frijoles" }), BATCH_LIBRARY), ["soak_saturday_night"]);
+});
+
+// The user's own batch-cooking answer decides, not a guess: a user who does not
+// cook in batches cooks the batch recipe again on Sunday, so it soaks again.
+test("(d) a batch recipe on both days for a user who does not cook in batches: both reminders", () => {
+  const w = week({ sab: "frijoles", dom: "frijoles" });
+  assert.deepEqual(soakNotices(w, BATCH_LIBRARY, { batch: false }), ["soak_friday_night", "soak_saturday_night"]);
+  assert.deepEqual(soakNotices(w, BATCH_LIBRARY, { batch: true }), ["soak_friday_night"]);
+});
+
+test("(d) assemblePlan passes the user's batch answer to the reminders", () => {
+  const w = week({ sab: "frijoles", dom: "frijoles" });
+  assert.deepEqual(plan(w, { recipes: BATCH_LIBRARY, batch: false }).notices, ["soak_friday_night", "soak_saturday_night"]);
+  assert.deepEqual(plan(w, { recipes: BATCH_LIBRARY, batch: true }).notices, ["soak_friday_night"]);
+});

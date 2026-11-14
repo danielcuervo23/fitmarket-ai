@@ -1,0 +1,48 @@
+{
+  "id": "pollo_guisado_con_papa",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": { "es": "Pollo guisado con papa", "en": "Chicken stew with potato" },
+  "slots": ["almuerzo", "cena"],
+  "minutes": 40,
+  "level": "basic",
+  "appliances": ["estufa"],
+  "batch": { "ok": true, "keepsDays": 3 },
+  "lines": [
+    { "food": "pernil_pollo", "qty": 150, "role": "protein", "alternatives": [{ "food": "pechuga_pollo", "qty": 130 }] },
+    {
+      "food": "papa",
+      "qty": 150,
+      "role": "carb",
+      "inName": true,
+      "alternatives": [
+        { "food": "papa_criolla", "qty": 150, "name": { "es": "Pollo guisado con papa criolla", "en": "Chicken stew with yellow potato" } }
+      ]
+    },
+    { "food": "tomate_chonto", "qty": 60, "role": "veg" },
+    { "food": "cebolla_cabezona", "qty": 40, "role": "veg" },
+    { "food": "zanahoria", "qty": 40, "role": "veg" },
+    { "food": "aceite_vegetal", "qty": 5, "role": "condiment" },
+    { "food": "ajo", "qty": 3, "role": "fixed" },
+    { "food": "sal", "qty": 1, "role": "fixed" },
+    { "food": "cilantro", "qty": 5, "role": "fixed", "optional": true }
+  ],
+  "steps": {
+    "es": [
+      "Pica el tomate, la cebolla y el ajo en cuadritos.",
+      "Pela la papa y la zanahoria y córtalas en trozos medianos.",
+      "En una olla con el aceite, cocina el tomate, la cebolla y el ajo 5 minutos, revolviendo.",
+      "Agrega el pollo y la sal, y dale vuelta para que se cubra. Lávate las manos después de tocar el pollo crudo.",
+      "Echa la papa, la zanahoria y un vaso de agua.",
+      "Tapa la olla y deja 30 minutos a fuego bajo, hasta que la papa esté blanda. Lo que sobre dura 3 días en la nevera."
+    ],
+    "en": [
+      "Chop the tomato, onion and garlic into small cubes.",
+      "Peel the potato and the carrot and cut them into medium pieces.",
+      "In a pot with the oil, cook the tomato, onion and garlic for 5 minutes, stirring.",
+      "Add the chicken and the salt, and turn it so it gets covered. Wash your hands after touching raw chicken.",
+      "Add the potato, the carrot and a glass of water.",
+      "Cover the pot and leave it 30 minutes over low heat, until the potato is soft. Leftovers keep 3 days in the fridge."
+    ]
+  }
+}

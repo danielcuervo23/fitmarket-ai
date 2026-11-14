@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Apple,
   ArrowLeft,
+  ChefHat,
+  Clock,
   Coffee,
+  CookingPot,
   Eye,
   Moon,
+  Repeat,
   Sparkles,
   Utensils,
   type LucideIcon,
@@ -19,8 +23,18 @@ import type {
 } from "@/lib/ai/types";
 import { DAY_IDS, isDayId } from "@/lib/ai/types";
 import { saveWeeklyPlan } from "@/lib/weeklyPlans";
+import {
+  complianceLines,
+  hasUnknownNotices,
+  isPartialPlan,
+  knownAppliances,
+  knownLevel,
+  knownNotices,
+  recipeForMeal,
+  type ComplianceLine,
+} from "@/lib/planRecipes";
 import { cn } from "@/lib/cn";
-import { useI18n } from "@/i18n/I18nProvider";
+import { useI18n, type Language } from "@/i18n/I18nProvider";
 import {
   Alert,
   Button,
@@ -59,6 +73,155 @@ const WEEKDAY_TO_DAY_ID: Record<number, DayId> = {
   5: "vie",
   6: "sab",
 };
+
+type Translate = ReturnType<typeof useI18n>["t"];
+type FormatNumber = ReturnType<typeof useI18n>["formatNumber"];
+
+function complianceText(
+  line: ComplianceLine,
+  t: Translate,
+  formatNumber: FormatNumber,
+): string {
+  switch (line.kind) {
+    case "percent":
+      return t(`compliance.${line.rule}.percent`, {
+        percent: formatNumber(line.percent),
+        achieved: formatNumber(line.achieved),
+        target: formatNumber(line.target),
+      });
+    case "unmeasurable":
+      return t("compliance.unmeasurable", {
+        label: t(`compliance.${line.rule}.label`),
+      });
+    case "notReached":
+      return t("compliance.notReached", {
+        label: t(`compliance.${line.rule}.label`),
+      });
+    default:
+      return t("compliance.unknown");
+  }
+}
+
+/** Plan-level notices and the partial-plan warning. Old plans show nothing. */
+function PlanWarnings({ plan }: { plan: WeeklyPlan }) {
+  const { t, formatNumber } = useI18n();
+  const { notices, showUnknownNotice, partial, lines } = useMemo(
+    () => ({
+      notices: knownNotices(plan),
+      showUnknownNotice: hasUnknownNotices(plan),
+      partial: isPartialPlan(plan),
+      lines: complianceLines(plan),
+    }),
+    [plan],
+  );
+
+  return (
+    <>
+      {partial && (
+        <Alert tone="warning">
+          <p className="font-bold">{t("compliance.title")}</p>
+          <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-4">
+            {lines.map((line, index) => (
+              <li key={`${line.rule}-${index}`}>
+                {complianceText(line, t, formatNumber)}
+              </li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+      {(notices.length > 0 || showUnknownNotice) && (
+        <Alert tone="info">
+          <p className="font-bold">{t("notice.title")}</p>
+          <ul className="mt-1.5 flex flex-col gap-1">
+            {notices.map((code) => (
+              <li key={code}>{t(`notice.${code}`)}</li>
+            ))}
+            {showUnknownNotice && <li>{t("notice.unknown")}</li>}
+          </ul>
+        </Alert>
+      )}
+    </>
+  );
+}
+
+type MealRecipe = NonNullable<ReturnType<typeof recipeForMeal>>;
+
+/** Time, level, batch tag and appliances of one meal's recipe. */
+function RecipeMeta({ recipe }: { recipe: MealRecipe }) {
+  const { t, locale } = useI18n();
+  const level = knownLevel(recipe);
+  const listFormat = useMemo(
+    () => new Intl.ListFormat(locale, { type: "conjunction" }),
+    [locale],
+  );
+  const appliances = knownAppliances(recipe).map((code) =>
+    t(`recipe.appliance.${code}`),
+  );
+  const chip =
+    "flex items-center gap-1 rounded-full bg-ink-100 px-2.5 py-1 text-xs font-semibold text-ink-700";
+
+  return (
+    <div className="flex flex-col gap-2 px-4">
+      <ul className="flex flex-wrap gap-1.5">
+        <li className={chip}>
+          <Clock size={13} aria-hidden />
+          {t("recipe.minutes", { minutes: recipe.minutes })}
+        </li>
+        {level && (
+          <li className={chip}>
+            <ChefHat size={13} aria-hidden />
+            {t(`recipe.level.${level}`)}
+          </li>
+        )}
+        {recipe.batch && (
+          <li className="flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+            <Repeat size={13} aria-hidden />
+            {t("recipe.batch")}
+          </li>
+        )}
+      </ul>
+      {appliances.length > 0 && (
+        <p className="flex items-start gap-1.5 text-[13px] text-ink-600">
+          <CookingPot size={14} className="mt-0.5 shrink-0" aria-hidden />
+          {t("recipe.appliances", {
+            list: listFormat.format(appliances),
+          })}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** The recipe steps, collapsed by default. Text only, never HTML. */
+function RecipeSteps({
+  recipe,
+  language,
+}: {
+  recipe: MealRecipe;
+  language: Language;
+}) {
+  const { t } = useI18n();
+  const steps = recipe.steps[language];
+
+  if (steps.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="px-4 pb-4">
+      <details className="rounded-xl border border-ink-100">
+        <summary className="cursor-pointer rounded-xl px-3 py-2.5 text-[14px] font-semibold text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600">
+          {t("recipe.steps")}
+        </summary>
+        <ol className="flex list-decimal flex-col gap-1.5 px-3 pb-3 pl-8 text-[14px] leading-snug text-ink-700">
+          {steps.map((step, index) => (
+            <li key={index}>{step}</li>
+          ))}
+        </ol>
+      </details>
+    </div>
+  );
+}
 
 function getInitialActiveDay(weeklyMenu: WeeklyMenu | undefined): DayId {
   const today = WEEKDAY_TO_DAY_ID[new Date().getDay()];
@@ -212,6 +375,8 @@ export function WeeklyMenuScreen({
           </Alert>
         )}
 
+        <PlanWarnings plan={plan} />
+
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold">{t(`day.${activeDay}`)}</h2>
@@ -233,7 +398,11 @@ export function WeeklyMenuScreen({
         </div>
 
         {MEALS.map(({ key, icon: Icon }) => {
-          const dish = plan.dish_names?.[activeDay]?.[key]?.[language];
+          const recipe = recipeForMeal(plan, activeDay, key);
+          // The dish name follows swapped ingredients; the recipe name is the fallback.
+          const dish =
+            plan.dish_names?.[activeDay]?.[key]?.[language] ??
+            recipe?.name[language];
 
           return (
           <Card key={key} className="flex flex-col gap-3 p-0">
@@ -252,10 +421,16 @@ export function WeeklyMenuScreen({
                 </h3>
               </div>
             </div>
+            {recipe && <RecipeMeta recipe={recipe} />}
             <p className="px-4 text-xs font-semibold text-ink-500">
               {t("menu.ingredients")}
             </p>
-            <ul className="-mt-1 flex flex-col gap-2 px-4 pb-4">
+            <ul
+              className={cn(
+                "-mt-1 flex flex-col gap-2 px-4",
+                recipe ? "pb-1" : "pb-4",
+              )}
+            >
               {dayMenu[key].map((item, index) => (
                 <li
                   key={`${key}-${index}`}
@@ -269,6 +444,7 @@ export function WeeklyMenuScreen({
                 </li>
               ))}
             </ul>
+            {recipe && <RecipeSteps recipe={recipe} language={language} />}
           </Card>
           );
         })}

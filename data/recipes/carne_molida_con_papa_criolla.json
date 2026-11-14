@@ -1,0 +1,82 @@
+{
+  "id": "carne_molida_con_papa_criolla",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Carne molida guisada con papa criolla",
+    "en": "Stewed ground beef with small yellow potatoes"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 3
+  },
+  "lines": [
+    {
+      "food": "carne_molida_res",
+      "qty": 100,
+      "role": "protein"
+    },
+    {
+      "food": "papa_criolla",
+      "qty": 150,
+      "role": "carb"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "pimenton",
+      "qty": 0.5,
+      "role": "veg"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 3,
+      "role": "condiment"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava las papas criollas y cocínalas enteras en agua con sal, 15 minutos.",
+      "Mientras tanto, pica el tomate, la cebolla, el pimentón y el ajo en cuadritos.",
+      "En una sartén con el aceite, cocina la cebolla, el pimentón y el ajo 3 minutos.",
+      "Agrega la carne y desbarátala con la cuchara hasta que no se vea roja (unos 5 minutos). Lávate las manos después de tocarla cruda.",
+      "Echa el tomate y la sal, y cocina 5 minutos más.",
+      "Sirve la carne con las papas. Lo que sobre dura 3 días en la nevera."
+    ],
+    "en": [
+      "Wash the small potatoes and boil them whole in salted water for 15 minutes.",
+      "Meanwhile, dice the tomato, onion, bell pepper and garlic.",
+      "In a pan with the oil, cook the onion, bell pepper and garlic for 3 minutes.",
+      "Add the meat and break it up with the spoon until it is no longer red (about 5 minutes). Wash your hands after touching it raw.",
+      "Add the tomato and salt, and cook 5 more minutes.",
+      "Serve the meat with the potatoes. Leftovers keep 3 days in the fridge."
+    ]
+  }
+}

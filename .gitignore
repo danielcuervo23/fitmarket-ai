@@ -7,3 +7,5 @@ supabase/.temp/
 .env.*
 !.env.example
 tsconfig.tsbuildinfo
+# Copied from node_modules before deploying (npm run functions:wasm)
+supabase/functions/generate-weekly-plan/highs.wasm

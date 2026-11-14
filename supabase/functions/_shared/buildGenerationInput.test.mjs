@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildGenerationInputFromDb } from "./buildGenerationInput.ts";
+import { buildGenerationInputFromDb, normalizeCooking } from "./buildGenerationInput.ts";
+import { DEFAULT_COOKING } from "./recipes/types.ts";
 
-function fakeSupabase(profile) {
+function fakeSupabase(profile, supermarkets = ["D1"]) {
   const selects = [];
   const tables = {
     profiles: { maybeSingle: () => Promise.resolve({ data: profile, error: null }) },
   };
   const lists = {
     user_goals: [{ goal_type: "healthy" }],
-    user_supermarkets: [{ supermarket_id: "D1" }],
+    user_supermarkets: supermarkets.map((supermarket_id) => ({ supermarket_id })),
   };
 
   return {
@@ -87,4 +88,124 @@ test("when the city column is missing (migration 010 not applied) the input is s
     assert.equal(after.data.city, null, code);
     assert.deepEqual({ ...after.data, city: null }, { ...before.data, city: null }, code);
   }
+});
+
+// --- Cooking preferences (migration 015) ---
+
+function fakeSupabaseNoCooking(profile, code) {
+  const base = fakeSupabase(profile);
+  return {
+    from(table) {
+      const inner = base.from(table);
+      return {
+        select(columns) {
+          if (table === "profiles" && /\bcooking_level\b/.test(columns)) {
+            const failing = { maybeSingle: () => Promise.resolve({ data: null, error: { code, message: "column does not exist" } }) };
+            return { eq: () => failing };
+          }
+          return inner.select(columns);
+        },
+      };
+    },
+  };
+}
+
+test("cooking columns are read in their own query, never in the main profile query", async () => {
+  const supabase = fakeSupabase({ ...baseProfile });
+  await buildGenerationInputFromDb(supabase, "u1");
+  const cookingSelects = supabase.selects.filter(([table, columns]) => table === "profiles" && /\bcooking_level\b/.test(columns));
+  assert.equal(cookingSelects.length, 1);
+  assert.equal(cookingSelects[0][1].replace(/\s/g, ""), "cooking_weekday_minutes,cooking_level,kitchen_appliances,batch_cooking");
+});
+
+test("missing cooking columns (old DB) give the defaults", async () => {
+  for (const code of ["42703", "PGRST204"]) {
+    const { data, error } = await buildGenerationInputFromDb(fakeSupabaseNoCooking({ ...baseProfile }, code), "u1");
+    assert.equal(error, null, code);
+    assert.deepEqual(data.cooking, DEFAULT_COOKING, code);
+  }
+});
+
+test("unanswered cooking columns (NULL) give the defaults", async () => {
+  const { data } = await buildGenerationInputFromDb(fakeSupabase({ ...baseProfile }), "u1");
+  assert.deepEqual(data.cooking, DEFAULT_COOKING);
+});
+
+test("valid cooking answers pass through", async () => {
+  const { data } = await buildGenerationInputFromDb(
+    fakeSupabase({ ...baseProfile, cooking_weekday_minutes: 30, cooking_level: "enjoys", kitchen_appliances: ["microondas", "horno"], batch_cooking: true }),
+    "u1",
+  );
+  assert.deepEqual(data.cooking, { weekdayMinutes: 30, level: "enjoys", appliances: ["microondas", "horno"], batch: true });
+});
+
+test("invalid values fall back per field", () => {
+  assert.deepEqual(
+    normalizeCooking({ cooking_weekday_minutes: 15, cooking_level: "chef", kitchen_appliances: ["horno", "x"], batch_cooking: "yes" }),
+    { weekdayMinutes: 20, level: "basic", appliances: ["horno"], batch: false },
+  );
+});
+
+test("empty appliance list falls back to estufa + licuadora", () => {
+  for (const kitchen of [[], ["x", 5, null], "estufa", null, undefined]) {
+    assert.deepEqual(normalizeCooking({ kitchen_appliances: kitchen }).appliances, ["estufa", "licuadora"], String(kitchen));
+  }
+});
+
+test("non-object rows give the defaults", () => {
+  for (const row of [null, undefined, "x", 5, []]) {
+    assert.deepEqual(normalizeCooking(row), DEFAULT_COOKING, String(row));
+  }
+});
+
+test("appliances are de-duplicated and capped by the allowed list", () => {
+  assert.deepEqual(normalizeCooking({ kitchen_appliances: ["horno", "horno", "estufa"] }).appliances, ["horno", "estufa"]);
+});
+
+test("the default appliance list is a fresh copy, never the frozen constant", () => {
+  const first = normalizeCooking(null);
+  assert.notEqual(first.appliances, DEFAULT_COOKING.appliances);
+  assert.equal(Object.isFrozen(first.appliances), false);
+  first.appliances.push("horno");
+  assert.deepEqual(normalizeCooking(null).appliances, ["estufa", "licuadora"]);
+  assert.deepEqual([...DEFAULT_COOKING.appliances], ["estufa", "licuadora"]);
+});
+
+test("a failed cooking query logs one event with the error code only", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(JSON.parse(line)));
+  await buildGenerationInputFromDb(fakeSupabaseNoCooking({ ...baseProfile }, "42703"), "u1");
+  assert.deepEqual(logs, [{ event: "cooking_prefs_default", code: "42703" }]);
+});
+
+test("an unsafe or missing error code is logged as unknown", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(JSON.parse(line)));
+  await buildGenerationInputFromDb(fakeSupabaseNoCooking({ ...baseProfile }, "age=30 weight=70"), "u1");
+  await buildGenerationInputFromDb(fakeSupabaseNoCooking({ ...baseProfile }, undefined), "u1");
+  assert.deepEqual(logs, [
+    { event: "cooking_prefs_default", code: "unknown" },
+    { event: "cooking_prefs_default", code: "unknown" },
+  ]);
+});
+
+test("a successful cooking query logs nothing", async (t) => {
+  const logs = [];
+  t.mock.method(console, "log", (line) => logs.push(line));
+  await buildGenerationInputFromDb(fakeSupabase({ ...baseProfile, cooking_level: "enjoys" }), "u1");
+  assert.deepEqual(logs, []);
+});
+
+test("a saved coming-soon chain (Ara) is never passed to the planner", async () => {
+  const { data, error } = await buildGenerationInputFromDb(fakeSupabase(baseProfile, ["Ara", "D1"]), "u1");
+
+  assert.equal(error, null);
+  assert.deepEqual(data.stores, ["D1"]);
+});
+
+test("a user with only Ara saved is asked to pick another store", async () => {
+  const { data, error } = await buildGenerationInputFromDb(fakeSupabase(baseProfile, ["Ara"]), "u1");
+
+  assert.equal(data, null);
+  assert.equal(error.code, "stores_missing");
 });

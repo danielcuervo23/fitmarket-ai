@@ -1,0 +1,72 @@
+{
+  "id": "pasta_con_atun",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Pasta con atún y tomate",
+    "en": "Pasta with tuna and tomato"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 20,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 2
+  },
+  "lines": [
+    {
+      "food": "pasta",
+      "qty": 80,
+      "role": "carb"
+    },
+    {
+      "food": "atun_lata",
+      "qty": 80,
+      "role": "protein"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "condiment"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pon a hervir agua en una olla y cocina la pasta el tiempo que diga el paquete (unos 10 minutos).",
+      "Mientras tanto, pica la cebolla, el tomate y el ajo en cuadritos.",
+      "En una sartén con el aceite, cocina la cebolla y el ajo 2 minutos a fuego medio.",
+      "Agrega el tomate y cocina 5 minutos más, revolviendo, hasta que se vuelva salsa.",
+      "Escurre el atún (bota el agua de la lata) y échalo a la salsa.",
+      "Escurre la pasta (sácale el agua con un colador) y mézclala con la salsa."
+    ],
+    "en": [
+      "Boil water in a pot and cook the pasta for the time on the package (about 10 minutes).",
+      "Meanwhile, dice the onion, tomato and garlic.",
+      "In a pan with the oil, cook the onion and garlic for 2 minutes over medium heat.",
+      "Add the tomato and cook 5 more minutes, stirring, until it turns into a sauce.",
+      "Drain the tuna (pour off the water from the can) and add it to the sauce.",
+      "Drain the pasta (remove the water with a colander) and mix it with the sauce."
+    ]
+  }
+}

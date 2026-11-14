@@ -1,0 +1,62 @@
+{
+  "id": "maduro_asado_con_queso",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Maduro asado con queso",
+    "en": "Baked-style sweet plantain with cheese"
+  },
+  "slots": [
+    "desayuno",
+    "snacks"
+  ],
+  "minutes": 30,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "platano",
+      "qty": 150,
+      "role": "carb"
+    },
+    {
+      "food": "queso_campesino",
+      "qty": 40,
+      "role": "protein",
+      "alternatives": [
+        {
+          "food": "queso_mozzarella",
+          "qty": 40
+        }
+      ]
+    },
+    {
+      "food": "mantequilla",
+      "qty": 5,
+      "role": "fat",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Usa un plátano bien maduro (con la cáscara casi negra).",
+      "Pélalo y córtalo a lo largo en dos mitades.",
+      "Ponlo en una sartén con la mantequilla o unas gotas de aceite, a fuego bajo y con tapa.",
+      "Déjalo 12 minutos por cada lado, hasta que esté blandito y dorado (color café claro).",
+      "Pon el queso encima los últimos 3 minutos para que se derrita."
+    ],
+    "en": [
+      "Use a very ripe plantain (skin almost black).",
+      "Peel it and cut it lengthwise into two halves.",
+      "Put it in a pan with the butter or a few drops of oil, over low heat, with a lid.",
+      "Leave it 12 minutes on each side, until soft and golden (light brown).",
+      "Put the cheese on top for the last 3 minutes so it melts."
+    ]
+  }
+}

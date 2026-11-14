@@ -1,0 +1,72 @@
+{
+  "id": "ensalada_de_atun_con_aguacate",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Ensalada de atún con aguacate",
+    "en": "Tuna salad with avocado"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "atun_lata",
+      "qty": 80,
+      "role": "protein"
+    },
+    {
+      "food": "aguacate",
+      "qty": 0.5,
+      "role": "fat"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 80,
+      "role": "veg"
+    },
+    {
+      "food": "lechuga",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "pepino",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_oliva",
+      "qty": 5,
+      "role": "condiment",
+      "alternatives": [
+        {
+          "food": "aceite_vegetal",
+          "qty": 5
+        }
+      ]
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la lechuga, el tomate y el pepino, y pícalos.",
+      "Escurre el atún (bota el agua de la lata).",
+      "Pon todo en un plato hondo con el aguacate en cuadritos.",
+      "Échale el aceite y revuelve."
+    ],
+    "en": [
+      "Wash the lettuce, tomato and cucumber, and chop them.",
+      "Drain the tuna (pour off the water from the can).",
+      "Put everything in a bowl with the avocado in cubes.",
+      "Add the oil and stir."
+    ]
+  }
+}

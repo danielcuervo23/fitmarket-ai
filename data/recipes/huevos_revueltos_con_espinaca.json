@@ -1,0 +1,74 @@
+{
+  "id": "huevos_revueltos_con_espinaca",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Huevos revueltos con espinaca y tomate",
+    "en": "Scrambled eggs with spinach and tomato"
+  },
+  "slots": [
+    "desayuno",
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "huevo",
+      "qty": 3,
+      "role": "protein"
+    },
+    {
+      "food": "espinaca",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 60,
+      "role": "veg"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 5,
+      "role": "condiment"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    },
+    {
+      "food": "pan_tajado",
+      "qty": 50,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la espinaca y córtala en tiras. Pica el tomate en cuadritos.",
+      "Rompe los huevos en un plato. Lávate las manos después de tocar el huevo crudo.",
+      "Bate los huevos con la sal (bate: mezcla rápido con un tenedor).",
+      "Calienta el aceite en una sartén a fuego medio y echa el tomate y la espinaca; revuelve 2 minutos, hasta que la espinaca se encoja.",
+      "Echa los huevos a la sartén y revuelve hasta que ya no estén líquidos.",
+      "Sirve con el pan, si quieres."
+    ],
+    "en": [
+      "Wash the spinach and cut it into strips. Dice the tomato.",
+      "Crack the eggs into a bowl. Wash your hands after touching the raw egg.",
+      "Beat the eggs with the salt (mix fast with a fork).",
+      "Heat the oil in a pan over medium heat and add the tomato and spinach; stir 2 minutes, until the spinach shrinks.",
+      "Pour the eggs into the pan and stir until they are no longer runny.",
+      "Serve with the bread, if you like."
+    ]
+  }
+}

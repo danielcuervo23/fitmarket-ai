@@ -1,0 +1,49 @@
+{
+  "id": "lentejas_con_arroz",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": { "es": "Lentejas con arroz", "en": "Lentils with rice" },
+  "slots": ["almuerzo", "cena"],
+  "minutes": 45,
+  "level": "basic",
+  "appliances": ["estufa"],
+  "batch": { "ok": true, "keepsDays": 3 },
+  "lines": [
+    {
+      "food": "lentejas",
+      "qty": 70,
+      "role": "protein",
+      "inName": true,
+      "alternatives": [
+        { "food": "frijol", "qty": 70, "name": { "es": "Fríjoles con arroz", "en": "Beans with rice" } },
+        { "food": "garbanzo", "qty": 70, "name": { "es": "Garbanzos con arroz", "en": "Chickpeas with rice" } }
+      ]
+    },
+    { "food": "arroz_blanco", "qty": 70, "role": "carb" },
+    { "food": "zanahoria", "qty": 40, "role": "veg" },
+    { "food": "tomate_chonto", "qty": 50, "role": "veg" },
+    { "food": "cebolla_cabezona", "qty": 30, "role": "veg" },
+    { "food": "aceite_vegetal", "qty": 5, "role": "condiment" },
+    { "food": "ajo", "qty": 3, "role": "fixed" },
+    { "food": "sal", "qty": 1, "role": "fixed" },
+    { "food": "cilantro", "qty": 5, "role": "fixed", "optional": true }
+  ],
+  "steps": {
+    "es": [
+      "Si usas fríjoles o garbanzos, déjalos en agua desde la noche anterior.",
+      "Lava los granos y cocínalos en una olla con bastante agua, a fuego medio, hasta que estén blandos (unos 30 minutos).",
+      "Mientras tanto, pica la zanahoria, el tomate, la cebolla y el ajo en cuadritos.",
+      "En una sartén con el aceite, cocina esos picados 5 minutos y échalos a la olla con la sal.",
+      "Aparte, pon el arroz con el doble de agua y un poquito de sal; tapa y cocina 20 minutos a fuego bajo.",
+      "Sirve los granos con el arroz y, si quieres, cilantro picado encima."
+    ],
+    "en": [
+      "If you use beans or chickpeas, soak them in water the night before.",
+      "Rinse the legumes and cook them in a pot with plenty of water, over medium heat, until soft (about 30 minutes).",
+      "Meanwhile, chop the carrot, tomato, onion and garlic into small cubes.",
+      "In a pan with the oil, cook the chopped vegetables for 5 minutes and add them to the pot with the salt.",
+      "Separately, put the rice with twice as much water and a pinch of salt; cover and cook 20 minutes over low heat.",
+      "Serve the legumes with the rice and, if you like, chopped cilantro on top."
+    ]
+  }
+}

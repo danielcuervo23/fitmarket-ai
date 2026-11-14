@@ -1,0 +1,89 @@
+{
+  "id": "frijoles_en_olla_a_presion",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Fríjoles con plátano en olla a presión",
+    "en": "Pressure-cooker beans with plantain"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 55,
+  "level": "comfortable",
+  "appliances": [
+    "estufa",
+    "olla_presion"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 4
+  },
+  "lines": [
+    {
+      "food": "frijol",
+      "qty": 70,
+      "role": "protein"
+    },
+    {
+      "food": "platano",
+      "qty": 80,
+      "role": "carb"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 40,
+      "role": "veg"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_junca",
+      "qty": 25,
+      "role": "veg"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 3,
+      "role": "condiment"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    },
+    {
+      "food": "arroz_blanco",
+      "qty": 60,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "La noche anterior, deja los fríjoles en un recipiente con bastante agua (el doble de lo que ocupan).",
+      "Bota esa agua. Pon en la olla a presión los fríjoles, el plátano verde en trocitos y agua nueva que los cubra 3 dedos.",
+      "Tapa bien la olla y ponla a fuego medio.",
+      "Cuando empiece a pitar (a sonar como un silbido), baja el fuego y cuenta 30 minutos.",
+      "Apaga y espera a que deje de salir vapor antes de abrirla (nunca la abras con presión).",
+      "Echa a la olla el tomate, la cebolla larga, el ajo y la zanahoria picados, el aceite y la sal. Hierve 10 minutos sin tapa y sirve con arroz, si quieres."
+    ],
+    "en": [
+      "The night before, soak the beans in a bowl with plenty of water (twice their volume).",
+      "Pour off that water. Put the beans, the green plantain in small pieces and fresh water three fingers above them in the pressure cooker.",
+      "Close the lid well and put it over medium heat.",
+      "When it starts to whistle, lower the heat and count 30 minutes.",
+      "Turn it off and wait until no more steam comes out before opening it (never open it under pressure).",
+      "Add the chopped tomato, spring onion, garlic and carrot, the oil and the salt to the pot. Boil 10 minutes uncovered and serve with rice, if you like."
+    ]
+  }
+}

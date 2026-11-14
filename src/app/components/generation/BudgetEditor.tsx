@@ -1,6 +1,6 @@
 import {
   budgetIssue,
-  MIN_WEEKLY_BUDGET_COP,
+  budgetMinimumMessage,
   parseBudgetInput,
   thousandsSuggestion,
 } from "@/lib/budgetSuggestion";
@@ -20,6 +20,8 @@ interface Props {
   options: Option[];
   hint?: string;
   disabled?: boolean;
+  /** People in the household: the minimum is 130 000 each (default 1). */
+  householdSize?: number;
 }
 
 /**
@@ -33,15 +35,17 @@ export function BudgetEditor({
   options,
   hint,
   disabled,
+  householdSize = 1,
 }: Props) {
   const { t, formatCurrency, formatNumber } = useI18n();
   const amount = parseBudgetInput(value);
-  const issue = budgetIssue(amount);
-  const suggestion = thousandsSuggestion(amount);
+  const issue = budgetIssue(amount, householdSize);
+  const suggestion = thousandsSuggestion(amount, householdSize);
+  const minimum = budgetMinimumMessage(householdSize);
 
   const error =
     issue === "too_low"
-      ? t("budget.minimum", { amount: formatCurrency(MIN_WEEKLY_BUDGET_COP) })
+      ? t(minimum.key, { amount: formatCurrency(minimum.amount), perPerson: formatCurrency(minimum.perPerson) })
       : issue === "too_high"
         ? t("budget.tooHigh")
         : null;

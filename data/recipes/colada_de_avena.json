@@ -1,0 +1,33 @@
+{
+  "id": "colada_de_avena",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": { "es": "Colada de avena", "en": "Colombian oat drink (colada)" },
+  "slots": ["desayuno", "snacks"],
+  "minutes": 10,
+  "level": "basic",
+  "appliances": ["estufa"],
+  "batch": { "ok": false, "keepsDays": 1 },
+  "lines": [
+    { "food": "avena", "qty": 40, "role": "carb" },
+    { "food": "leche_entera", "qty": 150, "role": "protein", "optional": true, "alternatives": [{ "food": "leche_deslactosada", "qty": 150 }] },
+    { "food": "banano", "qty": 1, "role": "veg" },
+    { "food": "panela", "qty": 5, "role": "fixed", "optional": true }
+  ],
+  "steps": {
+    "es": [
+      "Pon en una olla la avena con una taza y media de agua (o mitad agua y mitad leche).",
+      "Cocina a fuego medio 6 minutos, revolviendo seguido para que no se pegue al fondo.",
+      "Cuando espese (se ponga más gruesa), apaga.",
+      "Si te gusta dulce, agrega un poquito de panela rallada.",
+      "Sírvela en una taza y acompáñala con el banano."
+    ],
+    "en": [
+      "Put the oats in a pot with one and a half cups of water (or half water, half milk).",
+      "Cook over medium heat for 6 minutes, stirring often so it does not stick to the bottom.",
+      "When it thickens, turn off the heat.",
+      "If you like it sweet, add a little grated panela.",
+      "Serve it in a mug with the banana on the side."
+    ]
+  }
+}

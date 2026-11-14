@@ -15,6 +15,8 @@
  *   refined with real prices. Prices are national references, not per store.
  */
 
+import { STATIC_MICRO } from "./catalogMicro.generated.ts";
+
 export type FoodUnit = "g" | "ml" | "unit";
 
 export type ShoppingCategory =
@@ -53,6 +55,44 @@ export interface Nutrition {
   fat: number;
 }
 
+/** Food groups of the Colombian dietary guidelines (GABA). */
+export type GabaGroup =
+  | "cereales_tuberculos"
+  | "frutas_verduras"
+  | "lacteos"
+  | "proteicos"
+  | "grasas"
+  | "azucares";
+
+/** Per 100 g / 100 ml, same basis as `per100`. */
+export interface MicroNutrients {
+  fiberG: number;
+  freeSugarsG: number;
+  satFatG: number;
+  sodiumMg: number;
+  ironMg: number;
+  gabaGroup: GabaGroup | null;
+  isFruitVeg: boolean;
+}
+
+/** Micro-nutrients of an eaten quantity, plus the grams that count as fruit/veg. */
+export interface MicroTotals {
+  fiberG: number;
+  freeSugarsG: number;
+  satFatG: number;
+  sodiumMg: number;
+  ironMg: number;
+  fruitVegG: number;
+}
+
+/** Starchy foods that never count toward fruit and vegetables (WHO 400 g rule). */
+export const STARCHY_NOT_FRUIT_VEG: ReadonlySet<string> = new Set([
+  "papa",
+  "papa_criolla",
+  "yuca",
+  "platano",
+]);
+
 export interface Ingredient {
   id: string;
   name: { es: string; en: string };
@@ -71,9 +111,11 @@ export interface Ingredient {
   /** COP per one g / ml / unit, regular price. */
   price: number;
   priceSource: "sample" | "estimate";
+  /** Absent when the source had no trustworthy micro-nutrient data. */
+  micro?: MicroNutrients;
 }
 
-type Seed = Omit<Ingredient, "priceSource"> & {
+type Seed = Omit<Ingredient, "priceSource" | "micro"> & {
   priceSource?: Ingredient["priceSource"];
 };
 
@@ -172,10 +214,15 @@ const seeds: Seed[] = [
   { id: "miel", name: { es: "Miel de abejas", en: "Honey" }, category: "condimentos", unit: "g", per100: n(304, 0.3, 82, 0), tags: ["honey"], pack: 300, price: 30 },
 ];
 
-export const CATALOG: readonly Ingredient[] = seeds.map((seed) => ({
-  ...seed,
-  priceSource: seed.priceSource ?? "estimate",
-}));
+export const CATALOG: readonly Ingredient[] = seeds.map((seed) => {
+  const micro = STATIC_MICRO[seed.id];
+
+  return {
+    ...seed,
+    priceSource: seed.priceSource ?? "estimate",
+    ...(micro ? { micro } : {}),
+  };
+});
 
 const BY_ID = new Map(CATALOG.map((ingredient) => [ingredient.id, ingredient]));
 
@@ -228,6 +275,31 @@ export function nutritionOf(
     protein: ingredient.per100.protein * factor,
     carbs: ingredient.per100.carbs * factor,
     fat: ingredient.per100.fat * factor,
+  };
+}
+
+/** Micro-nutrients of `quantity` (in the ingredient's own unit); null without data. */
+export function microOf(
+  ingredient: Ingredient,
+  quantity: number,
+): MicroTotals | null {
+  const micro = ingredient.micro;
+
+  if (!micro) {
+    return null;
+  }
+
+  const grams = gramsOf(ingredient, quantity);
+  const factor = grams / 100;
+  const countsAsFruitVeg = micro.isFruitVeg && !STARCHY_NOT_FRUIT_VEG.has(ingredient.id);
+
+  return {
+    fiberG: micro.fiberG * factor,
+    freeSugarsG: micro.freeSugarsG * factor,
+    satFatG: micro.satFatG * factor,
+    sodiumMg: micro.sodiumMg * factor,
+    ironMg: micro.ironMg * factor,
+    fruitVegG: countsAsFruitVeg ? grams : 0,
   };
 }
 

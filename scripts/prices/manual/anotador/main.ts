@@ -6,6 +6,7 @@ import {
   parseState,
   progress,
   saveEntry,
+  savedMessage,
   suggestFood,
   type CaptureState,
 } from "../capture.ts";
@@ -26,6 +27,7 @@ const STORAGE_PREFIX = "fitmarket-anotador:v1:";
 
 const STYLE = `
 :host { all: initial; }
+[hidden] { display: none !important; }
 .box { position: fixed; top: 16px; right: 16px; z-index: 2147483647; width: 340px; max-height: calc(100vh - 32px);
   overflow: auto; box-sizing: border-box; padding: 14px 16px; background: #fff; color: #1d1d1f; border-radius: 12px;
   box-shadow: 0 8px 30px rgba(0,0,0,.25); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -45,6 +47,10 @@ input[type=checkbox] { width: auto; margin: 0 6px 0 0; }
 .ok { color: #0a7d3b; }
 .card { background: #f5f5f7; border-radius: 8px; padding: 8px 10px; }
 .status { min-height: 1.4em; margin-top: 8px; }
+.confirm { margin-top: 10px; padding: 10px; border: 2px solid #b26a00; background: #fff4e5; border-radius: 8px; }
+.confirm p { margin: 0 0 8px; }
+.confirm .row { margin-top: 0; flex-wrap: wrap; }
+.counter-updated { color: #0a7d3b; font-weight: 600; }
 details { margin-top: 8px; }
 `;
 
@@ -144,9 +150,10 @@ function main(): void {
     status.textContent = text;
     status.className = `status ${kind}`;
   };
-  const refreshProgress = () => {
+  const refreshProgress = (updated = false) => {
     const p = progress(state, foods);
     counter.textContent = `${p.done} de ${p.total} anotados en ${site.storeId}`;
+    counter.className = updated ? "muted counter-updated" : "muted";
     missingSummary.textContent = `Faltan ${p.missing.length}`;
     missingList.textContent = p.missing.join(", ");
   };
@@ -195,6 +202,17 @@ function main(): void {
     };
     search.addEventListener("input", fillOptions);
 
+    // In-panel question shown before replacing another saved product (never alert/confirm: they block the page).
+    const confirmText = el("p");
+    const replaceYes = el("button", { className: "primary", textContent: "Sí, reemplazar" });
+    const replaceNo = el("button", { textContent: "No, cambiar el alimento" });
+    const confirmBox = el("div", { className: "confirm" }, [confirmText, el("div", { className: "row" }, [replaceYes, replaceNo])]);
+    confirmBox.setAttribute("role", "alertdialog");
+    confirmBox.hidden = true;
+    const hideConfirm = () => {
+      confirmBox.hidden = true;
+    };
+
     const pack = el("input", { type: "number" });
     pack.min = "0";
     pack.step = "any";
@@ -223,8 +241,12 @@ function main(): void {
         packNote.className = "error";
       }
     };
-    pack.addEventListener("input", refreshPack);
+    pack.addEventListener("input", () => {
+      hideConfirm();
+      refreshPack();
+    });
     select.addEventListener("change", () => {
+      hideConfirm();
       chosen = select.value;
       refreshPack();
     });
@@ -232,8 +254,10 @@ function main(): void {
     // Always starts unticked: the person confirms Bucaramanga on every product page.
     const attest = el("input", { type: "checkbox" });
     attest.checked = false;
+    attest.addEventListener("change", hideConfirm);
     const save = el("button", { className: "primary", textContent: "Guardar" });
-    save.addEventListener("click", () => {
+    const trySave = (replaceConfirmed: boolean) => {
+      hideConfirm();
       const result = saveEntry(state, {
         product,
         foodId: chosen,
@@ -244,13 +268,27 @@ function main(): void {
         today: localDay(new Date()),
         foods,
         site: current,
+        replaceConfirmed,
       });
+      if (!result.ok && result.needsConfirmation === true) {
+        say("");
+        confirmText.textContent = result.message;
+        confirmBox.hidden = false;
+        replaceNo.focus();
+        return;
+      }
       if (!result.ok) return say(result.message, "error");
       if (!storeState(result.state)) return say("No pude guardar en este navegador (almacenamiento bloqueado).", "error");
       state = result.state;
-      const name = foods.find((f) => f.id === chosen)?.nameEs ?? chosen;
-      say(`Guardado: ${name}. Abre el siguiente producto y vuelve a tocar el botón.`, "ok");
-      refreshProgress();
+      say(`${savedMessage(result, foods)}. Abre el siguiente producto y vuelve a tocar el botón.`, "ok");
+      refreshProgress(true);
+    };
+    save.addEventListener("click", () => trySave(false));
+    replaceYes.addEventListener("click", () => trySave(true));
+    replaceNo.addEventListener("click", () => {
+      hideConfirm();
+      say("Nada cambió. Elige el alimento correcto en la lista y vuelve a tocar Guardar.");
+      search.focus();
     });
 
     box.append(
@@ -263,6 +301,7 @@ function main(): void {
       reviewedRow,
       el("label", { className: "check" }, [attest, document.createTextNode("Tengo Bucaramanga seleccionada en esta tienda")]),
       el("div", { className: "row" }, [save]),
+      confirmBox,
     );
     fillOptions();
     refreshPack();

@@ -1,0 +1,88 @@
+{
+  "id": "sopa_de_lentejas",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Sopa de lentejas con verduras",
+    "en": "Lentil and vegetable soup"
+  },
+  "slots": [
+    "almuerzo",
+    "cena"
+  ],
+  "minutes": 40,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": true,
+    "keepsDays": 3
+  },
+  "lines": [
+    {
+      "food": "lentejas",
+      "qty": 60,
+      "role": "protein"
+    },
+    {
+      "food": "papa",
+      "qty": 100,
+      "role": "carb"
+    },
+    {
+      "food": "zanahoria",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "tomate_chonto",
+      "qty": 50,
+      "role": "veg"
+    },
+    {
+      "food": "cebolla_cabezona",
+      "qty": 30,
+      "role": "veg"
+    },
+    {
+      "food": "ajo",
+      "qty": 2,
+      "role": "fixed"
+    },
+    {
+      "food": "aceite_vegetal",
+      "qty": 3,
+      "role": "condiment"
+    },
+    {
+      "food": "sal",
+      "qty": 1,
+      "role": "fixed"
+    },
+    {
+      "food": "cilantro",
+      "qty": 5,
+      "role": "fixed",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava las lentejas y ponlas en una olla con 4 tazas de agua, a fuego medio.",
+      "Mientras hierven, pela y pica la papa y la zanahoria en cuadritos.",
+      "A los 15 minutos, échalas a la olla.",
+      "Pica el tomate, la cebolla y el ajo, y cocínalos en una sartén con el aceite 5 minutos.",
+      "Échalos a la olla con la sal y deja 15 minutos más, hasta que la papa esté blanda.",
+      "Sirve caliente con cilantro picado. Lo que sobre dura hasta 3 días en la nevera."
+    ],
+    "en": [
+      "Rinse the lentils and put them in a pot with 4 cups of water, over medium heat.",
+      "While they boil, peel and dice the potato and carrot.",
+      "After 15 minutes, add them to the pot.",
+      "Chop the tomato, onion and garlic, and cook them in a pan with the oil for 5 minutes.",
+      "Add them to the pot with the salt and cook 15 more minutes, until the potato is soft.",
+      "Serve hot with chopped cilantro. Leftovers keep up to 3 days in the fridge."
+    ]
+  }
+}

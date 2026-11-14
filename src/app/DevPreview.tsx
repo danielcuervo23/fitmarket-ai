@@ -6,6 +6,7 @@ import { BudgetScreen } from "./components/setup/BudgetScreen";
 import { BudgetShortfallPanel } from "./components/generation/BudgetShortfallPanel";
 import { ChatScreen } from "./components/plan/ChatScreen";
 import { GenerationProblemPanel } from "./components/generation/GenerationProblemPanel";
+import { GoalsUnreachablePanel } from "./components/generation/GoalsUnreachablePanel";
 import { DashboardView } from "./components/plan/DashboardScreen";
 import { DietaryRestrictionsScreen } from "./components/setup/DietaryRestrictionsScreen";
 import { GoalsScreen } from "./components/setup/GoalsScreen";
@@ -14,7 +15,8 @@ import { ProfileScreen } from "./components/setup/ProfileScreen";
 import { ProfileSettingsScreen } from "./components/account/ProfileSettingsScreen";
 import { SupermarketsScreen } from "./components/setup/SupermarketsScreen";
 import { WeeklyMenuScreen } from "./components/plan/WeeklyMenuScreen";
-import { MOCK_DASHBOARD, MOCK_PLAN } from "./devMockData";
+import type { WeeklyPlan } from "@/lib/ai/types";
+import { MOCK_DASHBOARD, MOCK_PLAN, MOCK_RECIPE_PLAN } from "./devMockData";
 
 /**
  * Development-only gallery: /__preview/<name> renders a screen without
@@ -57,12 +59,18 @@ function ProblemPreview({ code }: { code: keyof typeof PREVIEW_MESSAGES }) {
 }
 
 /** Seeds the plan context with sample data so plan screens have content. */
-function WithPlan({ children }: { children: ReactNode }) {
+function WithPlan({
+  children,
+  plan = MOCK_PLAN,
+}: {
+  children: ReactNode;
+  plan?: WeeklyPlan;
+}) {
   const { setPlan } = usePlan();
 
   useEffect(() => {
-    setPlan(MOCK_PLAN);
-  }, [setPlan]);
+    setPlan(plan);
+  }, [setPlan, plan]);
 
   return <>{children}</>;
 }
@@ -100,6 +108,11 @@ const SCREENS: Record<string, () => ReactNode> = {
       <WeeklyMenuScreen onTabChange={noop} onGeneratePlan={noop} />
     </WithPlan>
   ),
+  "menu-recipes": () => (
+    <WithPlan plan={MOCK_RECIPE_PLAN}>
+      <WeeklyMenuScreen onTabChange={noop} onGeneratePlan={noop} />
+    </WithPlan>
+  ),
   market: () => (
     <MarketView
       data={MOCK_DASHBOARD}
@@ -127,6 +140,46 @@ const SCREENS: Record<string, () => ReactNode> = {
       }}
       onSaveAndRegenerate={async () => null}
       onRetry={noop}
+      onAdjustSettings={noop}
+    />
+  ),
+  unreachable: () => (
+    <GoalsUnreachablePanel
+      error={{
+        kind: "goals_unreachable",
+        conflicts: [
+          { rule: "protein_min", level: 2, unit: "g_per_kg", target: 1.6, achieved: 1.32 },
+          { rule: "fiber_min", level: 3, unit: "g", target: 25, achieved: 18.4 },
+          { rule: "sodium_max", level: 3, unit: "mg", target: 2000, achieved: 2412 },
+          { rule: "brand_new_rule", level: 3, unit: "g", target: 1, achieved: 0 },
+        ],
+        budgetOption: {
+          currentBudget: 150_000,
+          requiredBudget: 172_000,
+          recommendedIncrease: 22_000,
+        },
+        canForce: true,
+      }}
+      canForce
+      onForce={noop}
+      onSaveBudgetAndRegenerate={async () => null}
+      onAdjustSettings={noop}
+    />
+  ),
+  "unreachable-no-budget": () => (
+    <GoalsUnreachablePanel
+      error={{
+        kind: "goals_unreachable",
+        conflicts: [
+          { rule: "kcal_range", level: 2, unit: "kcal", target: 2900, achieved: 3120 },
+          { rule: "legumes_week", level: 3, unit: "count", target: 2, achieved: 1 },
+        ],
+        budgetOption: null,
+        canForce: true,
+      }}
+      canForce
+      onForce={noop}
+      onSaveBudgetAndRegenerate={async () => null}
       onAdjustSettings={noop}
     />
   ),

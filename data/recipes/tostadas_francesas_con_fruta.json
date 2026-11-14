@@ -1,0 +1,89 @@
+{
+  "id": "tostadas_francesas_con_fruta",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Tostadas francesas con fruta",
+    "en": "French toast with fruit"
+  },
+  "slots": [
+    "desayuno",
+    "snacks"
+  ],
+  "minutes": 15,
+  "level": "basic",
+  "appliances": [
+    "estufa"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "pan_tajado",
+      "qty": 50,
+      "role": "carb"
+    },
+    {
+      "food": "huevo",
+      "qty": 1,
+      "role": "protein"
+    },
+    {
+      "food": "leche_entera",
+      "qty": 50,
+      "role": "protein",
+      "alternatives": [
+        {
+          "food": "leche_deslactosada",
+          "qty": 50
+        }
+      ]
+    },
+    {
+      "food": "mantequilla",
+      "qty": 5,
+      "role": "fat",
+      "alternatives": [
+        {
+          "food": "aceite_vegetal",
+          "qty": 5
+        }
+      ]
+    },
+    {
+      "food": "fresa",
+      "qty": 80,
+      "role": "veg",
+      "alternatives": [
+        {
+          "food": "banano",
+          "qty": 1
+        },
+        {
+          "food": "mango",
+          "qty": 80
+        }
+      ]
+    }
+  ],
+  "steps": {
+    "es": [
+      "Rompe el huevo en un plato hondo. Lávate las manos después de tocar el huevo crudo.",
+      "Échale la leche y bate (mezcla rápido con un tenedor) hasta que se una.",
+      "Moja cada tajada de pan en la mezcla por los dos lados.",
+      "Calienta la grasa en una sartén a fuego medio.",
+      "Cocina el pan 2 minutos por cada lado, hasta que esté dorado (color café claro).",
+      "Sirve con la fruta picada encima."
+    ],
+    "en": [
+      "Crack the egg into a bowl. Wash your hands after touching the raw egg.",
+      "Add the milk and beat it (mix fast with a fork) until blended.",
+      "Dip each slice of bread in the mix on both sides.",
+      "Heat the fat in a pan over medium heat.",
+      "Cook the bread 2 minutes on each side, until golden (light brown).",
+      "Serve with the chopped fruit on top."
+    ]
+  }
+}

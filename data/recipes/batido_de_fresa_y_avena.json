@@ -1,0 +1,79 @@
+{
+  "id": "batido_de_fresa_y_avena",
+  "status": "approved",
+  "source": "ai_draft",
+  "name": {
+    "es": "Batido de fresa y avena",
+    "en": "Strawberry and oat smoothie"
+  },
+  "slots": [
+    "desayuno",
+    "snacks"
+  ],
+  "minutes": 5,
+  "level": "basic",
+  "appliances": [
+    "licuadora"
+  ],
+  "batch": {
+    "ok": false,
+    "keepsDays": 1
+  },
+  "lines": [
+    {
+      "food": "leche_entera",
+      "qty": 250,
+      "role": "protein",
+      "alternatives": [
+        {
+          "food": "leche_deslactosada",
+          "qty": 250
+        }
+      ]
+    },
+    {
+      "food": "fresa",
+      "qty": 120,
+      "role": "veg",
+      "alternatives": [
+        {
+          "food": "mora",
+          "qty": 120,
+          "name": {
+            "es": "Batido de mora y avena",
+            "en": "Blackberry and oat smoothie"
+          }
+        },
+        {
+          "food": "mango",
+          "qty": 120,
+          "name": {
+            "es": "Batido de mango y avena",
+            "en": "Mango and oat smoothie"
+          }
+        }
+      ],
+      "inName": true
+    },
+    {
+      "food": "avena",
+      "qty": 20,
+      "role": "carb",
+      "optional": true
+    }
+  ],
+  "steps": {
+    "es": [
+      "Lava la fruta y quítale las hojitas o la cáscara, si tiene.",
+      "Pon en la licuadora la leche, la fruta y, si quieres, la avena.",
+      "Licúa 1 minuto, hasta que quede suave.",
+      "Sírvelo enseguida, sin agregarle azúcar."
+    ],
+    "en": [
+      "Wash the fruit and remove any leaves or peel.",
+      "Put the milk, the fruit and, if you like, the oats in the blender.",
+      "Blend for 1 minute, until smooth.",
+      "Serve it right away, without adding sugar."
+    ]
+  }
+}

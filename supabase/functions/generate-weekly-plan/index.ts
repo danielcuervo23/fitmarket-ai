@@ -15,6 +15,15 @@ import {
   MAX_MODEL_CALLS_CEILING,
   MAX_TIME_BUDGET_MS,
 } from "../_shared/planner/callBudget.ts";
+import { readGenerationRequestBody } from "../_shared/generationRequest.ts";
+import { failureResponse } from "../_shared/generationResponse.ts";
+import {
+  finishInBackground,
+  generationFingerprint,
+  reusePartialPlan,
+  storePartialWeek,
+  type PartialPlanClient,
+} from "../_shared/partialPlanStore.ts";
 import { generatePlan } from "../_shared/planner/generate.ts";
 import { respondWithGeneratedPlan } from "../_shared/planStorage.ts";
 import { positiveIntOr, shouldRefund } from "../_shared/quota.ts";
@@ -91,6 +100,12 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Read before any quota write. Capped at MAX_BODY_CHARS; anything invalid
+    // (or the `{}` the old web sends) gives the defaults. Only the version is
+    // logged, never the body.
+    const requestBody = await readGenerationRequestBody(req);
+    logEvent("client_version", { version: requestBody.appVersion ?? "none" });
+
     const { data: input, error: inputError } = await buildGenerationInputFromDb(
       supabase,
       user.id,
@@ -104,6 +119,55 @@ Deno.serve(async (req: Request) => {
         },
         400,
       );
+    }
+
+    // Catalog and city prices, read with the caller's own client (never the
+    // service role). Any problem falls back to the built-in data. Loaded at
+    // most once per request, only when needed.
+    const loadDeps = async () => {
+      const plannerData = await loadPlannerData(supabase as unknown as CatalogClient, input.city, {
+        ttlMs: resolveCacheTtlMs(Deno.env.get("CATALOG_CACHE_TTL_MS")),
+      });
+      logEvent("catalog_origin", { origin: plannerData.origin });
+      return plannerDeps(plannerData);
+    };
+    let depsPromise: ReturnType<typeof loadDeps> | null = null;
+    const deps = () => (depsPromise ??= loadDeps());
+
+    // Service role client, or null when the key is not configured. Used for
+    // writes the user must not control: the refund, saving the plan and
+    // keeping the week for "Quiero el plan igual".
+    const createServiceClient = () => {
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      return serviceKey
+        ? createClient(supabaseUrl, serviceKey, {
+            // A per-request server client: no session to keep or refresh.
+            auth: { persistSession: false, autoRefreshToken: false },
+          })
+        : null;
+    };
+
+    // "Quiero el plan igual" right after a goals_unreachable answer with the
+    // same inputs: the week already computed (and paid for with that request's
+    // daily try) is taken (single use) and delivered. No OpenAI call and no
+    // quota row: it is not a new generation. Different inputs, nothing stored
+    // or an expired week fall through to a normal generation below.
+    const reused = await reusePartialPlan({
+      request: input,
+      allowPartial: requestBody.allowPartial,
+      userId: user.id,
+      client: supabase as unknown as PartialPlanClient,
+      nowMs: Date.now(),
+      deps,
+    });
+
+    if (reused) {
+      const { status, body } = await respondWithGeneratedPlan(reused, {
+        parse: parseWeeklyPlanJson,
+        client: createServiceClient(),
+        userId: user.id,
+      });
+      return json(body, status);
     }
 
     // Per-user daily quota: protects the OpenAI bill from abuse. The request is
@@ -159,14 +223,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Catalog and city prices, read with the caller's own client (never the
-    // service role). Any problem falls back to the built-in data.
-    const plannerData = await loadPlannerData(supabase as unknown as CatalogClient, input.city, {
-      ttlMs: resolveCacheTtlMs(Deno.env.get("CATALOG_CACHE_TTL_MS")),
-    });
-    logEvent("catalog_origin", { origin: plannerData.origin });
+    // "Quiero el plan igual" travels with the input (it relaxes only level 2-5 rules).
+    const generationInput = { ...input, allowPartial: requestBody.allowPartial };
 
-    const outcome = await generatePlan(input, callOpenAI, {
+    const outcome = await generatePlan(generationInput, callOpenAI, {
       maxModelCalls: positiveIntOr(
         Deno.env.get("GENERATION_MAX_MODEL_CALLS"),
         DEFAULT_MAX_MODEL_CALLS,
@@ -179,19 +239,7 @@ Deno.serve(async (req: Request) => {
           DEFAULT_TIME_BUDGET_MS,
           MAX_TIME_BUDGET_MS,
         ),
-    }, plannerDeps(plannerData));
-
-    // Service role client, or null when the key is not configured. Used for
-    // writes the user must not control: the refund below and saving the plan.
-    const createServiceClient = () => {
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-      return serviceKey
-        ? createClient(supabaseUrl, serviceKey, {
-            // A per-request server client: no session to keep or refresh.
-            auth: { persistSession: false, autoRefreshToken: false },
-          })
-        : null;
-    };
+    }, await deps());
 
     // A try that failed because of us gives the user their try back. Users
     // cannot delete their own rows (so they cannot reset the counter), which
@@ -229,21 +277,28 @@ Deno.serve(async (req: Request) => {
       return json(body, status);
     }
 
-    const { code, message, budget, diagnostics } = outcome.error;
+    // Keep the week so "Quiero el plan igual" with the same inputs reuses it.
+    if (outcome.error.code === "goals_unreachable" && outcome.reusable) {
+      // The price date of the fingerprint is the one this request started on.
+      // In the background: the goals_unreachable answer does not wait for it.
+      const fingerprint = await generationFingerprint(input, startedAt);
+      await finishInBackground(
+        storePartialWeek(
+          createServiceClient() as unknown as PartialPlanClient | null,
+          user.id,
+          fingerprint,
+          outcome.reusable,
+          Date.now(),
+        ),
+      );
+    }
 
-    if (shouldRefund(code, outcome.usage)) {
+    if (shouldRefund(outcome.error.code, outcome.usage, outcome.refundable === true)) {
       await refund();
     }
 
-    if (code === "budget_too_low" && budget) {
-      // 200 so supabase.functions.invoke delivers the body in `data`.
-      return json({ error: "budget_too_low", code, ...budget }, 200);
-    }
-
-    const status =
-      code === "server_config" ? 503 : code === "rate_limited" ? 429 : 422;
-
-    return json({ error: message, code, diagnostics }, status);
+    const { status, payload } = failureResponse(outcome.error, requestBody);
+    return json(payload, status);
   } catch (error) {
     logUnexpected("generate-weekly-plan", error);
     return json(

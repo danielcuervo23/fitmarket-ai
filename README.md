@@ -67,21 +67,16 @@ scripts/eval-plans.mjs    Quality evaluation of the generator
 
 ## How plans are generated
 
-The AI no longer invents prices, calories or quantities. It only **chooses
-catalog ingredient ids and amounts**; the server computes the rest:
+The AI no longer invents prices, calories or quantities. It only **picks
+recipe ids from the recipe library**; the server computes the rest:
 
 1. `nutrition.ts` computes the user's daily calories and protein from their
    body data and goals.
 2. `restrictions.ts` removes every forbidden ingredient (allergies, vegan,
    free text) from the list the AI sees, so a restriction is enforced by
    construction and in any language.
-3. The AI (strict JSON schema, ingredient ids as an enum) composes 7 days of
-   Colombian-style meals.
-4. `build.ts` scales each day to the calorie target, sums the shopping list
-   into whole packs, prices it from the catalog, and swaps expensive foods for
-   cheaper equivalents until it fits the budget. If it cannot fit, the user is
-   told the real amount needed and can raise the budget and regenerate on the
-   same screen.
+3. `recipes/eligibility.ts` keeps only the simple recipes (`data/recipes/`) that fit the restrictions, kitchen, cooking time and weekend-only soaking. The AI picks one recipe id per day and meal (strict JSON schema).
+4. `rules/` turns the profile and goals into safety, goal and habit rules, and `optimizer/` (HiGHS, a linear-programming solver) sets the portions and picks cheaper alternatives for the lowest cost, never over budget. If some goals cannot be met the app says exactly what to change ("goals_unreachable") and offers "Quiero el plan igual". If even the safety rules or the budget cannot be met, the user is told the real amount needed.
 5. Menu and shopping list are rendered in Spanish and English.
 
 Prices in `catalog.ts` are national references (regular prices, not
@@ -112,9 +107,15 @@ npm run dev              # http://localhost:5173
    supabase secrets set GENERATION_MAX_MODEL_CALLS=12      # optional: AI calls per plan (default 12)
    supabase secrets set GENERATION_TIME_BUDGET_MS=120000   # optional: max time per plan (default 120 s)
    supabase secrets set ALLOWED_ORIGINS=https://your-domain.app,http://localhost:5173
+   # generate-weekly-plan ships the LP solver's highs.wasm as a static file:
+   # with Docker running, copy it right before deploying. Never use --use-api.
+   npm ci && npm run functions:wasm
    supabase functions deploy generate-weekly-plan
    supabase functions deploy delete-account
    ```
+
+   `npm run deploy:plan-fn` does the copy and the `generate-weekly-plan`
+   deploy in one step (run `npm ci` first).
 
 3. In the Supabase dashboard (Authentication): require email confirmation,
    raise the minimum password length, and add your site URL to the redirect
@@ -131,6 +132,8 @@ npm run dev              # http://localhost:5173
 | `npm test` | Unit tests: catalog, targets, planner pipeline (fake model), helpers |
 | `npm run eval` | Runs the real generator on 12 profiles and prints quality metrics (needs `OPENAI_API_KEY`, costs a little) |
 | `npm run check` | All of the above checks |
+| `npm run functions:wasm` | Copies the LP solver's `highs.wasm` into `generate-weekly-plan` (needed before every deploy of that function; fails if `npm ci` was not run) |
+| `npm run deploy:plan-fn` | `functions:wasm`, then `supabase functions deploy generate-weekly-plan` (Docker must be running) |
 
 In development, `/__preview/<screen>` (for example `/__preview/dashboard`)
 renders screens with sample data and no account. It is excluded from
