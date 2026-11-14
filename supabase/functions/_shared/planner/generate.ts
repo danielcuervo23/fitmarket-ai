@@ -26,6 +26,7 @@ import {
   type OptimizeResult,
 } from "./optimizer/optimize.ts";
 import type { PriceBook } from "./priceBook.ts";
+import { budgetTooLowFields, restrictionsTooStrictFields } from "./outcomeEvents.ts";
 import { createAiRecipePicker, type RecipePicker } from "./recipePicker.ts";
 import { allowedCatalog, buildRestrictionRules, isAllowed, type RestrictionRules } from "./restrictions.ts";
 import { evaluateWeek } from "./rules/evaluate.ts";
@@ -207,6 +208,7 @@ function budgetTooLow(current: number, required: number): GenerateFailureError {
 function budgetFloorFailure(input: GenerateInput): GenerateFailure | null {
   const floor = MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
   if (input.weeklyBudgetCop >= floor) return null;
+  logEvent("plan_budget_too_low", budgetTooLowFields("floor", input.householdSize, input.weeklyBudgetCop, floor));
   return {
     error: {
       ...budgetTooLow(input.weeklyBudgetCop, floor),
@@ -251,6 +253,7 @@ export async function generatePlan(
 
   const coverage = recipeCoverage(context.eligibleList);
   if (!coverage.ok) {
+    logEvent("plan_restrictions_too_strict", restrictionsTooStrictFields(coverage.availableRecipes));
     return {
       error: {
         code: "restrictions_too_strict",
@@ -471,6 +474,10 @@ async function runAttempts(
     // over_budget or infeasible: a relaxed week found earlier still wins.
     if (best) break;
     if (result.status === "over_budget") {
+      logEvent(
+        "plan_budget_too_low",
+        budgetTooLowFields("optimizer", input.householdSize, input.weeklyBudgetCop, result.requiredBudgetCop),
+      );
       return result.requiredBudgetCop !== null
         ? { error: { ...budgetTooLow(input.weeklyBudgetCop, result.requiredBudgetCop), diagnostics: diagnostics() } }
         : fail("budget_too_low", "La lista de mercado supera tu presupuesto semanal.");
@@ -509,7 +516,9 @@ function decide(context: Context, result: OptimizeResult): GenerateFailure | { p
   // The optimizer already guarantees it; this is the last guard before shipping.
   if (plan.summary.estimated_total_cop > input.weeklyBudgetCop) {
     logEvent("plan_over_budget", { step: "assemble" });
-    return { error: budgetTooLow(input.weeklyBudgetCop, Math.ceil(plan.summary.estimated_total_cop / 1000) * 1000) };
+    const required = Math.ceil(plan.summary.estimated_total_cop / 1000) * 1000;
+    logEvent("plan_budget_too_low", budgetTooLowFields("assemble", input.householdSize, input.weeklyBudgetCop, required));
+    return { error: budgetTooLow(input.weeklyBudgetCop, required) };
   }
   logEvent("plan_generated", { status: blockers.length > 0 ? "partial" : "full" });
   return { plan };

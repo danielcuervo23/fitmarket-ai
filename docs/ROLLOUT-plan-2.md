@@ -97,7 +97,8 @@ Si el plan 1 ya estuviera en producción, se salta lo que ya esté hecho y se si
   - `plan_attempt_rejected`: intentos que se descartaron (con su código).
   - `generation_usage`: cuánto se gastó en llamadas al modelo.
   - `optimizer_result` (campo `cpu_ms`), `optimizer_cpu_exhausted` y `lp_load_failed`: el CPU del optimizador y si la calculadora no cargó.
-- **Pendiente antes del lanzamiento:** `budget_too_low` y `restrictions_too_strict` **hoy no dejan ningún evento en los registros**: solo se ven en la app o en las respuestas HTTP. Hay que agregar un evento para cada uno antes de lanzar, para poder medirlos.
+  - `plan_budget_too_low`: se respondió `budget_too_low` (una vez por petición). `step` dice dónde se decidió: `floor` (por debajo del mínimo de 130.000 pesos por persona, sin gastar llamadas), `optimizer` (el contador no logró una compra dentro del presupuesto) o `assemble` (la última revisión de la lista de mercado). `household` es el tamaño del hogar (de 6 en adelante se anota 6) y `budget_ratio` dice, por cuartos, qué parte del presupuesto necesario tenía la persona (`lt_0.25`, `0.25_0.5`, `0.5_0.75`, `0.75_1` o `unknown`). Nunca se anota el presupuesto exacto.
+  - `plan_restrictions_too_strict`: se respondió `restrictions_too_strict` (una vez por petición). `slots` dice qué comidas se quedaron sin recetas suficientes (por ejemplo `almuerzo,cena`), `short_slots` cuántas son y `min_recipes` cuántas recetas quedaron en la comida más pobre. Nunca se anotan las restricciones de la persona.
 - **Comprobar:** ningún aumento raro de esos avisos y el CPU sigue bajo 900 ms. Si un perfil frecuente recibe `restrictions_too_strict` es porque hay pocas recetas para ese caso (por ejemplo, veganos que no cocinan): **agregar recetas**, por PR y con el OK del dueño.
 - **Deshacer:** se corrige y se vuelve a desplegar; ver el "Deshacer" de cada paso.
 
