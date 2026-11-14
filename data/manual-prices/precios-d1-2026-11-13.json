@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 2,
+  "store": "D1",
+  "city": "bucaramanga",
+  "capturedOn": "2026-11-13",
+  "cityAttested": true,
+  "entries": [
+    {
+      "foodId": "arroz_blanco",
+      "externalId": "1379",
+      "name": "Arroz Estándar Albar 500 Grs",
+      "packSize": 500,
+      "url": "https://www.d1.com.co/arroz-estandar-albar-500grs-12000051/p",
+      "regularPriceCop": 1750,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "lentejas",
+      "externalId": "1381",
+      "name": "Lenteja el Estío 500 Grs",
+      "packSize": 500,
+      "url": "https://www.d1.com.co/lenteja-el-estio-500g-12000042/p",
+      "regularPriceCop": 1590,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "frijol",
+      "externalId": "1574",
+      "name": "Frijol Rojo el Estio 500 G",
+      "packSize": 500,
+      "url": "https://www.d1.com.co/frijol-rojo-el-estio-500-g-12004975/p",
+      "regularPriceCop": 2990,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "harina_maiz",
+      "externalId": "1116",
+      "name": "Harina de Maiz Blanco Quicksy X 1 Kg",
+      "packSize": 1000,
+      "url": "https://www.d1.com.co/harina-maiz-blanco-quicksy-1kg-12001208/p",
+      "regularPriceCop": 2550,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "avena",
+      "externalId": "1541",
+      "name": "Avena en Hojuelas Fit Graan 400 G",
+      "packSize": 400,
+      "url": "https://www.d1.com.co/avena-en-hojuelas-fit-graan-400-g-12007754/p",
+      "regularPriceCop": 2250,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "pan_tajado",
+      "externalId": "1172",
+      "name": "Pan Tajado Blanco Horneaditos 450 Grs",
+      "packSize": 450,
+      "url": "https://www.d1.com.co/pan-tajado-blanco-horneaditos-450g-12000050/p",
+      "regularPriceCop": 2990,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "aceite_vegetal",
+      "externalId": "597",
+      "name": "Aceite de Canola Don Olio 900 Ml",
+      "packSize": 900,
+      "url": "https://www.d1.com.co/aceite-canola-don-olio-12004356/p",
+      "regularPriceCop": 9990,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "aceite_oliva",
+      "externalId": "708",
+      "name": "Aceite Oliva Extravir Castell D F 500 Ml",
+      "packSize": 500,
+      "url": "https://www.d1.com.co/aceite-oliva-extravirgen-castell-de-ferro-12000330/p",
+      "regularPriceCop": 16950,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "tomate_chonto",
+      "externalId": "1024",
+      "name": "Tomate Chonto X 1000 G",
+      "packSize": 1000,
+      "url": "https://www.d1.com.co/tomate-chonto-x-1000g-12005556/p",
+      "regularPriceCop": 4900,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "cebolla_cabezona",
+      "externalId": "1019",
+      "name": "Cebolla Cabezona X 1000 G",
+      "packSize": 1000,
+      "url": "https://www.d1.com.co/cebolla-cabezona-x-1000g-12005767/p",
+      "regularPriceCop": 4600,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "cebolla_junca",
+      "externalId": "201",
+      "name": "Cebolla Larga 500 Gr",
+      "packSize": 500,
+      "url": "https://www.d1.com.co/cebolla-larga-500g-12003363/p",
+      "regularPriceCop": 4100,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "zanahoria",
+      "externalId": "662",
+      "name": "Zanahoria X 1000 G",
+      "packSize": 1000,
+      "url": "https://www.d1.com.co/zanahoria-x-1000g-12002258/p",
+      "regularPriceCop": 2800,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "lechuga",
+      "externalId": "815",
+      "name": "Lechuga Verde Crespa X 180 G",
+      "packSize": 180,
+      "url": "https://www.d1.com.co/lechuga-verde-crespa-x-180g-12005805/p",
+      "regularPriceCop": 2990,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "aguacate",
+      "externalId": "1435",
+      "name": "Aguacate Hass Unidad",
+      "packSize": 1,
+      "url": "https://www.d1.com.co/aguacate-hass-unidad-12006122/p",
+      "regularPriceCop": 1900,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "banano",
+      "externalId": "145",
+      "name": "Banano Unidad",
+      "packSize": 1,
+      "url": "https://www.d1.com.co/banano-12005468/p",
+      "regularPriceCop": 550,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    },
+    {
+      "foodId": "atun_lata",
+      "externalId": "836",
+      "name": "Atún en Agua Carlo Forte 170 G Neto",
+      "packSize": 170,
+      "url": "https://www.d1.com.co/atun-en-agua-carlo-forte-170g-12004370/p",
+      "regularPriceCop": 4450,
+      "observedOn": "2026-11-13",
+      "packConfirmed": true
+    }
+  ]
+}
