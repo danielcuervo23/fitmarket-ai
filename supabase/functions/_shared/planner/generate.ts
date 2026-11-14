@@ -205,9 +205,15 @@ function budgetTooLow(current: number, required: number): GenerateFailureError {
   };
 }
 
+const budgetFloorOf = (input: GenerateInput): number => MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
+
+/** Pure check (no logging), so reuse can refuse without counting a budget_too_low answer. */
+const isBelowFloor = (input: GenerateInput): boolean => input.weeklyBudgetCop < budgetFloorOf(input);
+
+/** The generation path's floor answer; logs plan_budget_too_low (once per request). */
 function budgetFloorFailure(input: GenerateInput): GenerateFailure | null {
-  const floor = MIN_WEEKLY_BUDGET_PER_PERSON_COP * input.householdSize;
-  if (input.weeklyBudgetCop >= floor) return null;
+  if (!isBelowFloor(input)) return null;
+  const floor = budgetFloorOf(input);
   logEvent("plan_budget_too_low", budgetTooLowFields("floor", input.householdSize, input.weeklyBudgetCop, floor));
   return {
     error: {
@@ -605,7 +611,7 @@ function readMeal(raw: unknown, context: Context, day: Day, slot: Slot): Compose
  * anything fails (the caller then generates normally).
  */
 export function planFromPartial(input: GenerateInput, stored: unknown, deps: PlannerDeps = {}): BuiltPlan | null {
-  if (!isRecord(stored) || !isRecord(stored.week) || budgetFloorFailure(input)) return null;
+  if (!isRecord(stored) || !isRecord(stored.week) || isBelowFloor(input)) return null;
 
   let context: Context;
   try {

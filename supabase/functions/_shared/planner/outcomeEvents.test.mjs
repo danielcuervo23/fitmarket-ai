@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { before, test } from "node:test";
 import { baseInput, enumModel, loadSolver, rotationModel } from "./generate.fixtures.mjs";
-import { generatePlan } from "./generate.ts";
+import { generatePlan, planFromPartial } from "./generate.ts";
 import { optimizeWeek } from "./optimizer/optimize.ts";
 import { budgetRatioBucket, budgetTooLowFields, restrictionsTooStrictFields } from "./outcomeEvents.ts";
 
@@ -133,6 +133,18 @@ test("assemble guard (shopping list over budget): plan_budget_too_low once, step
   assert.equal(hits[0].step, "assemble");
   assert.equal(hits[0].household, 1);
   assertSafe(hits[0], BUDGET_KEYS);
+});
+
+test("reuse below the floor, then normal generation: plan_budget_too_low at most once", async () => {
+  const input = { ...baseInput, weeklyBudgetCop: 100_000, allowPartial: true };
+  const { result, events } = await captureEvents(async () => {
+    assert.equal(planFromPartial(input, { week: {} }), null, "reuse refuses a budget under the floor");
+    return generatePlan(input, rotationModel());
+  });
+  assert.equal(result.error.code, "budget_too_low");
+  const hits = named(events, "plan_budget_too_low");
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].step, "floor");
 });
 
 // ---------------------------------------------------------------- restrictions_too_strict
